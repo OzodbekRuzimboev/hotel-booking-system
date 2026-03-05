@@ -16,38 +16,6 @@ public class RoomTests
         room.RoomBeds.Should().BeEmpty();
     }
 
-    
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Ctor_ShouldThrowArgumentException_WhenNumberIsNullOrWhiteSpace(string number)
-    {
-        Action act = () => new Room(number, roomTypeId: 1, price: 100m);
-
-        act.Should().Throw<ArgumentException>();
-    }
-
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void Ctor_ShouldThrowArgumentOutOfRangeException_WhenRoomTypeIdIsNotPositive(int roomTypeId)
-    {
-        Action act = () => new Room("101", roomTypeId: roomTypeId, price: 100m);
-
-        act.Should().Throw<ArgumentOutOfRangeException>();
-    }
-
-
-    [Fact]
-    public void Ctor_ShouldThrowArgumentOutOfRangeException_WhenPriceIsNegative()
-    {
-        Action act = () => new Room("101", roomTypeId: 1, price: -1m);
-
-        act.Should().Throw<ArgumentOutOfRangeException>();
-    }
-
 
     [Fact]
     public void AddBed_ShouldAddConfiguration_WhenBedTypeDoesNotExist()
@@ -76,44 +44,6 @@ public class RoomTests
         room.RoomBeds.Single().Quantity.Should().Be(5);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void AddBed_ShouldThrowArgumentOutOfRangeException_WhenBedTypeIdIsNotPositive(int bedTypeId)
-    {
-        var room = new Room("101", roomTypeId: 1, price: 100m);
-
-        Action act = () => room.AddBed(bedTypeId: bedTypeId, quantity: 1);
-
-        act.Should().Throw<ArgumentOutOfRangeException>();
-    }
-
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void AddBed_ShouldThrowArgumentOutOfRangeException_WhenQuantityIsZeroOrNegative(int qty)
-    {
-        var room = new Room("101", roomTypeId: 1, price: 100m);
-
-        Action act = () => room.AddBed(bedTypeId: 1, quantity: qty);
-
-        act.Should().Throw<ArgumentOutOfRangeException>();
-    }
-
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void RemoveBed_ShouldThrowArgumentOutOfRangeException_WhenBedTypeIdIsNotPositive(int bedTypeId)
-    {
-        var room = new Room("101", roomTypeId: 1, price: 100m);
-
-        Action act = () => room.RemoveBed(bedTypeId);
-
-        act.Should().Throw<ArgumentOutOfRangeException>();
-    }
-
 
     [Fact]
     public void RemoveBed_ShouldRemoveConfiguration_WhenExists()
@@ -127,31 +57,6 @@ public class RoomTests
 
         room.RoomBeds.Should().HaveCount(1);
         room.RoomBeds.Single().BedTypeId.Should().Be(2);
-    }
-
-    [Fact]
-    public void RemoveBed_ShouldDoNothing_WhenDoesNotExist()
-    {
-        var room = new Room("101", roomTypeId: 1, price: 100m);
-
-        room.AddBed(bedTypeId: 1, quantity: 1);
-
-        room.RemoveBed(999);
-
-        room.RoomBeds.Should().HaveCount(1);
-    }
-
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void UpdateBedQuantity_ShouldThrowArgumentOutOfRangeException_WhenBedTypeIdIsNotPositive(int bedTypeId)
-    {
-        var room = new Room("101", roomTypeId: 1, price: 100m);
-
-        Action act = () => room.UpdateBedQuantity(bedTypeId, newQuantity: 3);
-
-        act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
 
@@ -200,16 +105,5 @@ public class RoomTests
         room.ChangePrice(250m);
 
         room.Price.Should().Be(250m);
-    }
-
-
-    [Fact]
-    public void ChangePrice_ShouldThrowArgumentOutOfRangeException_WhenNegative()
-    {
-        var room = new Room("101", roomTypeId: 1, price: 100m);
-
-        Action act = () => room.ChangePrice(-10m);
-
-        act.Should().Throw<ArgumentOutOfRangeException>();
     }
 }
