@@ -44,5 +44,13 @@ namespace HotelBookingSystem.Api.Controllers
                 });
             }
         }
+
+        [HttpGet("user/{userId}")]
+        public IActionResult GetBookings(int userId)
+        {
+            var bookings = _service.GetBookings(userId);
+
+            return Ok(bookings);
+        }
     }
 }

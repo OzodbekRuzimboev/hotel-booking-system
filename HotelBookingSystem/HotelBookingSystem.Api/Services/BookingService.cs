@@ -42,5 +42,19 @@ namespace HotelBookingSystem.Api.Services
 
             return booking;
         }
+
+        public List<BookingResponse> GetBookings(int userId)
+        {
+            var bookings = _context.Bookings.Where(b => b.UserId == userId).Select(b => new BookingResponse
+            {
+                Id = b.Id,
+                UserId = b.UserId,
+                RoomId = b.RoomId,
+                CheckInDate = b.CheckInDate,
+                CheckOutDate = b.CheckOutDate
+            }).ToList();
+
+            return bookings;
+        }
     }
 }
