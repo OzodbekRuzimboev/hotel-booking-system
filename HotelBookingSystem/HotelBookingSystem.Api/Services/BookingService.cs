@@ -2,6 +2,7 @@
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingSystem.Api.Services
 {
@@ -14,15 +15,20 @@ namespace HotelBookingSystem.Api.Services
             _context = context;
         }
 
-        public Booking CreateBooking(CreateBookingRequest req)
+        public async Task<Booking> CreateBookingAsync(CreateBookingRequest req)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == req.UserId) ?? throw new NotFoundException("User not found.");
-            var room = _context.Rooms.FirstOrDefault(r => r.Id == req.RoomId) ?? throw new NotFoundException("Room not found.");
+            var userExists = await _context.Users.AnyAsync(u => u.Id == req.UserId);
+
+            if (!userExists) 
+                throw new NotFoundException("User not found.");
+
+            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == req.RoomId) 
+                ?? throw new NotFoundException("Room not found.");
 
             if (req.CheckInDate >= req.CheckOutDate)
                 throw new ValidationException("Check-in date must be earlier than check-out date.");
 
-            var isTaken = _context.Bookings.Any(b => b.RoomId == req.RoomId &&
+            var isTaken = await _context.Bookings.AnyAsync(b => b.RoomId == req.RoomId &&
                                                 req.CheckInDate < b.CheckOutDate &&
                                                 req.CheckOutDate > b.CheckInDate);
             if (isTaken)
@@ -38,21 +44,21 @@ namespace HotelBookingSystem.Api.Services
             };
 
             _context.Bookings.Add(booking);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return booking;
         }
 
-        public List<BookingResponse> GetBookings(int userId)
+        public async Task<List<BookingResponse>> GetBookingsAsync(int userId)
         {
-            var bookings = _context.Bookings.Where(b => b.UserId == userId).Select(b => new BookingResponse
+            var bookings = await _context.Bookings.AsNoTracking().Where(b => b.UserId == userId).Select(b => new BookingResponse
             {
                 Id = b.Id,
                 UserId = b.UserId,
                 RoomId = b.RoomId,
                 CheckInDate = b.CheckInDate,
                 CheckOutDate = b.CheckOutDate
-            }).ToList();
+            }).ToListAsync();
 
             return bookings;
         }

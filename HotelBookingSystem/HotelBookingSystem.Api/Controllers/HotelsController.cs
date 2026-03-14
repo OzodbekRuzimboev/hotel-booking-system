@@ -17,23 +17,23 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetHotels()
+        public async Task<IActionResult> GetHotels()
         {
-            var hotels = _context.Hotels.Select(h => new HotelResponse
+            var hotels = await _context.Hotels.AsNoTracking().Select(h => new HotelResponse
             {
                 Id = h.Id,
                 Name = h.Name,
                 City = h.City,
                 Address = h.Address
-            }).ToList();
+            }).ToListAsync();
 
             return Ok(hotels);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetHotelById(int id)
+        public async Task<IActionResult> GetHotelById(int id)
         {
-            var hotel = _context.Hotels.Include(h => h.Rooms).SingleOrDefault(h => h.Id == id);
+            var hotel = await _context.Hotels.AsNoTracking().Include(h => h.Rooms).FirstOrDefaultAsync(h => h.Id == id);
 
             if (hotel == null)
                 return NotFound();
