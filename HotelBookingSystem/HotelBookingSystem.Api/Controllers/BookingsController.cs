@@ -1,5 +1,4 @@
 ﻿using HotelBookingSystem.Api.Contracts;
-using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Exceptions;
 using HotelBookingSystem.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,21 +9,19 @@ namespace HotelBookingSystem.Api.Controllers
     [Route("api/[controller]")]
     public class BookingsController : ControllerBase
     {
-        private readonly AppDbContext _context;
         private readonly BookingService _service;
 
-        public BookingsController(AppDbContext context, BookingService service)
+        public BookingsController(BookingService service)
         {
-            _context = context;
             _service = service;
         }
 
         [HttpPost]
-        public IActionResult CreateBooking(CreateBookingRequest req)
+        public async Task<IActionResult> CreateBooking(CreateBookingRequest req)
         {
             try
             {
-                var booking = _service.CreateBooking(req);
+                var booking = await _service.CreateBookingAsync(req);
 
                 return Ok(new BookingResponse
                 {
@@ -46,9 +43,9 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public IActionResult GetBookings(int userId)
+        public async Task<IActionResult> GetBookings(int userId)
         {
-            var bookings = _service.GetBookings(userId);
+            var bookings = await _service.GetBookingsAsync(userId);
 
             return Ok(bookings);
         }
