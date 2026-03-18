@@ -1,4 +1,5 @@
 using HotelBookingSystem.Api.Data;
+using HotelBookingSystem.Api.Middlewares;
 using HotelBookingSystem.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -12,6 +13,8 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

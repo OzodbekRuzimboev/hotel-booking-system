@@ -29,8 +29,8 @@ namespace HotelBookingSystem.Api.Services
                 throw new ValidationException("Check-in date must be earlier than check-out date.");
 
             var isTaken = await _context.Bookings.AnyAsync(b => b.RoomId == req.RoomId &&
-                                                req.CheckInDate < b.CheckOutDate &&
-                                                req.CheckOutDate > b.CheckInDate);
+                                                           req.CheckInDate < b.CheckOutDate &&
+                                                           req.CheckOutDate > b.CheckInDate);
             if (isTaken)
                 throw new ConflictException("Room is already booked for the selected dates.");
 

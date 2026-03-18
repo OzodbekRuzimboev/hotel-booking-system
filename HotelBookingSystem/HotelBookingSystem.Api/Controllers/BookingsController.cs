@@ -19,27 +19,16 @@ namespace HotelBookingSystem.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBooking(CreateBookingRequest req)
         {
-            try
-            {
-                var booking = await _service.CreateBookingAsync(req);
+            var booking = await _service.CreateBookingAsync(req);
 
-                return Ok(new BookingResponse
-                {
-                    Id = booking.Id,
-                    UserId = booking.UserId,
-                    RoomId = booking.RoomId,
-                    CheckInDate = booking.CheckInDate,
-                    CheckOutDate = booking.CheckOutDate
-                });
-            }
-            catch (AppException ex)
+            return Ok(new BookingResponse
             {
-                return StatusCode(ex.StatusCode, new
-                {
-                    error = ex.Message,
-                    status = ex.StatusCode
-                });
-            }
+                Id = booking.Id,
+                UserId = booking.UserId,
+                RoomId = booking.RoomId,
+                CheckInDate = booking.CheckInDate,
+                CheckOutDate = booking.CheckOutDate
+            });
         }
 
         [HttpGet("user/{userId}")]
