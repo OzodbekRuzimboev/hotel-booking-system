@@ -1,5 +1,4 @@
 ﻿using HotelBookingSystem.Api.Contracts;
-using HotelBookingSystem.Api.Exceptions;
 using HotelBookingSystem.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
