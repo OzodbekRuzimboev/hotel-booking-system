@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using HotelBookingSystem.Api.Exceptions;
+﻿using HotelBookingSystem.Api.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace HotelBookingSystem.Api.Middlewares
 {
@@ -62,7 +63,14 @@ namespace HotelBookingSystem.Api.Middlewares
             string detail)
         {
             if (context.Response.HasStarted)
-                throw new InvalidOperationException("The response has already started.");
+            {
+                _logger.LogWarning(
+                    "Cannot write problem details because the response has already started. Path={Path}, TraceId={TraceId}",
+                    context.Request.Path,
+                    context.TraceIdentifier);
+
+                return;
+            }
 
             context.Response.Clear();
             context.Response.StatusCode = statusCode;
@@ -81,13 +89,7 @@ namespace HotelBookingSystem.Api.Middlewares
             await context.Response.WriteAsJsonAsync(problem);
         }
 
-        private static string GetTitle(int statusCode) => statusCode switch
-        {
-            StatusCodes.Status400BadRequest => "Bad Request",
-            StatusCodes.Status404NotFound => "Not Found",
-            StatusCodes.Status409Conflict => "Conflict",
-            StatusCodes.Status500InternalServerError => "Internal Server Error",
-            _ => "Error"
-        };
+        private static string GetTitle(int statusCode) =>
+            ReasonPhrases.GetReasonPhrase(statusCode) is { Length: > 0 } reason ? reason : "Error";
     }
 }
