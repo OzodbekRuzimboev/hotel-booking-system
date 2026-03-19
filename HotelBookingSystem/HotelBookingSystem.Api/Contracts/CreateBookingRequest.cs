@@ -5,9 +5,6 @@ namespace HotelBookingSystem.Api.Contracts
     public class CreateBookingRequest
     {
         [Range(1, int.MaxValue)]
-        public int UserId { get; set; }
-
-        [Range(1, int.MaxValue)]
         public int RoomId { get; set; }
 
         public DateOnly CheckInDate { get; set; }

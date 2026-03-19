@@ -15,9 +15,9 @@ namespace HotelBookingSystem.Api.Services
             _context = context;
         }
 
-        public async Task<Booking> CreateBookingAsync(CreateBookingRequest req)
+        public async Task<Booking> CreateBookingAsync(int userId, CreateBookingRequest req)
         {
-            var userExists = await _context.Users.AnyAsync(u => u.Id == req.UserId);
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
 
             if (!userExists) 
                 throw new NotFoundException("User not found.");
@@ -36,7 +36,7 @@ namespace HotelBookingSystem.Api.Services
 
             var booking = new Booking
             {
-                UserId = req.UserId,
+                UserId = userId,
                 RoomId = req.RoomId,
                 CheckInDate = req.CheckInDate,
                 CheckOutDate = req.CheckOutDate,
@@ -51,14 +51,15 @@ namespace HotelBookingSystem.Api.Services
 
         public async Task<List<BookingResponse>> GetBookingsAsync(int userId)
         {
-            var bookings = await _context.Bookings.AsNoTracking().Where(b => b.UserId == userId).Select(b => new BookingResponse
-            {
-                Id = b.Id,
-                UserId = b.UserId,
-                RoomId = b.RoomId,
-                CheckInDate = b.CheckInDate,
-                CheckOutDate = b.CheckOutDate
-            }).ToListAsync();
+            var bookings = await _context.Bookings.AsNoTracking().Where(b => b.UserId == userId)
+                .Select(b => new BookingResponse
+                {
+                    Id = b.Id,
+                    UserId = b.UserId,
+                    RoomId = b.RoomId,
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate
+                }).ToListAsync();
 
             return bookings;
         }

@@ -1,4 +1,5 @@
 ﻿using HotelBookingSystem.Api.Contracts;
+using HotelBookingSystem.Api.Extentions;
 using HotelBookingSystem.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +19,8 @@ namespace HotelBookingSystem.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBooking(CreateBookingRequest req)
         {
-            var booking = await _service.CreateBookingAsync(req);
+            var userId = User.GetUserId();
+            var booking = await _service.CreateBookingAsync(userId, req);
 
             return Ok(new BookingResponse
             {
@@ -30,9 +32,10 @@ namespace HotelBookingSystem.Api.Controllers
             });
         }
 
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetBookings(int userId)
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyBookings()
         {
+            var userId = User.GetUserId();
             var bookings = await _service.GetBookingsAsync(userId);
 
             return Ok(bookings);
