@@ -1,12 +1,10 @@
-﻿namespace HotelBookingSystem.Api.Contracts
+﻿namespace HotelBookingSystem.Api.Contracts.Hotels
 {
-    public class HotelDetailsResponse
+    public class HotelResponse
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public string City { get; set; } = null!;
         public string Address { get; set; } = null!;
-
-        public List<RoomResponse> Rooms { get; set; } = [];
     }
 }

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace HotelBookingSystem.Api.Contracts
+namespace HotelBookingSystem.Api.Contracts.Bookings
 {
-    public class CreateBookingRequest
+    public class CreateBookingRequest : IValidatableObject
     {
         [Range(1, int.MaxValue)]
         public int RoomId { get; set; }

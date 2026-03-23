@@ -1,4 +1,4 @@
-﻿using HotelBookingSystem.Api.Contracts;
+﻿using HotelBookingSystem.Api.Contracts.Hotels;
 using HotelBookingSystem.Api.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

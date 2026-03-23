@@ -1,4 +1,4 @@
-﻿using HotelBookingSystem.Api.Contracts;
+﻿using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Exceptions;

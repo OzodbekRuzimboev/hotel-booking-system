@@ -1,6 +1,6 @@
 ﻿using HotelBookingSystem.Api.Services;
-using HotelBookingSystem.Api.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using HotelBookingSystem.Api.Contracts.Auth;
 
 namespace HotelBookingSystem.Api.Controllers
 {

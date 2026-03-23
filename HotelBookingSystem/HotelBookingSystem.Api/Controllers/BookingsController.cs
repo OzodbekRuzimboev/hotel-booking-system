@@ -1,12 +1,14 @@
-﻿using HotelBookingSystem.Api.Contracts;
+﻿using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Extentions;
 using HotelBookingSystem.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBookingSystem.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BookingsController : ControllerBase
     {
         private readonly BookingService _service;

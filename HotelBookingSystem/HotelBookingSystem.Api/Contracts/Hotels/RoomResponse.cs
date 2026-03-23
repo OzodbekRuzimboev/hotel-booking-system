@@ -1,4 +1,4 @@
-﻿namespace HotelBookingSystem.Api.Contracts
+﻿namespace HotelBookingSystem.Api.Contracts.Hotels
 {
     public class RoomResponse
     {
