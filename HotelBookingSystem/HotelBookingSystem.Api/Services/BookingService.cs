@@ -3,12 +3,15 @@ using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace HotelBookingSystem.Api.Services
 {
     public class BookingService
     {
         private readonly AppDbContext _context;
+
+        private const string NoOverlapConstraintName = "EX_Bookings_RoomId_DateRange_NoOverlap";
 
         public BookingService(AppDbContext context)
         {
@@ -28,12 +31,6 @@ namespace HotelBookingSystem.Api.Services
             if (req.CheckInDate >= req.CheckOutDate)
                 throw new ValidationException("Check-in date must be earlier than check-out date.");
 
-            var isTaken = await _context.Bookings.AnyAsync(b => b.RoomId == req.RoomId &&
-                                                           req.CheckInDate < b.CheckOutDate &&
-                                                           req.CheckOutDate > b.CheckInDate);
-            if (isTaken)
-                throw new ConflictException("Room is already booked for the selected dates.");
-
             var booking = new Booking
             {
                 UserId = userId,
@@ -44,7 +41,16 @@ namespace HotelBookingSystem.Api.Services
             };
 
             _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsOverlappingBookingConstraint(ex))
+            {
+                throw new ConflictException("Room is already booked for the selected dates.");
+            }
+
 
             return booking;
         }
@@ -62,6 +68,13 @@ namespace HotelBookingSystem.Api.Services
                 }).ToListAsync();
 
             return bookings;
+        }
+
+        private static bool IsOverlappingBookingConstraint(DbUpdateException ex)
+        {
+            return ex.InnerException is PostgresException pg &&
+                   pg.SqlState == PostgresErrorCodes.ExclusionViolation &&
+                   pg.ConstraintName == NoOverlapConstraintName;
         }
     }
 }
