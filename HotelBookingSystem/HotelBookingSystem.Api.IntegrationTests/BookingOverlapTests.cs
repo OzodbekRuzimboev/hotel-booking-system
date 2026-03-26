@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
@@ -8,7 +7,9 @@ using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingSystem.Api.IntegrationTests
 {
@@ -59,6 +60,43 @@ namespace HotelBookingSystem.Api.IntegrationTests
             var problem = await secondResponse.Content.ReadFromJsonAsync<ProblemDetails>();
             problem.Should().NotBeNull();
             problem!.Detail.Should().Be("Room is already booked for the selected dates.");
+        }
+
+        [Fact]
+        public async Task CreateBooking_ShouldSucceed_WhenDatesAreAdjacent()
+        {
+            await _factory.ResetDatabaseAsync();
+
+            var roomId = await SeedRoomAsync();
+
+            var auth = await RegisterAsync();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+
+            var firstBooking = new CreateBookingRequest
+            {
+                RoomId = roomId,
+                CheckInDate = new DateOnly(2026, 4, 10),
+                CheckOutDate = new DateOnly(2026, 4, 12)
+            };
+
+            var adjacentBooking = new CreateBookingRequest
+            {
+                RoomId = roomId,
+                CheckInDate = new DateOnly(2026, 4, 12),
+                CheckOutDate = new DateOnly(2026, 4, 15)
+            };
+
+            var firstResponse = await _client.PostAsJsonAsync("/api/bookings", firstBooking);
+            firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var secondResponse = await _client.PostAsJsonAsync("/api/bookings", adjacentBooking);
+            secondResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var bookingsCount = await db.Bookings.CountAsync();
+            bookingsCount.Should().Be(2);
         }
 
         private async Task<int> SeedRoomAsync()
