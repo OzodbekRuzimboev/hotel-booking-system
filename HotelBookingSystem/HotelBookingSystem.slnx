@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="HotelBookingSystem.Api.IntegrationTests/HotelBookingSystem.Api.IntegrationTests.csproj" Id="1b499c4b-3344-44cc-8d81-bd457738c264" />
   <Project Path="HotelBookingSystem.Api/HotelBookingSystem.Api.csproj" />
 </Solution>
