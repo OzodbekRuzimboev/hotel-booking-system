@@ -13,29 +13,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingSystem.Api.IntegrationTests
 {
-    public sealed class BookingOverlapTests : IClassFixture<ApiFactory>
+    public sealed class BookingOverlapTests : IntegrationTestBase, IClassFixture<ApiFactory>
     {
-        private readonly ApiFactory _factory;
-        private readonly HttpClient _client;
-
-        public BookingOverlapTests(ApiFactory factory)
-        {
-            _factory = factory;
-            _client = factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                BaseAddress = new Uri("https://localhost")
-            });
-        }
+        public BookingOverlapTests(ApiFactory factory) : base(factory) { }
 
         [Fact]
         public async Task CreateBooking_ShouldReturn409_WhenDatesOverlapForSameRoom()
         {
-            await _factory.ResetDatabaseAsync();
+            await Factory.ResetDatabaseAsync();
 
             var roomId = await SeedRoomAsync();
 
-            var auth = await RegisterAsync();
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+            await RegisterAndAuthorizeAsync();
 
             var firstBooking = new CreateBookingRequest
             {
@@ -51,10 +40,10 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 CheckOutDate = new DateOnly(2026, 4, 13)
             };
 
-            var firstResponse = await _client.PostAsJsonAsync("/api/bookings", firstBooking);
+            var firstResponse = await Client.PostAsJsonAsync("/api/bookings", firstBooking);
             firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            var secondResponse = await _client.PostAsJsonAsync("/api/bookings", overlapBooking);
+            var secondResponse = await Client.PostAsJsonAsync("/api/bookings", overlapBooking);
             secondResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
             var problem = await secondResponse.Content.ReadFromJsonAsync<ProblemDetails>();
@@ -65,12 +54,11 @@ namespace HotelBookingSystem.Api.IntegrationTests
         [Fact]
         public async Task CreateBooking_ShouldSucceed_WhenDatesAreAdjacent()
         {
-            await _factory.ResetDatabaseAsync();
+            await Factory.ResetDatabaseAsync();
 
             var roomId = await SeedRoomAsync();
 
-            var auth = await RegisterAsync();
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+            await RegisterAndAuthorizeAsync();
 
             var firstBooking = new CreateBookingRequest
             {
@@ -86,60 +74,17 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 CheckOutDate = new DateOnly(2026, 4, 15)
             };
 
-            var firstResponse = await _client.PostAsJsonAsync("/api/bookings", firstBooking);
+            var firstResponse = await Client.PostAsJsonAsync("/api/bookings", firstBooking);
             firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            var secondResponse = await _client.PostAsJsonAsync("/api/bookings", adjacentBooking);
+            var secondResponse = await Client.PostAsJsonAsync("/api/bookings", adjacentBooking);
             secondResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            using var scope = _factory.Services.CreateScope();
+            using var scope = Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             var bookingsCount = await db.Bookings.CountAsync();
             bookingsCount.Should().Be(2);
-        }
-
-        private async Task<int> SeedRoomAsync()
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-            var hotel = new Hotel
-            {
-                Name = "Test Hotel",
-                City = "Tashkent",
-                Address = "Test address"
-            };
-
-            var room = new Room
-            {
-                Hotel = hotel,
-                Name = "Standard 101",
-                Capacity = 2,
-                Price = 100
-            };
-
-            db.Rooms.Add(room);
-            await db.SaveChangesAsync();
-
-            return room.Id;
-        }
-
-        private async Task<AuthResponse> RegisterAsync()
-        {
-            var email = $"{Guid.NewGuid():N}@test.com";
-
-            var response = await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
-            {
-                Name = "Test User",
-                Email = email,
-                Password = "Password123"
-            });
-
-            response.EnsureSuccessStatusCode();
-
-            var auth = await response.Content.ReadFromJsonAsync<AuthResponse>();
-            return auth ?? throw new InvalidOperationException("Auth response is null.");
         }
     }
 }
