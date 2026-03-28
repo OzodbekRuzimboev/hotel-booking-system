@@ -4,6 +4,7 @@ using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace HotelBookingSystem.Api.Services
 {
@@ -40,7 +41,15 @@ namespace HotelBookingSystem.Api.Services
             user.PasswordHash = _passwordHasher.HashPassword(user, password);
 
             _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsUniqueEmailViolation(ex))
+            {
+                throw new ConflictException("Email already in use.");
+            }
 
             var token = _jwtTokenService.CreateToken(user);
 
@@ -75,6 +84,13 @@ namespace HotelBookingSystem.Api.Services
                 Name = user.Name,
                 Email = user.Email
             };
+        }
+
+        private static bool IsUniqueEmailViolation(DbUpdateException ex)
+        {
+            return ex.InnerException is PostgresException pgEx &&
+                   pgEx.SqlState == PostgresErrorCodes.UniqueViolation &&
+                   pgEx.ConstraintName == "IX_Users_Email";
         }
     }
 }

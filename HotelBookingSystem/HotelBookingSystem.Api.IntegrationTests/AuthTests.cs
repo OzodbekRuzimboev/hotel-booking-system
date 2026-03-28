@@ -2,16 +2,23 @@
 using HotelBookingSystem.Api.Contracts.Auth;
 using HotelBookingSystem.Api.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
+using Xunit.Abstractions;
 
 namespace HotelBookingSystem.Api.IntegrationTests
 {
     public sealed class AuthTests : IntegrationTestBase, IClassFixture<ApiFactory>
     {
-        public AuthTests(ApiFactory factory) : base(factory) { }
+        private readonly ITestOutputHelper _output;
+
+        public AuthTests(ApiFactory factory, ITestOutputHelper output) : base(factory)
+        {
+            _output = output;
+        }
 
         [Fact]
         public async Task Register_ShouldCreateUserAndReturnToken()
@@ -104,6 +111,69 @@ namespace HotelBookingSystem.Api.IntegrationTests
 
             var usersCount = await db.Users.CountAsync();
             usersCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task Register_ShouldHandleConcurrentRequests_WithSameEmail()
+        {
+            await Factory.ResetDatabaseAsync();
+
+            var client1 = Factory.CreateClient(new WebApplicationFactoryClientOptions
+            {
+                BaseAddress = new Uri("https://localhost")
+            });
+
+            var client2 = Factory.CreateClient(new WebApplicationFactoryClientOptions
+            {
+                BaseAddress = new Uri("https://localhost")
+            });
+
+            var request1 = new RegisterRequest
+            {
+                Name = "User One",
+                Email = "same@example.com",
+                Password = "Password123"
+            };
+
+            var request2 = new RegisterRequest
+            {
+                Name = "User Two",
+                Email = "same@example.com",
+                Password = "Password123"
+            };
+
+            var task1 = client1.PostAsJsonAsync("/api/auth/register", request1);
+            var task2 = client2.PostAsJsonAsync("/api/auth/register", request2);
+
+            await Task.WhenAll(task1, task2);
+
+            var responses = new[] { await task1, await task2 };
+
+            foreach (var response in responses)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+
+                _output.WriteLine($"Status: {(int)response.StatusCode} {response.StatusCode}");
+                _output.WriteLine($"Body: {body}");
+            }
+
+            responses.Count(r => r.StatusCode == HttpStatusCode.OK).Should().Be(1);
+            responses.Count(r => r.StatusCode == HttpStatusCode.Conflict).Should().Be(1);
+
+            var conflictResponse = responses.Single(r => r.StatusCode == HttpStatusCode.Conflict);
+
+            var problem = await conflictResponse.Content.ReadFromJsonAsync<ProblemDetails>();
+            problem.Should().NotBeNull();
+            problem!.Detail.Should().Be("Email already in use.");
+
+            using var scope = Factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var usersCount = await db.Users.CountAsync();
+            usersCount.Should().Be(1);
+
+            var user = await db.Users.SingleAsync();
+            user.Email.Should().Be("same@example.com");
         }
     }
 }
