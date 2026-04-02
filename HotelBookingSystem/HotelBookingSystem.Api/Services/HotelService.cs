@@ -1,5 +1,6 @@
 ﻿using HotelBookingSystem.Api.Contracts.Hotels;
 using HotelBookingSystem.Api.Data;
+using HotelBookingSystem.Api.Enums;
 using HotelBookingSystem.Api.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,7 @@ namespace HotelBookingSystem.Api.Services
 
             var hotels = await _context.Hotels.AsNoTracking()
                 .Where(h => EF.Functions.ILike(h.City, normalizedCity))
-                .Where(h => h.Rooms.Any(r => !r.Bookings.Any(b => b.CheckInDate < checkOutDate && b.CheckOutDate > checkInDate)))
+                .Where(h => h.Rooms.Any(r => !r.Bookings.Any(b => b.Status == BookingStatus.Active && b.CheckInDate < checkOutDate && b.CheckOutDate > checkInDate)))
                 .Select(h => new HotelDetailsResponse
                 {
                     Id = h.Id,
@@ -31,7 +32,7 @@ namespace HotelBookingSystem.Api.Services
                     City = h.City,
                     Address = h.Address,
                     Rooms = h.Rooms
-                        .Where(r => !r.Bookings.Any(b => b.CheckInDate < checkOutDate && b.CheckOutDate > checkInDate))
+                        .Where(r => !r.Bookings.Any(b => b.Status == BookingStatus.Active && b.CheckInDate < checkOutDate && b.CheckOutDate > checkInDate))
                         .Select(r => new RoomResponse
                         {
                             Id = r.Id,

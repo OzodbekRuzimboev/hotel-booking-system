@@ -1,4 +1,5 @@
 ﻿using HotelBookingSystem.Api.Entities;
+using HotelBookingSystem.Api.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingSystem.Api.Data
@@ -25,6 +26,8 @@ namespace HotelBookingSystem.Api.Data
             modelBuilder.Entity<Room>().HasMany(r => r.Bookings).WithOne(b => b.Room).HasForeignKey(b => b.RoomId);
 
             modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+
+            modelBuilder.Entity<Booking>().Property(b => b.Status).HasConversion<int>().HasDefaultValue(BookingStatus.Active);
         }
     }
 }

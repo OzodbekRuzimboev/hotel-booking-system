@@ -1,4 +1,6 @@
-﻿namespace HotelBookingSystem.Api.Entities
+﻿using HotelBookingSystem.Api.Enums;
+
+namespace HotelBookingSystem.Api.Entities
 {
     public class Booking
     {
@@ -10,5 +12,6 @@
         public DateOnly CheckInDate { get; set; }
         public DateOnly CheckOutDate { get; set; }
         public decimal TotalPrice { get; set; }
+        public BookingStatus Status { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
+using HotelBookingSystem.Api.Enums;
 using HotelBookingSystem.Api.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -10,8 +11,6 @@ namespace HotelBookingSystem.Api.Services
     public class BookingService
     {
         private readonly AppDbContext _context;
-
-        private const string NoOverlapConstraintName = "EX_Bookings_RoomId_DateRange_NoOverlap";
 
         public BookingService(AppDbContext context)
         {
@@ -37,7 +36,8 @@ namespace HotelBookingSystem.Api.Services
                 RoomId = req.RoomId,
                 CheckInDate = req.CheckInDate,
                 CheckOutDate = req.CheckOutDate,
-                TotalPrice = (req.CheckOutDate.DayNumber - req.CheckInDate.DayNumber) * room.Price
+                TotalPrice = (req.CheckOutDate.DayNumber - req.CheckInDate.DayNumber) * room.Price,
+                Status = BookingStatus.Active
             };
 
             _context.Bookings.Add(booking);
@@ -51,12 +51,13 @@ namespace HotelBookingSystem.Api.Services
                 throw new ConflictException("Room is already booked for the selected dates.");
             }
 
-
             return booking;
         }
 
         public async Task<List<BookingResponse>> GetBookingsAsync(int userId)
         {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
             var bookings = await _context.Bookings.AsNoTracking().Where(b => b.UserId == userId)
                 .Select(b => new BookingResponse
                 {
@@ -64,17 +65,40 @@ namespace HotelBookingSystem.Api.Services
                     UserId = b.UserId,
                     RoomId = b.RoomId,
                     CheckInDate = b.CheckInDate,
-                    CheckOutDate = b.CheckOutDate
+                    CheckOutDate = b.CheckOutDate,
+                    Status = b.Status == BookingStatus.Cancelled
+                        ? BookingDisplayStatus.Cancelled
+                        : b.CheckOutDate <= today
+                            ? BookingDisplayStatus.Completed
+                            : BookingDisplayStatus.Active
                 }).ToListAsync();
 
             return bookings;
+        }
+
+        public async Task CancelBookingAsync(int userId, int bookingId)
+        {
+            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId)
+                ?? throw new NotFoundException("Booking not found.");
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            if (booking.Status == BookingStatus.Cancelled)
+                throw new ValidationException("Booking is already cancelled.");
+
+            if (today >= booking.CheckInDate)
+                throw new ValidationException("Booking can be cancelled only before check-in.");
+
+            booking.Status = BookingStatus.Cancelled;
+
+            await _context.SaveChangesAsync();
         }
 
         private static bool IsOverlappingBookingConstraint(DbUpdateException ex)
         {
             return ex.InnerException is PostgresException pg &&
                    pg.SqlState == PostgresErrorCodes.ExclusionViolation &&
-                   pg.ConstraintName == NoOverlapConstraintName;
+                   pg.ConstraintName == "EX_Bookings_RoomId_DateRange_NoOverlap";
         }
     }
 }

@@ -30,7 +30,8 @@ namespace HotelBookingSystem.Api.Controllers
                 UserId = booking.UserId,
                 RoomId = booking.RoomId,
                 CheckInDate = booking.CheckInDate,
-                CheckOutDate = booking.CheckOutDate
+                CheckOutDate = booking.CheckOutDate,
+                Status = BookingDisplayStatus.Active
             });
         }
 
@@ -41,6 +42,15 @@ namespace HotelBookingSystem.Api.Controllers
             var bookings = await _service.GetBookingsAsync(userId);
 
             return Ok(bookings);
+        }
+
+        [HttpPatch("{id}/cancel")]
+        public async Task<IActionResult> CancelBooking(int id)
+        {
+            var userId = User.GetUserId();
+            await _service.CancelBookingAsync(userId, id);
+
+            return NoContent();
         }
     }
 }
