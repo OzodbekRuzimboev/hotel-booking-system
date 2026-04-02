@@ -49,6 +49,7 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddScoped<HotelService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtTokenService>();
@@ -76,5 +77,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-public partial class Program { }

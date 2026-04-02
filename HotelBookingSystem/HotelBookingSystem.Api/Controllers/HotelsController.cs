@@ -1,5 +1,6 @@
 ﻿using HotelBookingSystem.Api.Contracts.Hotels;
 using HotelBookingSystem.Api.Data;
+using HotelBookingSystem.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,12 @@ namespace HotelBookingSystem.Api.Controllers
     public class HotelsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly HotelService _service;
 
-        public HotelsController(AppDbContext context)
+        public HotelsController(AppDbContext context, HotelService service)
         {
             _context = context;
+            _service = service;
         }
 
         [HttpGet]
@@ -54,6 +57,14 @@ namespace HotelBookingSystem.Api.Controllers
             };
 
             return Ok(response);
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> GetAvailableHotels(string city, DateOnly checkInDate, DateOnly checkOutDate)
+        {
+            var hotels = await _service.GetAvailableHotelsAsync(city, checkInDate, checkOutDate);
+
+            return Ok(hotels);
         }
     }
 }
