@@ -31,7 +31,9 @@ namespace HotelBookingSystem.Api.Controllers
                 RoomId = booking.RoomId,
                 CheckInDate = booking.CheckInDate,
                 CheckOutDate = booking.CheckOutDate,
-                Status = BookingDisplayStatus.Active
+                Status = BookingDisplayStatus.Active,
+                CreatedAt = booking.CreatedAt,
+                CancelledAt = booking.CancelledAt
             });
         }
 

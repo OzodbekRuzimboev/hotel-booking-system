@@ -30,6 +30,11 @@ namespace HotelBookingSystem.Api.Services
             if (req.CheckInDate >= req.CheckOutDate)
                 throw new ValidationException("Check-in date must be earlier than check-out date.");
 
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            if (req.CheckInDate < today)
+                throw new ValidationException("Check-in date cannot be earlier than today.");
+
             var booking = new Booking
             {
                 UserId = userId,
@@ -37,7 +42,8 @@ namespace HotelBookingSystem.Api.Services
                 CheckInDate = req.CheckInDate,
                 CheckOutDate = req.CheckOutDate,
                 TotalPrice = (req.CheckOutDate.DayNumber - req.CheckInDate.DayNumber) * room.Price,
-                Status = BookingStatus.Active
+                Status = BookingStatus.Active,
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.Bookings.Add(booking);
@@ -70,7 +76,9 @@ namespace HotelBookingSystem.Api.Services
                         ? BookingDisplayStatus.Cancelled
                         : b.CheckOutDate <= today
                             ? BookingDisplayStatus.Completed
-                            : BookingDisplayStatus.Active
+                            : BookingDisplayStatus.Active,
+                    CreatedAt = b.CreatedAt,
+                    CancelledAt = b.CancelledAt
                 }).ToListAsync();
 
             return bookings;
@@ -90,6 +98,7 @@ namespace HotelBookingSystem.Api.Services
                 throw new ValidationException("Booking can be cancelled only before check-in.");
 
             booking.Status = BookingStatus.Cancelled;
+            booking.CancelledAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
         }
