@@ -5,7 +5,7 @@ namespace HotelBookingSystem.Api.Contracts.Bookings
     public class CreateBookingRequest : IValidatableObject
     {
         [Range(1, int.MaxValue)]
-        public int RoomId { get; set; }
+        public int RoomTypeId { get; set; }
 
         public DateOnly CheckInDate { get; set; }
 

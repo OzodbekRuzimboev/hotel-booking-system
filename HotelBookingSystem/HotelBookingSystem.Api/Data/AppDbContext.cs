@@ -12,6 +12,7 @@ namespace HotelBookingSystem.Api.Data
 
         public DbSet<User> Users => Set<User>();
         public DbSet<Hotel> Hotels => Set<Hotel>();
+        public DbSet<RoomType> RoomTypes => Set<RoomType>();
         public DbSet<Room> Rooms => Set<Room>();
         public DbSet<Booking> Bookings => Set<Booking>();
 
@@ -19,13 +20,17 @@ namespace HotelBookingSystem.Api.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Hotel>().HasMany(h => h.Rooms).WithOne(r => r.Hotel).HasForeignKey(r => r.HotelId);
+            modelBuilder.Entity<Hotel>().HasMany(h => h.RoomTypes).WithOne(r => r.Hotel).HasForeignKey(r => r.HotelId);
+
+            modelBuilder.Entity<RoomType>().HasMany(rt => rt.Rooms).WithOne(r => r.RoomType).HasForeignKey(r => r.RoomTypeId);
 
             modelBuilder.Entity<User>().HasMany(u => u.Bookings).WithOne(b => b.User).HasForeignKey(b => b.UserId);
 
             modelBuilder.Entity<Room>().HasMany(r => r.Bookings).WithOne(b => b.Room).HasForeignKey(b => b.RoomId);
 
             modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+
+            modelBuilder.Entity<Room>().HasIndex(r => new { r.RoomTypeId, r.Number }).IsUnique();
 
             modelBuilder.Entity<Booking>().Property(b => b.Status).HasConversion<int>().HasDefaultValue(BookingStatus.Active);
         }

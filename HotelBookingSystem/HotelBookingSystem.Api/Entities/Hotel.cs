@@ -8,6 +8,6 @@
         public required string City { get; set; }
         public required string Address { get; set; }
 
-        public List<Room> Rooms { get; set; } = [];
+        public List<RoomType> RoomTypes { get; set; } = [];
     }
 }

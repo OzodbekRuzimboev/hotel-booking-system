@@ -5,21 +5,13 @@
 namespace HotelBookingSystem.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class AddBookingStatusAndPartialOverlapConstraint : Migration
+    public partial class AddActiveBookingOverlapConstraint : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Status",
-                table: "Bookings",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
             migrationBuilder.Sql("""
-                ALTER TABLE "Bookings"
-                DROP CONSTRAINT IF EXISTS "EX_Bookings_RoomId_DateRange_NoOverlap";
+                CREATE EXTENSION IF NOT EXISTS btree_gist;
             """);
 
             migrationBuilder.Sql("""
@@ -40,19 +32,6 @@ namespace HotelBookingSystem.Api.Migrations
                 ALTER TABLE "Bookings"
                 DROP CONSTRAINT IF EXISTS "EX_Bookings_RoomId_DateRange_NoOverlap";
             """);
-
-            migrationBuilder.Sql("""
-                ALTER TABLE "Bookings"
-                ADD CONSTRAINT "EX_Bookings_RoomId_DateRange_NoOverlap"
-                EXCLUDE USING gist (
-                    "RoomId" WITH =,
-                    daterange("CheckInDate", "CheckOutDate", '[)') WITH &&
-                );
-            """);
-
-            migrationBuilder.DropColumn(
-                name: "Status",
-                table: "Bookings");
         }
     }
 }

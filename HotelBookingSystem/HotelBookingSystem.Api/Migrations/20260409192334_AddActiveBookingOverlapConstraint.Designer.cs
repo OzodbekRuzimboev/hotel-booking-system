@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HotelBookingSystem.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260326063356_AddBookingOverlapConstraint")]
-    partial class AddBookingOverlapConstraint
+    [Migration("20260409192334_AddActiveBookingOverlapConstraint")]
+    partial class AddActiveBookingOverlapConstraint
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,14 +33,25 @@ namespace HotelBookingSystem.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateOnly>("CheckInDate")
                         .HasColumnType("date");
 
                     b.Property<DateOnly>("CheckOutDate")
                         .HasColumnType("date");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("RoomId")
                         .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("numeric");
@@ -93,6 +104,29 @@ namespace HotelBookingSystem.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RoomTypeId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomTypeId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.RoomType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
                     b.Property<int>("Capacity")
                         .HasColumnType("integer");
 
@@ -113,7 +147,7 @@ namespace HotelBookingSystem.Api.Migrations
 
                     b.HasIndex("HotelId");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("RoomTypes");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.User", b =>
@@ -165,8 +199,19 @@ namespace HotelBookingSystem.Api.Migrations
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Room", b =>
                 {
-                    b.HasOne("HotelBookingSystem.Api.Entities.Hotel", "Hotel")
+                    b.HasOne("HotelBookingSystem.Api.Entities.RoomType", "RoomType")
                         .WithMany("Rooms")
+                        .HasForeignKey("RoomTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RoomType");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.RoomType", b =>
+                {
+                    b.HasOne("HotelBookingSystem.Api.Entities.Hotel", "Hotel")
+                        .WithMany("RoomTypes")
                         .HasForeignKey("HotelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -176,12 +221,17 @@ namespace HotelBookingSystem.Api.Migrations
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Hotel", b =>
                 {
-                    b.Navigation("Rooms");
+                    b.Navigation("RoomTypes");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Room", b =>
                 {
                     b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.RoomType", b =>
+                {
+                    b.Navigation("Rooms");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.User", b =>

@@ -21,6 +21,7 @@ namespace HotelBookingSystem.Api.Services
             {
                 Id = h.Id,
                 Name = h.Name,
+                Description = h.Description,
                 City = h.City,
                 Address = h.Address
             }).ToListAsync();
@@ -30,55 +31,87 @@ namespace HotelBookingSystem.Api.Services
 
         public async Task<HotelDetailsResponse> GetHotelByIdAsync(int id)
         {
-            var hotel = await _context.Hotels.AsNoTracking().Include(h => h.Rooms).FirstOrDefaultAsync(h => h.Id == id)
+            var hotel = await _context.Hotels
+                .AsNoTracking()
+                .Where(h => h.Id == id)
+                .Select(h => new HotelDetailsResponse
+                {
+                    Id = h.Id,
+                    Name = h.Name,
+                    Description = h.Description,
+                    City = h.City,
+                    Address = h.Address,
+                    RoomTypes = h.RoomTypes
+                        .Select(rt => new RoomTypeResponse
+                        {
+                            Id = rt.Id,
+                            Name = rt.Name,
+                            Description = rt.Description,
+                            Capacity = rt.Capacity,
+                            Price = rt.Price,
+                            TotalCount = rt.Rooms.Count()
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync()
                 ?? throw new NotFoundException("Hotel not found.");
 
-            var response = new HotelDetailsResponse
-            {
-                Id = hotel.Id,
-                Name = hotel.Name,
-                City = hotel.City,
-                Address = hotel.Address,
-                Rooms = hotel.Rooms.Select(r => new RoomResponse
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    Capacity = r.Capacity,
-                    Price = r.Price
-                }).ToList()
-            };
-
-            return response;
+            return hotel;
         }
 
-        public async Task<List<HotelDetailsResponse>> GetAvailableHotelsAsync(string city, DateOnly checkInDate, DateOnly checkOutDate)
+        public async Task<List<HotelSearchResponse>> GetAvailableHotelsAsync(string city, DateOnly checkInDate, DateOnly checkOutDate)
         {
+            if (string.IsNullOrWhiteSpace(city))
+                throw new ValidationException("City is required.");
+
             if (checkInDate >= checkOutDate)
                 throw new ValidationException("Check-in date must be earlier than check-out date.");
 
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            if (checkInDate < today)
+                throw new ValidationException("Check-in date cannot be earlier than today.");
+
             var normalizedCity = city.Trim();
 
-            var hotels = await _context.Hotels.AsNoTracking()
+            var hotels = await _context.Hotels
+                .AsNoTracking()
                 .Where(h => EF.Functions.ILike(h.City, normalizedCity))
-                .Where(h => h.Rooms.Any(r => !r.Bookings.Any(b => b.Status == BookingStatus.Active && b.CheckInDate < checkOutDate && b.CheckOutDate > checkInDate)))
-                .Select(h => new HotelDetailsResponse
+                .Where(h => h.RoomTypes.Any(rt =>
+                    rt.Rooms.Any(r =>
+                        !r.Bookings.Any(b =>
+                            b.Status == BookingStatus.Active &&
+                            b.CheckInDate < checkOutDate &&
+                            b.CheckOutDate > checkInDate))))
+                .Select(h => new HotelSearchResponse
                 {
                     Id = h.Id,
                     Name = h.Name,
                     City = h.City,
                     Address = h.Address,
-                    Rooms = h.Rooms
-                        .Where(r => !r.Bookings.Any(b => b.Status == BookingStatus.Active && b.CheckInDate < checkOutDate && b.CheckOutDate > checkInDate))
-                        .Select(r => new RoomResponse
+                    RoomTypes = h.RoomTypes
+                        .Where(rt => rt.Rooms.Any(r =>
+                            !r.Bookings.Any(b =>
+                                b.Status == BookingStatus.Active &&
+                                b.CheckInDate < checkOutDate &&
+                                b.CheckOutDate > checkInDate)))
+                        .Select(rt => new AvailableRoomTypeResponse
                         {
-                            Id = r.Id,
-                            Name = r.Name,
-                            Capacity = r.Capacity,
-                            Price = r.Price
-                        }).ToList()
+                            RoomTypeId = rt.Id,
+                            Name = rt.Name,
+                            Description = rt.Description,
+                            Capacity = rt.Capacity,
+                            Price = rt.Price,
+                            AvailableCount = rt.Rooms.Count(r =>
+                                !r.Bookings.Any(b =>
+                                    b.Status == BookingStatus.Active &&
+                                    b.CheckInDate < checkOutDate &&
+                                    b.CheckOutDate > checkInDate))
+                        })
+                        .ToList()
                 })
                 .ToListAsync();
-            
+
             return hotels;
         }
     }

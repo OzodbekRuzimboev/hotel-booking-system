@@ -24,9 +24,6 @@ namespace HotelBookingSystem.Api.Services
             if (!userExists) 
                 throw new NotFoundException("User not found.");
 
-            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == req.RoomId) 
-                ?? throw new NotFoundException("Room not found.");
-
             if (req.CheckInDate >= req.CheckOutDate)
                 throw new ValidationException("Check-in date must be earlier than check-out date.");
 
@@ -35,13 +32,39 @@ namespace HotelBookingSystem.Api.Services
             if (req.CheckInDate < today)
                 throw new ValidationException("Check-in date cannot be earlier than today.");
 
+            var roomType = await _context.RoomTypes
+                .AsNoTracking()
+                .Where(rt => rt.Id == req.RoomTypeId)
+                .Select(rt => new
+                {
+                    rt.Id,
+                    rt.Price
+                })
+                .FirstOrDefaultAsync()
+                ?? throw new NotFoundException("Room type not found");
+
+            var room = await _context.Rooms
+                .Where(r => r.RoomTypeId == req.RoomTypeId)
+                .Where(r => !r.Bookings.Any(b =>
+                    b.Status == BookingStatus.Active &&
+                    b.CheckInDate < req.CheckOutDate &&
+                    b.CheckOutDate > req.CheckInDate))
+                .Select(r => new
+                {
+                    r.Id
+                })
+                .FirstOrDefaultAsync()
+                ?? throw new ConflictException("No available rooms of this type for the selected dates.");
+
+            
+
             var booking = new Booking
             {
                 UserId = userId,
-                RoomId = req.RoomId,
+                RoomId = room.Id,
                 CheckInDate = req.CheckInDate,
                 CheckOutDate = req.CheckOutDate,
-                TotalPrice = (req.CheckOutDate.DayNumber - req.CheckInDate.DayNumber) * room.Price,
+                TotalPrice = (req.CheckOutDate.DayNumber - req.CheckInDate.DayNumber) * roomType.Price,
                 Status = BookingStatus.Active,
                 CreatedAt = DateTime.UtcNow
             };
@@ -54,7 +77,7 @@ namespace HotelBookingSystem.Api.Services
             }
             catch (DbUpdateException ex) when (IsOverlappingBookingConstraint(ex))
             {
-                throw new ConflictException("Room is already booked for the selected dates.");
+                throw new ConflictException("No available rooms of this type for the selected dates.");
             }
 
             return booking;
@@ -64,7 +87,9 @@ namespace HotelBookingSystem.Api.Services
         {
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            var bookings = await _context.Bookings.AsNoTracking().Where(b => b.UserId == userId)
+            var bookings = await _context.Bookings
+                .AsNoTracking()
+                .Where(b => b.UserId == userId)
                 .Select(b => new BookingResponse
                 {
                     Id = b.Id,
@@ -79,14 +104,16 @@ namespace HotelBookingSystem.Api.Services
                             : BookingDisplayStatus.Active,
                     CreatedAt = b.CreatedAt,
                     CancelledAt = b.CancelledAt
-                }).ToListAsync();
+                })
+                .ToListAsync();
 
             return bookings;
         }
 
         public async Task CancelBookingAsync(int userId, int bookingId)
         {
-            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId)
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId)
                 ?? throw new NotFoundException("Booking not found.");
 
             var today = DateOnly.FromDateTime(DateTime.Today);

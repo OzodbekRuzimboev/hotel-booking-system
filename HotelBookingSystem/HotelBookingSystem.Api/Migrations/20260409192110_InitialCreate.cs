@@ -36,7 +36,7 @@ namespace HotelBookingSystem.Api.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: true)
+                    PasswordHash = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,7 +44,7 @@ namespace HotelBookingSystem.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Rooms",
+                name: "RoomTypes",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -57,11 +57,31 @@ namespace HotelBookingSystem.Api.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Rooms", x => x.Id);
+                    table.PrimaryKey("PK_RoomTypes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Rooms_Hotels_HotelId",
+                        name: "FK_RoomTypes_Hotels_HotelId",
                         column: x => x.HotelId,
                         principalTable: "Hotels",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Rooms",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoomTypeId = table.Column<int>(type: "integer", nullable: false),
+                    Number = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Rooms", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Rooms_RoomTypes_RoomTypeId",
+                        column: x => x.RoomTypeId,
+                        principalTable: "RoomTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -76,7 +96,10 @@ namespace HotelBookingSystem.Api.Migrations
                     RoomId = table.Column<int>(type: "integer", nullable: false),
                     CheckInDate = table.Column<DateOnly>(type: "date", nullable: false),
                     CheckOutDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: false)
+                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CancelledAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -106,9 +129,21 @@ namespace HotelBookingSystem.Api.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rooms_HotelId",
+                name: "IX_Rooms_RoomTypeId_Number",
                 table: "Rooms",
+                columns: new[] { "RoomTypeId", "Number" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoomTypes_HotelId",
+                table: "RoomTypes",
                 column: "HotelId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -122,6 +157,9 @@ namespace HotelBookingSystem.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "RoomTypes");
 
             migrationBuilder.DropTable(
                 name: "Hotels");

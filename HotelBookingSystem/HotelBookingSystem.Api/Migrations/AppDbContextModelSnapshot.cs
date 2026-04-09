@@ -101,6 +101,29 @@ namespace HotelBookingSystem.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RoomTypeId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomTypeId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.RoomType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
                     b.Property<int>("Capacity")
                         .HasColumnType("integer");
 
@@ -121,7 +144,7 @@ namespace HotelBookingSystem.Api.Migrations
 
                     b.HasIndex("HotelId");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("RoomTypes");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.User", b =>
@@ -173,8 +196,19 @@ namespace HotelBookingSystem.Api.Migrations
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Room", b =>
                 {
-                    b.HasOne("HotelBookingSystem.Api.Entities.Hotel", "Hotel")
+                    b.HasOne("HotelBookingSystem.Api.Entities.RoomType", "RoomType")
                         .WithMany("Rooms")
+                        .HasForeignKey("RoomTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RoomType");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.RoomType", b =>
+                {
+                    b.HasOne("HotelBookingSystem.Api.Entities.Hotel", "Hotel")
+                        .WithMany("RoomTypes")
                         .HasForeignKey("HotelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -184,12 +218,17 @@ namespace HotelBookingSystem.Api.Migrations
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Hotel", b =>
                 {
-                    b.Navigation("Rooms");
+                    b.Navigation("RoomTypes");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Room", b =>
                 {
                     b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.RoomType", b =>
+                {
+                    b.Navigation("Rooms");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.User", b =>
