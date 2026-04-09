@@ -15,6 +15,42 @@ namespace HotelBookingSystem.Api.Services
             _context = context;
         }
 
+        public async Task<List<HotelResponse>> GetHotelsAsync()
+        {
+            var hotels = await _context.Hotels.AsNoTracking().Select(h => new HotelResponse
+            {
+                Id = h.Id,
+                Name = h.Name,
+                City = h.City,
+                Address = h.Address
+            }).ToListAsync();
+
+            return hotels;
+        }
+
+        public async Task<HotelDetailsResponse> GetHotelByIdAsync(int id)
+        {
+            var hotel = await _context.Hotels.AsNoTracking().Include(h => h.Rooms).FirstOrDefaultAsync(h => h.Id == id)
+                ?? throw new NotFoundException("Hotel not found.");
+
+            var response = new HotelDetailsResponse
+            {
+                Id = hotel.Id,
+                Name = hotel.Name,
+                City = hotel.City,
+                Address = hotel.Address,
+                Rooms = hotel.Rooms.Select(r => new RoomResponse
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    Capacity = r.Capacity,
+                    Price = r.Price
+                }).ToList()
+            };
+
+            return response;
+        }
+
         public async Task<List<HotelDetailsResponse>> GetAvailableHotelsAsync(string city, DateOnly checkInDate, DateOnly checkOutDate)
         {
             if (checkInDate >= checkOutDate)
