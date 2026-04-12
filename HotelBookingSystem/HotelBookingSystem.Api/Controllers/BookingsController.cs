@@ -24,17 +24,7 @@ namespace HotelBookingSystem.Api.Controllers
             var userId = User.GetUserId();
             var booking = await _service.CreateBookingAsync(userId, req);
 
-            return Ok(new BookingResponse
-            {
-                Id = booking.Id,
-                UserId = booking.UserId,
-                RoomId = booking.RoomId,
-                CheckInDate = booking.CheckInDate,
-                CheckOutDate = booking.CheckOutDate,
-                Status = BookingDisplayStatus.Active,
-                CreatedAt = booking.CreatedAt,
-                CancelledAt = booking.CancelledAt
-            });
+            return Ok(booking);
         }
 
         [HttpGet("my")]

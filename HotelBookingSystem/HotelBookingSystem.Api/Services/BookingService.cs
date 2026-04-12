@@ -17,7 +17,7 @@ namespace HotelBookingSystem.Api.Services
             _context = context;
         }
 
-        public async Task<Booking> CreateBookingAsync(int userId, CreateBookingRequest req)
+        public async Task<BookingResponse> CreateBookingAsync(int userId, CreateBookingRequest req)
         {
             var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
 
@@ -56,8 +56,6 @@ namespace HotelBookingSystem.Api.Services
                 .FirstOrDefaultAsync()
                 ?? throw new ConflictException("No available rooms of this type for the selected dates.");
 
-            
-
             var booking = new Booking
             {
                 UserId = userId,
@@ -80,7 +78,26 @@ namespace HotelBookingSystem.Api.Services
                 throw new ConflictException("No available rooms of this type for the selected dates.");
             }
 
-            return booking;
+            var bookingResponse = await _context.Bookings
+                .AsNoTracking()
+                .Where(b => b.Id == booking.Id)
+                .Select(b => new BookingResponse
+                {
+                    Id = b.Id,
+                    UserId = b.UserId,
+                    RoomId = b.RoomId,
+                    HotelName = b.Room.RoomType.Hotel.Name,
+                    RoomTypeName = b.Room.RoomType.Name,
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate,
+                    TotalPrice = b.TotalPrice,
+                    Status = BookingDisplayStatus.Active,
+                    CreatedAt = b.CreatedAt,
+                    CancelledAt = b.CancelledAt
+                })
+                .FirstAsync();
+
+            return bookingResponse;
         }
 
         public async Task<List<BookingResponse>> GetBookingsAsync(int userId)
@@ -95,8 +112,11 @@ namespace HotelBookingSystem.Api.Services
                     Id = b.Id,
                     UserId = b.UserId,
                     RoomId = b.RoomId,
+                    HotelName = b.Room.RoomType.Hotel.Name,
+                    RoomTypeName = b.Room.RoomType.Name,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
+                    TotalPrice = b.TotalPrice,
                     Status = b.Status == BookingStatus.Cancelled
                         ? BookingDisplayStatus.Cancelled
                         : b.CheckOutDate <= today
