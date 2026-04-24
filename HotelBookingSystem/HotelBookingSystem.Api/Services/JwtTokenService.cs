@@ -1,42 +1,48 @@
-﻿using HotelBookingSystem.Api.Entities;
+﻿using HotelBookingSystem.Api.Authorization;
+using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Options;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
 namespace HotelBookingSystem.Api.Services
 {
-    public class JwtTokenService
+    public class JwtTokenService(IOptions<JwtOptions> options)
     {
-        private readonly JwtOptions _options;
-
-        public JwtTokenService(IOptions<JwtOptions> options)
-        {
-            _options = options.Value;
-        }
+        private readonly JwtOptions _options = options.Value;
+        private readonly JsonWebTokenHandler _tokenHandler = new();
 
         public string CreateToken(User user)
         {
-            var claims = new List<Claim>
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new List<Claim>()
             {
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Name, user.Name),
-                new(ClaimTypes.Email, user.Email)
+                new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new(JwtRegisteredClaimNames.Name, user.Name),
+                new(JwtRegisteredClaimNames.Email, user.Email),
+                new("role", user.Role.ToString())
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var permissions = RolePermissions.Map[user.Role];
+            foreach (var permission in permissions)
+            {
+                claims.Add(new("permission", permission));
+            }
 
-            var token = new JwtSecurityToken(
-                issuer: _options.Issuer,
-                audience: _options.Audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_options.ExpiresMinutes),
-                signingCredentials: creds);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Issuer = _options.Issuer,
+                Audience = _options.Audience,
+                Expires = DateTime.UtcNow.AddMinutes(_options.ExpirationInMinutes),
+                SigningCredentials = credentials
+            };
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return _tokenHandler.CreateToken(tokenDescriptor);
         }
     }
 }

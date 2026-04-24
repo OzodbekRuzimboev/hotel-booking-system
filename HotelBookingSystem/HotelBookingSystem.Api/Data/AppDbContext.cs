@@ -33,6 +33,8 @@ namespace HotelBookingSystem.Api.Data
             modelBuilder.Entity<Room>().HasIndex(r => new { r.RoomTypeId, r.Number }).IsUnique();
 
             modelBuilder.Entity<Booking>().Property(b => b.Status).HasConversion<int>().HasDefaultValue(BookingStatus.Active);
+
+            modelBuilder.Entity<User>().Property(u => u.Role).HasConversion<string>().HasMaxLength(32);
         }
     }
 }

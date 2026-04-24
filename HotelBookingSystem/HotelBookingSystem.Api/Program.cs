@@ -1,13 +1,16 @@
+using HotelBookingSystem.Api.Authorization;
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Middlewares;
 using HotelBookingSystem.Api.Options;
 using HotelBookingSystem.Api.Services;
+using HotelBookingSystem.Api.Services.Admin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,22 +20,23 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
-          ?? throw new InvalidOperationException("Jwt settings are missing.");
+    ?? throw new InvalidOperationException("Jwt settings are missing.");
 
-if (string.IsNullOrWhiteSpace(jwt.Issuer) ||
-    string.IsNullOrWhiteSpace(jwt.Audience) ||
-    string.IsNullOrWhiteSpace(jwt.Key) ||
-    jwt.ExpiresMinutes <= 0)
+if (string.IsNullOrWhiteSpace(jwt.Issuer) || string.IsNullOrWhiteSpace(jwt.Audience) ||
+    string.IsNullOrWhiteSpace(jwt.Key) || jwt.ExpirationInMinutes <= 0)
 {
     throw new InvalidOperationException("Jwt configuration is incomplete.");
 }
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            NameClaimType = JwtRegisteredClaimNames.Sub,
+            RoleClaimType = "role",
+
             ValidateIssuer = true,
             ValidIssuer = jwt.Issuer,
 
@@ -47,13 +51,21 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+var authorizationBuilder = builder.Services.AddAuthorizationBuilder();
+
+foreach (var permission in RolePermissions.Map.Values.SelectMany(x => x).Distinct())
+{
+    authorizationBuilder.AddPolicy(permission, policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireClaim("permission", permission));
+}
 
 builder.Services.AddScoped<HotelService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<AdminService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

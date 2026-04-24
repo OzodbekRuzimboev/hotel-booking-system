@@ -1,4 +1,5 @@
-﻿using HotelBookingSystem.Api.Contracts.Bookings;
+﻿using HotelBookingSystem.Api.Authorization;
+using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Extentions;
 using HotelBookingSystem.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,7 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = Permissions.BookingsCreateOwn)]
         public async Task<IActionResult> CreateBooking(CreateBookingRequest req)
         {
             var userId = User.GetUserId();
@@ -28,6 +30,7 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpGet("my")]
+        [Authorize(Policy = Permissions.BookingsReadOwn)]
         public async Task<IActionResult> GetMyBookings()
         {
             var userId = User.GetUserId();
@@ -37,6 +40,7 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpPatch("{id}/cancel")]
+        [Authorize(Policy = Permissions.BookingsCancelOwn)]
         public async Task<IActionResult> CancelBooking(int id)
         {
             var userId = User.GetUserId();
