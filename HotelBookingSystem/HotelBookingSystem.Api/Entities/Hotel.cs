@@ -8,6 +8,11 @@
         public required string City { get; set; }
         public required string Address { get; set; }
 
+        public bool IsActive { get; set; } = true;
+
+        public int? OwnerId { get; set; }
+        public User? Owner { get; set; }
+
         public List<RoomType> RoomTypes { get; set; } = [];
     }
 }

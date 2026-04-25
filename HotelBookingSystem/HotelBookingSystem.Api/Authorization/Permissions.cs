@@ -2,18 +2,32 @@
 {
     public static class Permissions
     {
-        public const string HotelsCreate = "hotels:create";
-        public const string HotelsUpdate = "hotels:update";
-        public const string HotelsDelete = "hotels:delete";
-
-        public const string RoomTypesCreate = "room_types:create";
-        public const string RoomTypesUpdate = "room_types:update";
-        public const string RoomTypesDelete = "room_types:delete";
-
+        // User bookings
         public const string BookingsCreateOwn = "bookings:create_own";
         public const string BookingsReadOwn = "bookings:read_own";
-        public const string BookingsReadAll = "bookings:read_all";
         public const string BookingsCancelOwn = "bookings:cancel_own";
+
+        // Admin global bookings
+        public const string BookingsReadAny = "bookings:read_any";
         public const string BookingsCancelAny = "bookings:cancel_any";
+
+        // Hotels
+        public const string HotelsCreate = "hotels:create";
+        public const string HotelsUpdateAny = "hotels:update_any";
+        public const string HotelsDeactivateAny = "hotels:deactivate_any";
+        public const string HotelsAssignOwner = "hotels:assign_owner";
+
+        // RoomTypes
+        public const string RoomTypesCreateAny = "room_types:create_any";
+        public const string RoomTypesUpdateAny = "room_types:update_any";
+        public const string RoomTypesDeactivateAny = "room_types:deactivate_any";
+
+        // Rooms
+        public const string RoomsCreateAny = "rooms:create_any";
+        public const string RoomsUpdateAny = "rooms:update_any";
+        public const string RoomsDeactivateAny = "rooms:deactivate_any";
+
+        // Users
+        public const string UsersManageRoles = "users:manage_roles";
     }
 }

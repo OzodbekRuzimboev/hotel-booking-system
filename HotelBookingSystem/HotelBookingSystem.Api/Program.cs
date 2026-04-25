@@ -55,9 +55,7 @@ var authorizationBuilder = builder.Services.AddAuthorizationBuilder();
 
 foreach (var permission in RolePermissions.Map.Values.SelectMany(x => x).Distinct())
 {
-    authorizationBuilder.AddPolicy(permission, policy =>
-        policy.RequireAuthenticatedUser()
-              .RequireClaim("permission", permission));
+    authorizationBuilder.AddPolicy(permission, policy => policy.RequireAuthenticatedUser().RequireClaim("permission", permission));
 }
 
 builder.Services.AddScoped<HotelService>();
@@ -71,6 +69,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+await AdminSeeder.SeedAsync(app.Services, app.Configuration);
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

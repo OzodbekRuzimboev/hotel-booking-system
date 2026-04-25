@@ -1,35 +1,40 @@
-﻿using HotelBookingSystem.Api.Enums;
+﻿using HotelBookingSystem.Api.Authorization;
+using HotelBookingSystem.Api.Enums;
 
-namespace HotelBookingSystem.Api.Authorization
+public static class RolePermissions
 {
-    public static class RolePermissions
+    public static readonly Dictionary<Role, string[]> Map = new()
     {
-        public static readonly Dictionary<Role, string[]> Map = new()
-        {
-            [Role.User] =
-            [
-                Permissions.BookingsCreateOwn,
-                Permissions.BookingsReadOwn,
-                Permissions.BookingsCancelOwn
-            ],
+        [Role.User] =
+        [
+            Permissions.BookingsCreateOwn,
+            Permissions.BookingsReadOwn,
+            Permissions.BookingsCancelOwn
+        ],
 
-            [Role.Admin] =
-            [
-                Permissions.BookingsCreateOwn,
-                Permissions.BookingsReadOwn,
-                Permissions.BookingsCancelOwn,
+        [Role.Admin] =
+        [
+            Permissions.BookingsCreateOwn,
+            Permissions.BookingsReadOwn,
+            Permissions.BookingsCancelOwn,
 
-                Permissions.HotelsCreate,
-                Permissions.HotelsUpdate,
-                Permissions.HotelsDelete,
+            Permissions.BookingsReadAny,
+            Permissions.BookingsCancelAny,
 
-                Permissions.RoomTypesCreate,
-                Permissions.RoomTypesUpdate,
-                Permissions.RoomTypesDelete,
+            Permissions.HotelsCreate,
+            Permissions.HotelsUpdateAny,
+            Permissions.HotelsDeactivateAny,
+            Permissions.HotelsAssignOwner,
 
-                Permissions.BookingsReadAll,
-                Permissions.BookingsCancelAny
-            ]
-        };
-    }
+            Permissions.RoomTypesCreateAny,
+            Permissions.RoomTypesUpdateAny,
+            Permissions.RoomTypesDeactivateAny,
+
+            Permissions.RoomsCreateAny,
+            Permissions.RoomsUpdateAny,
+            Permissions.RoomsDeactivateAny,
+
+            Permissions.UsersManageRoles
+        ]
+    };
 }
