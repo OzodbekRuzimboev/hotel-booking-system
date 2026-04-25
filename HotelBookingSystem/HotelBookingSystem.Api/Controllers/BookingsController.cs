@@ -1,6 +1,6 @@
 ﻿using HotelBookingSystem.Api.Authorization;
 using HotelBookingSystem.Api.Contracts.Bookings;
-using HotelBookingSystem.Api.Extentions;
+using HotelBookingSystem.Api.Extensions;
 using HotelBookingSystem.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +26,7 @@ namespace HotelBookingSystem.Api.Controllers
             var userId = User.GetUserId();
             var booking = await _service.CreateBookingAsync(userId, req);
 
-            return Ok(booking);
+            return StatusCode(StatusCodes.Status201Created, booking);
         }
 
         [HttpGet("my")]

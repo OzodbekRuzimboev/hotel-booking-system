@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HotelBookingSystem.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260425080605_AddHotelOwner")]
-    partial class AddHotelOwner
+    [Migration("20260425201533_AddGuestsCountToBooking")]
+    partial class AddGuestsCountToBooking
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,6 +44,9 @@ namespace HotelBookingSystem.Api.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GuestsCount")
+                        .HasColumnType("integer");
 
                     b.Property<int>("RoomId")
                         .HasColumnType("integer");
@@ -88,7 +91,9 @@ namespace HotelBookingSystem.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -111,6 +116,11 @@ namespace HotelBookingSystem.Api.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Number")
                         .IsRequired()
@@ -143,6 +153,11 @@ namespace HotelBookingSystem.Api.Migrations
 
                     b.Property<int>("HotelId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()

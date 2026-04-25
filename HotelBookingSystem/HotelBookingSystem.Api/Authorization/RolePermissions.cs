@@ -1,40 +1,55 @@
-﻿using HotelBookingSystem.Api.Authorization;
-using HotelBookingSystem.Api.Enums;
+﻿using HotelBookingSystem.Api.Enums;
 
-public static class RolePermissions
+namespace HotelBookingSystem.Api.Authorization
 {
-    public static readonly Dictionary<Role, string[]> Map = new()
+    public static class RolePermissions
     {
-        [Role.User] =
-        [
-            Permissions.BookingsCreateOwn,
-            Permissions.BookingsReadOwn,
-            Permissions.BookingsCancelOwn
-        ],
+        public static readonly Dictionary<Role, string[]> Map = new()
+        {
+            [Role.User] =
+            [
+                Permissions.BookingsCreateOwn,
+                Permissions.BookingsReadOwn,
+                Permissions.BookingsCancelOwn
+            ],
 
-        [Role.Admin] =
-        [
-            Permissions.BookingsCreateOwn,
-            Permissions.BookingsReadOwn,
-            Permissions.BookingsCancelOwn,
+            [Role.Owner] =
+            [
+                Permissions.HotelsUpdateOwn,
 
-            Permissions.BookingsReadAny,
-            Permissions.BookingsCancelAny,
+                Permissions.RoomTypesCreateOwn,
+                Permissions.RoomTypesUpdateOwn,
+                Permissions.RoomTypesDeactivateOwn,
 
-            Permissions.HotelsCreate,
-            Permissions.HotelsUpdateAny,
-            Permissions.HotelsDeactivateAny,
-            Permissions.HotelsAssignOwner,
+                Permissions.RoomsCreateOwn,
+                Permissions.RoomsUpdateOwn,
+                Permissions.RoomsDeactivateOwn,
 
-            Permissions.RoomTypesCreateAny,
-            Permissions.RoomTypesUpdateAny,
-            Permissions.RoomTypesDeactivateAny,
+                Permissions.BookingsReadOwnHotels,
+                Permissions.BookingsCancelOwnHotels
+            ],
 
-            Permissions.RoomsCreateAny,
-            Permissions.RoomsUpdateAny,
-            Permissions.RoomsDeactivateAny,
+            [Role.Admin] =
+            [
+                Permissions.BookingsReadAny,
+                Permissions.BookingsCancelAny,
+                Permissions.BookingsCreateForUser,
 
-            Permissions.UsersManageRoles
-        ]
-    };
+                Permissions.HotelsCreate,
+                Permissions.HotelsUpdateAny,
+                Permissions.HotelsDeactivateAny,
+                Permissions.HotelsAssignOwner,
+
+                Permissions.RoomTypesCreateAny,
+                Permissions.RoomTypesUpdateAny,
+                Permissions.RoomTypesDeactivateAny,
+
+                Permissions.RoomsCreateAny,
+                Permissions.RoomsUpdateAny,
+                Permissions.RoomsDeactivateAny,
+
+                Permissions.UsersManageRoles
+            ]
+        };
+    }
 }

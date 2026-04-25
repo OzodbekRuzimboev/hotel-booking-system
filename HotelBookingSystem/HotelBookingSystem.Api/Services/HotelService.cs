@@ -17,14 +17,18 @@ namespace HotelBookingSystem.Api.Services
 
         public async Task<List<HotelResponse>> GetHotelsAsync()
         {
-            var hotels = await _context.Hotels.AsNoTracking().Select(h => new HotelResponse
-            {
-                Id = h.Id,
-                Name = h.Name,
-                Description = h.Description,
-                City = h.City,
-                Address = h.Address
-            }).ToListAsync();
+            var hotels = await _context.Hotels
+                .AsNoTracking()
+                .Where(h => h.IsActive)
+                .Select(h => new HotelResponse
+                {
+                    Id = h.Id,
+                    Name = h.Name,
+                    Description = h.Description,
+                    City = h.City,
+                    Address = h.Address
+                })
+                .ToListAsync();
 
             return hotels;
         }
@@ -59,7 +63,11 @@ namespace HotelBookingSystem.Api.Services
             return hotel;
         }
 
-        public async Task<List<HotelSearchResponse>> GetAvailableHotelsAsync(string city, DateOnly checkInDate, DateOnly checkOutDate)
+        public async Task<List<HotelSearchResponse>> GetAvailableHotelsAsync(
+            string city, 
+            DateOnly checkInDate, 
+            DateOnly checkOutDate,
+            int guestsCount)
         {
             if (string.IsNullOrWhiteSpace(city))
                 throw new ValidationException("City is required.");
@@ -72,13 +80,20 @@ namespace HotelBookingSystem.Api.Services
             if (checkInDate < today)
                 throw new ValidationException("Check-in date cannot be earlier than today.");
 
+            if (guestsCount <= 0)
+                throw new ValidationException("Guests count must be greater than zero.");
+
             var normalizedCity = city.Trim();
 
             var hotels = await _context.Hotels
                 .AsNoTracking()
+                .Where(h => h.IsActive)
                 .Where(h => EF.Functions.ILike(h.City, normalizedCity))
                 .Where(h => h.RoomTypes.Any(rt =>
+                    rt.IsActive &&
+                    rt.Capacity >= guestsCount &&
                     rt.Rooms.Any(r =>
+                        r.IsActive &&
                         !r.Bookings.Any(b =>
                             b.Status == BookingStatus.Active &&
                             b.CheckInDate < checkOutDate &&
@@ -90,7 +105,10 @@ namespace HotelBookingSystem.Api.Services
                     City = h.City,
                     Address = h.Address,
                     RoomTypes = h.RoomTypes
+                        .Where(rt => rt.IsActive)
+                        .Where(rt => rt.Capacity >= guestsCount)
                         .Where(rt => rt.Rooms.Any(r =>
+                            r.IsActive &&
                             !r.Bookings.Any(b =>
                                 b.Status == BookingStatus.Active &&
                                 b.CheckInDate < checkOutDate &&
@@ -103,6 +121,7 @@ namespace HotelBookingSystem.Api.Services
                             Capacity = rt.Capacity,
                             Price = rt.Price,
                             AvailableCount = rt.Rooms.Count(r =>
+                                r.IsActive &&
                                 !r.Bookings.Any(b =>
                                     b.Status == BookingStatus.Active &&
                                     b.CheckInDate < checkOutDate &&

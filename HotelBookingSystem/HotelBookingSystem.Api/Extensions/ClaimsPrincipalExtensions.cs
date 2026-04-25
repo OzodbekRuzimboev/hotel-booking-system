@@ -2,7 +2,7 @@
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
 
-namespace HotelBookingSystem.Api.Extentions
+namespace HotelBookingSystem.Api.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {

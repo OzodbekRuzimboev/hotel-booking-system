@@ -15,7 +15,7 @@ namespace HotelBookingSystem.Api.Migrations
                 table: "Hotels",
                 type: "boolean",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "OwnerId",

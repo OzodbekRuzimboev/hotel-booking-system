@@ -36,6 +36,12 @@ namespace HotelBookingSystem.Api.Data
 
             modelBuilder.Entity<User>().Property(u => u.Role).HasConversion<string>().HasMaxLength(32);
 
+            modelBuilder.Entity<Hotel>().Property(h => h.IsActive).HasDefaultValue(true);
+
+            modelBuilder.Entity<RoomType>().Property(rt => rt.IsActive).HasDefaultValue(true);
+
+            modelBuilder.Entity<Room>().Property(r => r.IsActive).HasDefaultValue(true);
+
             modelBuilder.Entity<Hotel>().HasOne(h => h.Owner).WithMany().HasForeignKey(h => h.OwnerId).OnDelete(DeleteBehavior.Restrict);
         }
     }

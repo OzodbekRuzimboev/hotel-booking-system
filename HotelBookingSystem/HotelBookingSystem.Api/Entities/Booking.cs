@@ -11,6 +11,7 @@ namespace HotelBookingSystem.Api.Entities
         public Room Room { get; set; } = null!;
         public DateOnly CheckInDate { get; set; }
         public DateOnly CheckOutDate { get; set; }
+        public int GuestsCount { get; set; }
         public decimal TotalPrice { get; set; }
         public BookingStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }

@@ -11,6 +11,9 @@ namespace HotelBookingSystem.Api.Contracts.Bookings
 
         public DateOnly CheckOutDate { get; set; }
 
+        [Range(1, int.MaxValue)]
+        public int GuestsCount { get; set; }
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (CheckInDate == default)

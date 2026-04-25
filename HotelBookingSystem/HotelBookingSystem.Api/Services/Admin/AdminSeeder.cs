@@ -21,7 +21,9 @@ namespace HotelBookingSystem.Api.Services.Admin
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
                 return;
 
-            var exists = await context.Users.AnyAsync(u => u.Email == email);
+            var normalizedEmail = email.Trim().ToLowerInvariant();
+
+            var exists = await context.Users.AnyAsync(u => u.Email == normalizedEmail);
 
             if (exists)
                 return;
@@ -29,7 +31,7 @@ namespace HotelBookingSystem.Api.Services.Admin
             var admin = new User
             {
                 Name = "Admin",
-                Email = email,
+                Email = normalizedEmail,
                 Role = Role.Admin,
                 PasswordHash = string.Empty
             };

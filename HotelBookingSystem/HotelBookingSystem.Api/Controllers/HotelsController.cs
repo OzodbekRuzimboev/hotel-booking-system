@@ -31,9 +31,9 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> GetAvailableHotels(string city, DateOnly checkInDate, DateOnly checkOutDate)
+        public async Task<IActionResult> GetAvailableHotels(string city, DateOnly checkInDate, DateOnly checkOutDate, int guestsCount)
         {
-            var hotels = await _service.GetAvailableHotelsAsync(city, checkInDate, checkOutDate);
+            var hotels = await _service.GetAvailableHotelsAsync(city, checkInDate, checkOutDate, guestsCount);
 
             return Ok(hotels);
         }

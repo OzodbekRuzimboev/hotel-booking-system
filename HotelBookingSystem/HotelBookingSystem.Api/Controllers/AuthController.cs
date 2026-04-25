@@ -19,13 +19,15 @@ namespace HotelBookingSystem.Api.Controllers
         public async Task<IActionResult> Register(RegisterRequest req)
         {
             var result = await _service.RegisterAsync(req);
-            return Ok(result);
+
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest req)
         {
             var result = await _service.LoginAsync(req);
+
             return Ok(result);
         }
     }

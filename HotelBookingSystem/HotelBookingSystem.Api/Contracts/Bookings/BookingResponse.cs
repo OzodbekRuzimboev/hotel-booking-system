@@ -9,6 +9,7 @@
         public required string RoomTypeName { get; set; }
         public DateOnly CheckInDate { get; set; }
         public DateOnly CheckOutDate { get; set; }
+        public int GuestsCount { get; set; }
         public decimal TotalPrice { get; set; }
         public BookingDisplayStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }

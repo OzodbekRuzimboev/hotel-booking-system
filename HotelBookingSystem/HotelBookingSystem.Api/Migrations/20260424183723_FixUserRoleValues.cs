@@ -14,7 +14,8 @@ namespace HotelBookingSystem.Api.Migrations
                 UPDATE "Users"
                 SET "Role" = CASE
                     WHEN "Role" = '0' THEN 'User'
-                    WHEN "Role" = '1' THEN 'Admin'
+                    WHEN "Role" = '1' THEN 'Owner'
+                    WHEN "Role" = '2' THEN 'Admin'
                     ELSE "Role"
                 END;
             """);
@@ -27,7 +28,8 @@ namespace HotelBookingSystem.Api.Migrations
                 UPDATE "Users"
                 SET "Role" = CASE
                     WHEN "Role" = 'User' THEN '0'
-                    WHEN "Role" = 'Admin' THEN '1'
+                    WHEN "Role" = 'Owner' THEN '1'
+                    WHEN "Role" = 'Admin' THEN '2'
                     ELSE "Role"
                 END;
             """);

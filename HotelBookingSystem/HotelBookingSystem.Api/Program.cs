@@ -64,6 +64,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<ManagementService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
