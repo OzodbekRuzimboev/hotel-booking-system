@@ -3,8 +3,10 @@ using HotelBookingSystem.Api.Contracts.Admin;
 using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Contracts.Management;
 using HotelBookingSystem.Api.Extensions;
-using HotelBookingSystem.Api.Services;
-using HotelBookingSystem.Api.Services.Admin;
+using HotelBookingSystem.Api.Services.Bookings;
+using HotelBookingSystem.Api.Services.Hotels;
+using HotelBookingSystem.Api.Services.Rooms;
+using HotelBookingSystem.Api.Services.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,13 +14,33 @@ namespace HotelBookingSystem.Api.Controllers.Admin
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AdminController(AdminService adminService, ManagementService managementService) : ControllerBase
+    public class AdminController : ControllerBase
     {
+        private readonly HotelManagementService _hotelService;
+        private readonly RoomTypeManagementService _roomTypeService;
+        private readonly RoomManagementService _roomService;
+        private readonly BookingService _bookingService;
+        private readonly UserManagementService _userService;
+
+        public AdminController(
+            HotelManagementService hotelService,
+            RoomTypeManagementService roomTypeService,
+            RoomManagementService roomService,
+            BookingService bookingService,
+            UserManagementService userService)
+        {
+            _hotelService = hotelService;
+            _roomTypeService = roomTypeService;
+            _roomService = roomService;
+            _bookingService = bookingService;
+            _userService = userService;
+        }
+
         [HttpPost]
         [Authorize(Policy = Permissions.HotelsCreate)]
         public async Task<IActionResult> CreateHotel(CreateHotelRequest req)
         {
-            var hotel = await adminService.CreateHotelAsync(req);
+            var hotel = await _hotelService.CreateHotelAsync(req);
 
             return StatusCode(StatusCodes.Status201Created, hotel);
         }
@@ -27,7 +49,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.HotelsUpdateAny)]
         public async Task<IActionResult> UpdateHotel(int hotelId, UpdateHotelRequest req)
         {
-            var result = await managementService.UpdateHotelAsync(hotelId, req);
+            var result = await _hotelService.UpdateHotelAsync(hotelId, req);
+
             return Ok(result);
         }
 
@@ -35,7 +58,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.HotelsDeactivateAny)]
         public async Task<IActionResult> DeactivateHotel(int hotelId)
         {
-            await managementService.DeactivateHotelAsync(hotelId);
+            await _hotelService.DeactivateHotelAsync(hotelId);
+
             return NoContent();
         }
 
@@ -43,7 +67,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.HotelsAssignOwner)]
         public async Task<IActionResult> AssignHotelOwner(int hotelId, AssignHotelOwnerRequest req)
         {
-            var result = await managementService.AssignHotelOwnerAsync(hotelId, req.OwnerId);
+            var result = await _hotelService.AssignHotelOwnerAsync(hotelId, req.OwnerId);
+
             return Ok(result);
         }
 
@@ -51,7 +76,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.RoomTypesUpdateAny)]
         public async Task<IActionResult> UpdateRoomType(int roomTypeId, UpdateRoomTypeRequest req)
         {
-            var result = await managementService.UpdateRoomTypeAsync(roomTypeId, req);
+            var result = await _roomTypeService.UpdateRoomTypeAsync(roomTypeId, req);
+
             return Ok(result);
         }
 
@@ -59,7 +85,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.RoomTypesDeactivateAny)]
         public async Task<IActionResult> DeactivateRoomType(int roomTypeId)
         {
-            await managementService.DeactivateRoomTypeAsync(roomTypeId);
+            await _roomTypeService.DeactivateRoomTypeAsync(roomTypeId);
+
             return NoContent();
         }
 
@@ -67,7 +94,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.RoomsCreateAny)]
         public async Task<IActionResult> CreateRoom(int roomTypeId, CreateRoomRequest req)
         {
-            var result = await managementService.CreateRoomAsync(roomTypeId, req);
+            var result = await _roomService.CreateRoomAsync(roomTypeId, req);
+
             return Ok(result);
         }
 
@@ -75,7 +103,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.RoomsUpdateAny)]
         public async Task<IActionResult> UpdateRoom(int roomId, UpdateRoomRequest req)
         {
-            var result = await managementService.UpdateRoomAsync(roomId, req);
+            var result = await _roomService.UpdateRoomAsync(roomId, req);
+
             return Ok(result);
         }
 
@@ -83,7 +112,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.RoomsDeactivateAny)]
         public async Task<IActionResult> DeactivateRoom(int roomId)
         {
-            await managementService.DeactivateRoomAsync(roomId);
+            await _roomService.DeactivateRoomAsync(roomId);
+
             return NoContent();
         }
 
@@ -91,7 +121,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.BookingsReadAny)]
         public async Task<IActionResult> GetBookings()
         {
-            var result = await adminService.GetBookingsAsync();
+            var result = await _bookingService.GetAllBookingsAsync();
+
             return Ok(result);
         }
 
@@ -99,7 +130,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.BookingsCancelAny)]
         public async Task<IActionResult> CancelBooking(int bookingId)
         {
-            await adminService.CancelBookingAsync(bookingId);
+            await _bookingService.CancelAnyBookingAsync(bookingId);
+
             return NoContent();
         }
 
@@ -107,7 +139,7 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         [Authorize(Policy = Permissions.BookingsCreateForUser)]
         public async Task<IActionResult> CreateBookingForUser(int userId, CreateBookingRequest req)
         {
-            var result = await adminService.CreateBookingForUserAsync(userId, req);
+            var result = await _bookingService.CreateBookingForUserAsync(userId, req);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
@@ -117,7 +149,8 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         public async Task<IActionResult> UpdateUserRole(int userId, UpdateUserRoleRequest req)
         {
             var currentAdminId = User.GetUserId();
-            var result = await adminService.UpdateUserRoleAsync(currentAdminId, userId, req);
+            var result = await _userService.UpdateUserRoleAsync(currentAdminId, userId, req);
+
             return Ok(result);
         }
     }

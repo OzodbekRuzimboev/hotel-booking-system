@@ -5,6 +5,10 @@ using HotelBookingSystem.Api.Middlewares;
 using HotelBookingSystem.Api.Options;
 using HotelBookingSystem.Api.Services;
 using HotelBookingSystem.Api.Services.Admin;
+using HotelBookingSystem.Api.Services.Bookings;
+using HotelBookingSystem.Api.Services.Hotels;
+using HotelBookingSystem.Api.Services.Rooms;
+using HotelBookingSystem.Api.Services.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -58,13 +62,16 @@ foreach (var permission in RolePermissions.Map.Values.SelectMany(x => x).Distinc
     authorizationBuilder.AddPolicy(permission, policy => policy.RequireAuthenticatedUser().RequireClaim("permission", permission));
 }
 
-builder.Services.AddScoped<HotelService>();
+builder.Services.AddScoped<HotelSearchService>();
+builder.Services.AddScoped<HotelManagementService>();
+builder.Services.AddScoped<RoomTypeManagementService>();
+builder.Services.AddScoped<RoomManagementService>();
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<UserManagementService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtTokenService>();
+
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddScoped<AdminService>();
-builder.Services.AddScoped<ManagementService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

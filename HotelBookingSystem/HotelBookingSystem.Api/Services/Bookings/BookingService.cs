@@ -4,9 +4,8 @@ using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Enums;
 using HotelBookingSystem.Api.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
-namespace HotelBookingSystem.Api.Services
+namespace HotelBookingSystem.Api.Services.Bookings
 {
     public class BookingService
     {
@@ -112,7 +111,7 @@ namespace HotelBookingSystem.Api.Services
             return bookingResponse;
         }
 
-        public async Task<List<BookingResponse>> GetBookingsAsync(int userId)
+        public async Task<List<BookingResponse>> GetUserBookingsAsync(int userId)
         {
             var today = DateOnly.FromDateTime(DateTime.Today);
 
@@ -142,10 +141,9 @@ namespace HotelBookingSystem.Api.Services
             return bookings;
         }
 
-        public async Task CancelBookingAsync(int userId, int bookingId)
+        public async Task CancelUserBookingAsync(int userId, int bookingId)
         {
-            var booking = await _context.Bookings
-                .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId)
+            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId)
                 ?? throw new NotFoundException("Booking not found.");
 
             var today = DateOnly.FromDateTime(DateTime.Today);
@@ -168,7 +166,7 @@ namespace HotelBookingSystem.Api.Services
         {
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            return await _context.Bookings
+            var bookings = await _context.Bookings
                 .AsNoTracking()
                 .OrderByDescending(b => b.CreatedAt)
                 .Select(b => new BookingResponse
@@ -190,37 +188,9 @@ namespace HotelBookingSystem.Api.Services
                     CancelledAt = b.CancelledAt
                 })
                 .ToListAsync();
+
+            return bookings;
         }
-
-        public async Task<List<BookingResponse>> GetBookingsForOwnerHotelsAsync(int ownerId)
-        {
-            var today = DateOnly.FromDateTime(DateTime.Today);
-
-            return await _context.Bookings
-                .AsNoTracking()
-                .Where(b => b.Room.RoomType.Hotel.OwnerId == ownerId)
-                .OrderByDescending(b => b.CreatedAt)
-                .Select(b => new BookingResponse
-                {
-                    Id = b.Id,
-                    UserId = b.UserId,
-                    RoomId = b.RoomId,
-                    HotelName = b.Room.RoomType.Hotel.Name,
-                    RoomTypeName = b.Room.RoomType.Name,
-                    CheckInDate = b.CheckInDate,
-                    CheckOutDate = b.CheckOutDate,
-                    TotalPrice = b.TotalPrice,
-                    Status = b.Status == BookingStatus.Cancelled
-                        ? BookingDisplayStatus.Cancelled
-                        : b.CheckOutDate <= today
-                            ? BookingDisplayStatus.Completed
-                            : BookingDisplayStatus.Active,
-                    CreatedAt = b.CreatedAt,
-                    CancelledAt = b.CancelledAt
-                })
-                .ToListAsync();
-        }
-
 
         public async Task CancelAnyBookingAsync(int bookingId)
         {
@@ -231,7 +201,60 @@ namespace HotelBookingSystem.Api.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task CancelOwnerHotelBookingAsync(int ownerId, int bookingId)
+        public async Task<BookingResponse> CreateBookingForUserAsync(int userId, CreateBookingRequest req)
+        {
+            var targetUser = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new { u.Id, u.Role })
+                .FirstOrDefaultAsync()
+                ?? throw new NotFoundException("User not found.");
+
+            if (targetUser.Role != Role.User)
+                throw new ValidationException("Booking can be created only for a regular user account.");
+
+            return await CreateBookingAsync(userId, req);
+        }
+
+
+
+        public async Task<List<BookingResponse>> GetOwnerHotelBookingsAsync(int hotelId, int ownerId)
+        {
+            var hotelExists = await _context.Hotels.AsNoTracking().AnyAsync(h => h.Id == hotelId && h.OwnerId == ownerId);
+
+            if (!hotelExists)
+                throw new NotFoundException("Hotel not found.");
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var bookings = await _context.Bookings
+                .AsNoTracking()
+                .Where(b => b.Room.RoomType.HotelId == hotelId)
+                .OrderByDescending(b => b.CreatedAt)
+                .Select(b => new BookingResponse
+                {
+                    Id = b.Id,
+                    UserId = b.UserId,
+                    RoomId = b.RoomId,
+                    HotelName = b.Room.RoomType.Hotel.Name,
+                    RoomTypeName = b.Room.RoomType.Name,
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate,
+                    TotalPrice = b.TotalPrice,
+                    Status = b.Status == BookingStatus.Cancelled
+                        ? BookingDisplayStatus.Cancelled
+                        : b.CheckOutDate <= today
+                            ? BookingDisplayStatus.Completed
+                            : BookingDisplayStatus.Active,
+                    CreatedAt = b.CreatedAt,
+                    CancelledAt = b.CancelledAt
+                })
+                .ToListAsync();
+
+            return bookings;
+        }
+
+        public async Task CancelOwnerHotelBookingAsync(int bookingId, int ownerId)
         {
             var booking = await _context.Bookings
                 .Include(b => b.Room)
@@ -247,6 +270,8 @@ namespace HotelBookingSystem.Api.Services
             await _context.SaveChangesAsync();
         }
 
+
+     
         private static void CancelBooking(Booking booking)
         {
             var today = DateOnly.FromDateTime(DateTime.Today);

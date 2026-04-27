@@ -8,8 +8,8 @@
         public const string BookingsCancelOwn = "bookings:cancel_own";
 
         // Owner bookings
-        public const string BookingsReadOwnHotels = "bookings:read_own_hotel";
-        public const string BookingsCancelOwnHotels = "bookings:cancel_own_hotel";
+        public const string BookingsReadOwnHotel = "bookings:read_own_hotel";
+        public const string BookingsCancelOwnHotel = "bookings:cancel_own_hotel";
 
         // Admin global bookings
         public const string BookingsReadAny = "bookings:read_any";
@@ -18,6 +18,7 @@
 
         // Hotels
         public const string HotelsCreate = "hotels:create";
+        public const string HotelsReadAny = "hotels:read_any";
         public const string HotelsUpdateAny = "hotels:update_any";
         public const string HotelsDeactivateAny = "hotels:deactivate_any";
         public const string HotelsAssignOwner = "hotels:assign_owner";

@@ -25,8 +25,8 @@ namespace HotelBookingSystem.Api.Authorization
                 Permissions.RoomsUpdateOwn,
                 Permissions.RoomsDeactivateOwn,
 
-                Permissions.BookingsReadOwnHotels,
-                Permissions.BookingsCancelOwnHotels
+                Permissions.BookingsReadOwnHotel,
+                Permissions.BookingsCancelOwnHotel
             ],
 
             [Role.Admin] =
@@ -36,6 +36,7 @@ namespace HotelBookingSystem.Api.Authorization
                 Permissions.BookingsCreateForUser,
 
                 Permissions.HotelsCreate,
+                Permissions.HotelsReadAny,
                 Permissions.HotelsUpdateAny,
                 Permissions.HotelsDeactivateAny,
                 Permissions.HotelsAssignOwner,

@@ -1,9 +1,10 @@
 ﻿using HotelBookingSystem.Api.Authorization;
 using HotelBookingSystem.Api.Contracts.Admin;
-using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Contracts.Management;
 using HotelBookingSystem.Api.Extensions;
-using HotelBookingSystem.Api.Services;
+using HotelBookingSystem.Api.Services.Bookings;
+using HotelBookingSystem.Api.Services.Hotels;
+using HotelBookingSystem.Api.Services.Rooms;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,14 +13,32 @@ namespace HotelBookingSystem.Api.Controllers.Owner
     [ApiController]
     [Route("api/owner")]
     [Authorize]
-    public class OwnerController(ManagementService managementService, BookingService bookingService) : ControllerBase
+    public class OwnerController : ControllerBase
     {
+        private readonly HotelManagementService _hotelService;
+        private readonly RoomTypeManagementService _roomTypeService;
+        private readonly RoomManagementService _roomService;
+        private readonly BookingService _bookingService;
+
+        public OwnerController(
+            HotelManagementService hotelService, 
+            RoomTypeManagementService roomTypeService, 
+            RoomManagementService roomService, 
+            BookingService bookingService)
+        {
+            _hotelService = hotelService;
+            _roomTypeService = roomTypeService;
+            _roomService = roomService;
+            _bookingService = bookingService;
+        }
+
         [HttpGet("hotels")]
         [Authorize(Policy = Permissions.HotelsUpdateOwn)]
         public async Task<IActionResult> GetMyHotels()
         {
             var ownerId = User.GetUserId();
-            var result = await managementService.GetOwnerHotelsAsync(ownerId);
+            var result = await _hotelService.GetOwnerHotelsAsync(ownerId);
+
             return Ok(result);
         }
 
@@ -28,7 +47,8 @@ namespace HotelBookingSystem.Api.Controllers.Owner
         public async Task<IActionResult> UpdateHotel(int hotelId, UpdateHotelRequest req)
         {
             var ownerId = User.GetUserId();
-            var result = await managementService.UpdateOwnerHotelAsync(ownerId, hotelId, req);
+            var result = await _hotelService.UpdateOwnerHotelAsync(ownerId, hotelId, req);
+
             return Ok(result);
         }
 
@@ -37,7 +57,7 @@ namespace HotelBookingSystem.Api.Controllers.Owner
         public async Task<IActionResult> CreateRoomType(int hotelId, RoomTypeRequest req)
         {
             var ownerId = User.GetUserId();
-            var result = await managementService.CreateOwnerRoomTypeAsync(ownerId, hotelId, req);
+            var result = await _roomTypeService.CreateOwnerRoomTypeAsync(ownerId, hotelId, req);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
@@ -47,7 +67,8 @@ namespace HotelBookingSystem.Api.Controllers.Owner
         public async Task<IActionResult> UpdateRoomType(int roomTypeId, UpdateRoomTypeRequest req)
         {
             var ownerId = User.GetUserId();
-            var result = await managementService.UpdateOwnerRoomTypeAsync(ownerId, roomTypeId, req);
+            var result = await _roomTypeService.UpdateOwnerRoomTypeAsync(ownerId, roomTypeId, req);
+
             return Ok(result);
         }
 
@@ -56,7 +77,8 @@ namespace HotelBookingSystem.Api.Controllers.Owner
         public async Task<IActionResult> DeactivateRoomType(int roomTypeId)
         {
             var ownerId = User.GetUserId();
-            await managementService.DeactivateOwnerRoomTypeAsync(ownerId, roomTypeId);
+            await _roomTypeService.DeactivateOwnerRoomTypeAsync(ownerId, roomTypeId);
+
             return NoContent();
         }
 
@@ -65,7 +87,7 @@ namespace HotelBookingSystem.Api.Controllers.Owner
         public async Task<IActionResult> CreateRoom(int roomTypeId, CreateRoomRequest req)
         {
             var ownerId = User.GetUserId();
-            var result = await managementService.CreateOwnerRoomAsync(ownerId, roomTypeId, req);
+            var result = await _roomService.CreateOwnerRoomAsync(ownerId, roomTypeId, req);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
@@ -75,7 +97,8 @@ namespace HotelBookingSystem.Api.Controllers.Owner
         public async Task<IActionResult> UpdateRoom(int roomId, UpdateRoomRequest req)
         {
             var ownerId = User.GetUserId();
-            var result = await managementService.UpdateOwnerRoomAsync(ownerId, roomId, req);
+            var result = await _roomService.UpdateOwnerRoomAsync(ownerId, roomId, req);
+
             return Ok(result);
         }
 
@@ -84,25 +107,28 @@ namespace HotelBookingSystem.Api.Controllers.Owner
         public async Task<IActionResult> DeactivateRoom(int roomId)
         {
             var ownerId = User.GetUserId();
-            await managementService.DeactivateOwnerRoomAsync(ownerId, roomId);
+            await _roomService.DeactivateOwnerRoomAsync(ownerId, roomId);
+
             return NoContent();
         }
 
         [HttpGet("bookings")]
-        [Authorize(Policy = Permissions.BookingsReadOwnHotels)]
-        public async Task<IActionResult> GetBookings()
+        [Authorize(Policy = Permissions.BookingsReadOwnHotel)]
+        public async Task<IActionResult> GetBookings(int hotelId)
         {
             var ownerId = User.GetUserId();
-            var result = await bookingService.GetBookingsForOwnerHotelsAsync(ownerId);
+            var result = await _bookingService.GetOwnerHotelBookingsAsync(hotelId, ownerId);
+
             return Ok(result);
         }
 
         [HttpPatch("bookings/{bookingId:int}/cancel")]
-        [Authorize(Policy = Permissions.BookingsCancelOwnHotels)]
+        [Authorize(Policy = Permissions.BookingsCancelOwnHotel)]
         public async Task<IActionResult> CancelBooking(int bookingId)
         {
             var ownerId = User.GetUserId();
-            await bookingService.CancelOwnerHotelBookingAsync(ownerId, bookingId);
+            await _bookingService.CancelOwnerHotelBookingAsync(bookingId, ownerId);
+
             return NoContent();
         }
     }

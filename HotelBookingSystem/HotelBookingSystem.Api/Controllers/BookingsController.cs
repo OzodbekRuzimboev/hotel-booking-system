@@ -1,7 +1,7 @@
 ﻿using HotelBookingSystem.Api.Authorization;
 using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Extensions;
-using HotelBookingSystem.Api.Services;
+using HotelBookingSystem.Api.Services.Bookings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,7 +34,7 @@ namespace HotelBookingSystem.Api.Controllers
         public async Task<IActionResult> GetMyBookings()
         {
             var userId = User.GetUserId();
-            var bookings = await _service.GetBookingsAsync(userId);
+            var bookings = await _service.GetUserBookingsAsync(userId);
 
             return Ok(bookings);
         }
@@ -44,7 +44,7 @@ namespace HotelBookingSystem.Api.Controllers
         public async Task<IActionResult> CancelBooking(int id)
         {
             var userId = User.GetUserId();
-            await _service.CancelBookingAsync(userId, id);
+            await _service.CancelUserBookingAsync(userId, id);
 
             return NoContent();
         }
