@@ -5,11 +5,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace HotelBookingSystem.Api.Services
 {
-    public class JwtTokenService(IOptions<JwtOptions> options)
+    public class TokenService(IOptions<JwtOptions> options)
     {
         private readonly JwtOptions _options = options.Value;
         private readonly JsonWebTokenHandler _tokenHandler = new();
@@ -43,6 +44,16 @@ namespace HotelBookingSystem.Api.Services
             };
 
             return _tokenHandler.CreateToken(tokenDescriptor);
+        }
+
+        public string GenerateRefreshToken()
+        {
+            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        }
+
+        public string HashToken(string token)
+        {
+            return Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Enums;
+using HotelBookingSystem.Api.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingSystem.Api.Data
@@ -15,10 +16,13 @@ namespace HotelBookingSystem.Api.Data
         public DbSet<RoomType> RoomTypes => Set<RoomType>();
         public DbSet<Room> Rooms => Set<Room>();
         public DbSet<Booking> Bookings => Set<Booking>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
 
             modelBuilder.Entity<Hotel>().HasMany(h => h.RoomTypes).WithOne(r => r.Hotel).HasForeignKey(r => r.HotelId);
 

@@ -10,18 +10,20 @@ namespace HotelBookingSystem.Api.Controllers
     [Route("api/[controller]")]
     public class HotelsController : ControllerBase
     {
-        private readonly HotelSearchService _service;
+        private readonly HotelSearchService _searchService;
+        private readonly HotelManagementService _managementService;
 
-        public HotelsController(HotelSearchService service)
+        public HotelsController(HotelSearchService searchService, HotelManagementService managementService)
         {
-            _service = service;
+            _searchService = searchService;
+            _managementService = managementService;
         }
 
         [HttpGet]
         [Authorize(Policy = Permissions.HotelsReadAny)]
         public async Task<IActionResult> GetHotels()
         {
-            var hotels = await _service.GetHotelsAsync();
+            var hotels = await _managementService.GetHotelsAsync();
 
             return Ok(hotels);
         }
@@ -30,7 +32,7 @@ namespace HotelBookingSystem.Api.Controllers
         [Authorize(Policy = Permissions.HotelsReadAny)]
         public async Task<IActionResult> GetHotelById(int id)
         {
-            var response = await _service.GetHotelByIdAsync(id);
+            var response = await _managementService.GetHotelByIdAsync(id);
 
             return Ok(response);
         }
@@ -39,7 +41,7 @@ namespace HotelBookingSystem.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAvailableHotels([FromQuery] HotelSearchRequest req)
         {
-            var hotels = await _service.GetAvailableHotelsAsync(req);
+            var hotels = await _searchService.GetAvailableHotelsAsync(req);
 
             return Ok(hotels);
         }

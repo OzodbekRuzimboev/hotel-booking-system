@@ -40,7 +40,20 @@ namespace HotelBookingSystem.Api.Services.Users
                     throw new ValidationException("Cannot remove the last admin.");
             }
 
-            user.Role = req.Role;
+            if (user.Role != req.Role)
+            {
+                user.Role = req.Role;
+
+                var activeRefreshTokens = await _context.RefreshTokens
+                    .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null && rt.ExpiresAt > DateTime.UtcNow)
+                    .ToListAsync();
+
+                foreach (var token in activeRefreshTokens)
+                {
+                    token.RevokedAt = DateTime.UtcNow;
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return new UserRoleResponse

@@ -69,7 +69,7 @@ builder.Services.AddScoped<RoomManagementService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<UserManagementService>();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 

@@ -2,9 +2,11 @@
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Exceptions;
+using HotelBookingSystem.Api.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using System.Security;
 
 namespace HotelBookingSystem.Api.Services
 {
@@ -12,13 +14,13 @@ namespace HotelBookingSystem.Api.Services
     {
         private readonly AppDbContext _context;
         private readonly IPasswordHasher<User> _passwordHasher;
-        private readonly JwtTokenService _jwtTokenService;
+        private readonly TokenService _tokenService;
 
-        public AuthService(AppDbContext context, IPasswordHasher<User> passwordHasher, JwtTokenService jwtTokenService)
+        public AuthService(AppDbContext context, IPasswordHasher<User> passwordHasher, TokenService tokenService)
         {
             _context = context;
             _passwordHasher = passwordHasher;
-            _jwtTokenService = jwtTokenService;
+            _tokenService = tokenService;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest req)
@@ -51,14 +53,28 @@ namespace HotelBookingSystem.Api.Services
                 throw new ConflictException("Email already in use.");
             }
 
-            var token = _jwtTokenService.CreateToken(user);
+            var accessToken = _tokenService.CreateToken(user);
+
+            var refreshToken = _tokenService.GenerateRefreshToken();
+
+            var refreshTokenHash = _tokenService.HashToken(refreshToken);
+
+            _context.RefreshTokens.Add(new RefreshToken
+            {
+                UserId = user.Id,
+                TokenHash = refreshTokenHash,
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
+            });
+            await _context.SaveChangesAsync();
 
             return new AuthResponse
             {
-                Token = token,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
                 UserId = user.Id,
                 Name = user.Name,
-                Email = user.Email
+                Email = user.Email,
+                Role = user.Role
             };
         }
 
@@ -75,15 +91,86 @@ namespace HotelBookingSystem.Api.Services
             if (result == PasswordVerificationResult.Failed)
                 throw new UnauthorizedException("Invalid email or password.");
 
-            var token = _jwtTokenService.CreateToken(user);
+            var accessToken = _tokenService.CreateToken(user);
+
+            var refreshToken = _tokenService.GenerateRefreshToken();
+
+            var refreshTokenHash = _tokenService.HashToken(refreshToken);
+
+            _context.RefreshTokens.Add(new RefreshToken
+            {
+                UserId = user.Id,
+                TokenHash = refreshTokenHash,
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
+            });
+            await _context.SaveChangesAsync();
 
             return new AuthResponse
             {
-                Token = token,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
                 UserId = user.Id,
                 Name = user.Name,
-                Email = user.Email
+                Email = user.Email,
+                Role = user.Role
             };
+        }
+
+        public async Task<AuthResponse> RefreshAsync(string refreshToken)
+        {
+            var refreshTokenHash = _tokenService.HashToken(refreshToken);
+
+            var storedToken = await _context.RefreshTokens
+                .Include(rt => rt.User)
+                .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash)
+                ?? throw new UnauthorizedException("Invalid refresh token.");
+
+            if (!storedToken.IsActive)
+                throw new UnauthorizedException("Refresh token is no longer active.");
+
+            var user = storedToken.User;
+
+            var newRefreshToken = _tokenService.GenerateRefreshToken();
+            var newRefreshTokenHash = _tokenService.HashToken(newRefreshToken);
+
+            storedToken.RevokedAt = DateTime.UtcNow;
+            storedToken.ReplacedByTokenHash = newRefreshTokenHash;
+
+            _context.RefreshTokens.Add(new RefreshToken
+            {
+                UserId = user.Id,
+                TokenHash = newRefreshTokenHash,
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
+            });
+
+            var newAccessToken = _tokenService.CreateToken(user);
+
+            await _context.SaveChangesAsync();
+
+            return new AuthResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                UserId = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
+
+        public async Task RevokeRefreshTokenAsync(string refreshToken)
+        {
+            var refreshTokenHash = _tokenService.HashToken(refreshToken);
+
+            var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash)
+                ?? throw new UnauthorizedException("Invalid refresh token.");
+
+            if (storedToken.RevokedAt is null)
+            {
+                storedToken.RevokedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         private static bool IsUniqueEmailViolation(DbUpdateException ex)

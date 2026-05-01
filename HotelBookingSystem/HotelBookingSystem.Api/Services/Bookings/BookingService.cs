@@ -127,6 +127,7 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     RoomTypeName = b.Room.RoomType.Name,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
+                    GuestsCount = b.GuestsCount,
                     TotalPrice = b.TotalPrice,
                     Status = b.Status == BookingStatus.Cancelled
                         ? BookingDisplayStatus.Cancelled
@@ -178,6 +179,7 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     RoomTypeName = b.Room.RoomType.Name,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
+                    GuestsCount = b.GuestsCount,
                     TotalPrice = b.TotalPrice,
                     Status = b.Status == BookingStatus.Cancelled
                         ? BookingDisplayStatus.Cancelled
@@ -240,6 +242,7 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     RoomTypeName = b.Room.RoomType.Name,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
+                    GuestsCount = b.GuestsCount,
                     TotalPrice = b.TotalPrice,
                     Status = b.Status == BookingStatus.Cancelled
                         ? BookingDisplayStatus.Cancelled

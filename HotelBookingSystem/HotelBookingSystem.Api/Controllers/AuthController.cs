@@ -30,5 +30,21 @@ namespace HotelBookingSystem.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest req)
+        {
+            var result = await _service.RefreshAsync(req.RefreshToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] RevokeRefreshTokenRequest req)
+        {
+            await _service.RevokeRefreshTokenAsync(req.RefreshToken);
+
+            return NoContent();
+        }
     }
 }
