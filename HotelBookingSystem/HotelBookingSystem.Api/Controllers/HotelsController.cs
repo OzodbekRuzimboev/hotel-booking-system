@@ -45,5 +45,14 @@ namespace HotelBookingSystem.Api.Controllers
 
             return Ok(hotels);
         }
+
+        [HttpGet("{id}/details")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPublicHotelDetails(int id, [FromQuery] PublicHotelDetailsRequest req)
+        {
+            var hotel = await _searchService.GetPublicHotelDetailsAsync(id, req);
+
+            return Ok(hotel);
+        }
     }
 }

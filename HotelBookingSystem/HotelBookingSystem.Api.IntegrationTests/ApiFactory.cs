@@ -1,9 +1,10 @@
 ﻿using HotelBookingSystem.Api.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
 
@@ -28,7 +29,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
 
             builder.ConfigureServices(services =>
             {
-                services.RemoveAll(typeof(DbContextOptions<AppDbContext>));
+                services.RemoveAll<DbContextOptions<AppDbContext>>();
 
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseNpgsql(_db.GetConnectionString()));
