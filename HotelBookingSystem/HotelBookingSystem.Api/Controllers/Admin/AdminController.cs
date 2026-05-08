@@ -36,7 +36,7 @@ namespace HotelBookingSystem.Api.Controllers.Admin
             _userService = userService;
         }
 
-        [HttpPost]
+        [HttpPost("hotels")]
         [Authorize(Policy = Permissions.HotelsCreate)]
         public async Task<IActionResult> CreateHotel(CreateHotelRequest req)
         {
@@ -96,7 +96,7 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         {
             var result = await _roomService.CreateRoomAsync(roomTypeId, req);
 
-            return Ok(result);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         [HttpPatch("rooms/{roomId:int}")]

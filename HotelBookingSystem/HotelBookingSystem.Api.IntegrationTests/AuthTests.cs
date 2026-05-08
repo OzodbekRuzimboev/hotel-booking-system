@@ -34,11 +34,11 @@ namespace HotelBookingSystem.Api.IntegrationTests
 
             var response = await Client.PostAsJsonAsync("/api/Auth/register", request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
 
             var auth = await response.Content.ReadFromJsonAsync<AuthResponse>();
             auth.Should().NotBeNull();
-            auth!.Token.Should().NotBeNullOrWhiteSpace();
+            auth!.AccessToken.Should().NotBeNullOrWhiteSpace();
             auth.Email.Should().Be("test@gmail.com");
             auth.Name.Should().Be("Test user");
 
@@ -53,6 +53,12 @@ namespace HotelBookingSystem.Api.IntegrationTests
             user.PasswordHash.Should().NotBe("password123");
 
             auth.UserId.Should().Be(user.Id);
+
+            var refreshToken = await db.RefreshTokens.SingleAsync(rt => rt.UserId == user.Id);
+
+            refreshToken.TokenHash.Should().NotBeNullOrWhiteSpace();
+            refreshToken.TokenHash.Should().NotBe(auth.RefreshToken);
+            refreshToken.RevokedAt.Should().BeNull();
         }
 
         [Fact]
@@ -97,7 +103,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
             };
 
             var firstResponse = await Client.PostAsJsonAsync("/api/auth/register", firstRequest);
-            firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
             var secondResponse = await Client.PostAsJsonAsync("/api/auth/register", secondRequest);
             secondResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -157,7 +163,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 _output.WriteLine($"Body: {body}");
             }
 
-            responses.Count(r => r.StatusCode == HttpStatusCode.OK).Should().Be(1);
+            responses.Count(r => r.StatusCode == HttpStatusCode.Created).Should().Be(1);
             responses.Count(r => r.StatusCode == HttpStatusCode.Conflict).Should().Be(1);
 
             var conflictResponse = responses.Single(r => r.StatusCode == HttpStatusCode.Conflict);
@@ -174,6 +180,51 @@ namespace HotelBookingSystem.Api.IntegrationTests
 
             var user = await db.Users.SingleAsync();
             user.Email.Should().Be("same@example.com");
+        }
+
+        [Fact]
+        public async Task Refresh_ShouldRotateRefreshToken_AndRejectOldRefreshToken()
+        {
+            await Factory.ResetDatabaseAsync();
+
+            var auth = await RegisterAsync();
+
+            var refreshResponse = await Client.PostAsJsonAsync("/api/auth/refresh", new RefreshTokenRequest
+            {
+                RefreshToken = auth.RefreshToken
+            });
+
+            refreshResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var refreshedAuth = await refreshResponse.Content.ReadFromJsonAsync<AuthResponse>();
+
+            refreshedAuth.Should().NotBeNull();
+            refreshedAuth!.AccessToken.Should().NotBeNullOrWhiteSpace();
+            refreshedAuth.RefreshToken.Should().NotBeNullOrWhiteSpace();
+            refreshedAuth.RefreshToken.Should().NotBe(auth.RefreshToken);
+            refreshedAuth.UserId.Should().Be(auth.UserId);
+            refreshedAuth.Email.Should().Be(auth.Email);
+
+            var oldTokenResponse = await Client.PostAsJsonAsync("/api/auth/refresh", new RefreshTokenRequest
+            {
+                RefreshToken = auth.RefreshToken
+            });
+
+            oldTokenResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+            var problem = await oldTokenResponse.Content.ReadFromJsonAsync<ProblemDetails>();
+
+            problem.Should().NotBeNull();
+            problem!.Detail.Should().Be("Refresh token is no longer active.");
+
+            using var scope = Factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var tokens = await db.RefreshTokens.Where(rt => rt.UserId == auth.UserId).ToListAsync();
+
+            tokens.Should().HaveCount(2);
+            tokens.Count(rt => rt.RevokedAt is not null).Should().Be(1);
+            tokens.Count(rt => rt.RevokedAt is null).Should().Be(1);
         }
     }
 }

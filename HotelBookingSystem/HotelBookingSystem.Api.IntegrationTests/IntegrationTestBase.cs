@@ -16,13 +16,24 @@ namespace HotelBookingSystem.Api.IntegrationTests
         protected IntegrationTestBase(ApiFactory factory)
         {
             Factory = factory;
-            Client = factory.CreateClient(new WebApplicationFactoryClientOptions
+            Client = CreateClient();
+        }
+
+        protected HttpClient CreateClient()
+        {
+            return Factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 BaseAddress = new Uri("https://localhost")
             });
         }
 
-        protected async Task<int> SeedRoomAsync()
+        protected async Task<int> SeedRoomTypeAsync(
+            int roomCount = 1,
+            int capacity = 2,
+            decimal price = 100m,
+            bool hotelIsActive = true,
+            bool roomTypeIsActive = true,
+            bool roomsAreActive = true)
         {
             using var scope = Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -31,26 +42,38 @@ namespace HotelBookingSystem.Api.IntegrationTests
             {
                 Name = "Test Hotel",
                 City = "Tashkent",
-                Address = "Test address"
+                Address = "Test address",
+                IsActive = hotelIsActive
             };
 
-            var room = new Room
+            var roomType = new RoomType
             {
                 Hotel = hotel,
-                Name = "Standard 101",
-                Capacity = 2,
-                Price = 100
+                Name = "Standard",
+                Description = "Standard test room type",
+                Capacity = capacity,
+                Price = price,
+                IsActive = roomTypeIsActive
             };
 
-            db.Rooms.Add(room);
+            for (var i = 1; i <= roomCount; i++)
+            {
+                roomType.Rooms.Add(new Room
+                {
+                    Number = $"10{i}",
+                    IsActive = roomsAreActive
+                });
+            }
+
+            db.RoomTypes.Add(roomType);
             await db.SaveChangesAsync();
 
-            return room.Id;
+            return roomType.Id;
         }
 
-        protected async Task<AuthResponse> RegisterAsync()
+        protected async Task<AuthResponse> RegisterAsync(string? email = null)
         {
-            var email = $"{Guid.NewGuid():N}@test.com";
+            email ??= $"{Guid.NewGuid():N}@test.com";
 
             var response = await Client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
             {
@@ -65,10 +88,10 @@ namespace HotelBookingSystem.Api.IntegrationTests
             return auth ?? throw new InvalidOperationException("Auth response is null.");
         }
 
-        protected async Task<AuthResponse> RegisterAndAuthorizeAsync()
+        protected async Task<AuthResponse> RegisterAndAuthorizeAsync(string? email = null)
         {
-            var auth = await RegisterAsync();
-            Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+            var auth = await RegisterAsync(email);
+            Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.AccessToken);
 
             return auth;
         }

@@ -1,13 +1,9 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
-using HotelBookingSystem.Api.Contracts.Auth;
 using HotelBookingSystem.Api.Contracts.Bookings;
 using HotelBookingSystem.Api.Data;
-using HotelBookingSystem.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,15 +18,16 @@ namespace HotelBookingSystem.Api.IntegrationTests
         {
             await Factory.ResetDatabaseAsync();
 
-            var roomId = await SeedRoomAsync();
+            var roomTypeId = await SeedRoomTypeAsync();
 
             await RegisterAndAuthorizeAsync();
 
             var invalidBooking = new CreateBookingRequest
             {
-                RoomId = roomId,
-                CheckInDate = new DateOnly(2026, 4, 16),
-                CheckOutDate = new DateOnly(2026, 4, 13)
+                RoomTypeId = roomTypeId,
+                CheckInDate = DateOnly.FromDateTime(DateTime.Today.AddDays(16)),
+                CheckOutDate = DateOnly.FromDateTime(DateTime.Today.AddDays(12)),
+                GuestsCount = 2
             };
 
             var response = await Client.PostAsJsonAsync("/api/bookings", invalidBooking);
