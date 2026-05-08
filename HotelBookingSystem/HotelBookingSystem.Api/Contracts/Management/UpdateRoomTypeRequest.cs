@@ -1,10 +1,21 @@
-﻿namespace HotelBookingSystem.Api.Contracts.Management
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace HotelBookingSystem.Api.Contracts.Management
 {
     public class UpdateRoomTypeRequest
     {
-        public required string Name { get; set; }
+        [Required]
+        [StringLength(100, MinimumLength = 2)]
+        [RegularExpression(@".*\S.*", ErrorMessage = "Room type name cannot be empty or whitespace.")]
+        public string Name { get; set; } = string.Empty;
+
+        [StringLength(2000)]
         public string? Description { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Capacity must be greater than zero.")]
         public int Capacity { get; set; }
+
+        [Range(typeof(decimal), "0.01", "1000000", ErrorMessage = "Price must be greater than zero.")]
         public decimal Price { get; set; }
     }
 }
