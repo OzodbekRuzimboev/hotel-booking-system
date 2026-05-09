@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using HotelBookingSystem.Api.Authorization;
 using HotelBookingSystem.Api.Contracts.Hotels;
+using HotelBookingSystem.Api.Contracts.Reviews;
+using HotelBookingSystem.Api.Extensions;
 using HotelBookingSystem.Api.Services.Hotels;
 
 namespace HotelBookingSystem.Api.Controllers
@@ -12,11 +14,13 @@ namespace HotelBookingSystem.Api.Controllers
     {
         private readonly HotelSearchService _searchService;
         private readonly HotelManagementService _managementService;
+        private readonly ReviewService _reviewService;
 
-        public HotelsController(HotelSearchService searchService, HotelManagementService managementService)
+        public HotelsController(HotelSearchService searchService, HotelManagementService managementService, ReviewService reviewService)
         {
             _searchService = searchService;
             _managementService = managementService;
+            _reviewService = reviewService;
         }
 
         [HttpGet]
@@ -53,6 +57,22 @@ namespace HotelBookingSystem.Api.Controllers
             var hotel = await _searchService.GetPublicHotelDetailsAsync(id, req);
 
             return Ok(hotel);
+        }
+
+        [HttpGet("{id:int}/reviews")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetReviews(int id)
+        {
+            var result = await _reviewService.GetHotelReviewsAsync(id);
+            return Ok(result);
+        }
+
+        [HttpPost("{id:int}/reviews")]
+        [Authorize]
+        public async Task<IActionResult> CreateReview(int id, CreateReviewRequest req)
+        {
+            var result = await _reviewService.CreateOrUpdateReviewAsync(User.GetUserId(), id, req);
+            return Ok(result);
         }
     }
 }

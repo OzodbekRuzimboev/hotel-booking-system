@@ -68,6 +68,33 @@ namespace HotelBookingSystem.Api.Migrations
                     b.ToTable("Bookings");
                 });
 
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.FavoriteHotel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("HotelId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HotelId");
+
+                    b.HasIndex("UserId", "HotelId")
+                        .IsUnique();
+
+                    b.ToTable("FavoriteHotels");
+                });
+
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Hotel", b =>
                 {
                     b.Property<int>("Id")
@@ -87,6 +114,9 @@ namespace HotelBookingSystem.Api.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -104,6 +134,47 @@ namespace HotelBookingSystem.Api.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Hotels");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.Review", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("HotelId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RoomTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HotelId");
+
+                    b.HasIndex("RoomTypeId");
+
+                    b.HasIndex("UserId", "RoomTypeId")
+                        .IsUnique();
+
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Room", b =>
@@ -151,6 +222,9 @@ namespace HotelBookingSystem.Api.Migrations
                     b.Property<int>("HotelId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -178,6 +252,9 @@ namespace HotelBookingSystem.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Country")
+                        .HasColumnType("text");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
@@ -188,6 +265,9 @@ namespace HotelBookingSystem.Api.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
                     b.Property<string>("Role")
@@ -201,6 +281,42 @@ namespace HotelBookingSystem.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.UserSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("EmailNotificationsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PreferredCurrency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasDefaultValue("USD");
+
+                    b.Property<string>("PreferredLanguage")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("en");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserSettings");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Users.RefreshToken", b =>
@@ -261,6 +377,25 @@ namespace HotelBookingSystem.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.FavoriteHotel", b =>
+                {
+                    b.HasOne("HotelBookingSystem.Api.Entities.Hotel", "Hotel")
+                        .WithMany("Favorites")
+                        .HasForeignKey("HotelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelBookingSystem.Api.Entities.User", "User")
+                        .WithMany("FavoriteHotels")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hotel");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Hotel", b =>
                 {
                     b.HasOne("HotelBookingSystem.Api.Entities.User", "Owner")
@@ -269,6 +404,33 @@ namespace HotelBookingSystem.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.Review", b =>
+                {
+                    b.HasOne("HotelBookingSystem.Api.Entities.Hotel", "Hotel")
+                        .WithMany("Reviews")
+                        .HasForeignKey("HotelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelBookingSystem.Api.Entities.RoomType", "RoomType")
+                        .WithMany("Reviews")
+                        .HasForeignKey("RoomTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelBookingSystem.Api.Entities.User", "User")
+                        .WithMany("Reviews")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hotel");
+
+                    b.Navigation("RoomType");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Room", b =>
@@ -293,6 +455,17 @@ namespace HotelBookingSystem.Api.Migrations
                     b.Navigation("Hotel");
                 });
 
+            modelBuilder.Entity("HotelBookingSystem.Api.Entities.UserSettings", b =>
+                {
+                    b.HasOne("HotelBookingSystem.Api.Entities.User", "User")
+                        .WithOne("Settings")
+                        .HasForeignKey("HotelBookingSystem.Api.Entities.UserSettings", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("HotelBookingSystem.Api.Users.RefreshToken", b =>
                 {
                     b.HasOne("HotelBookingSystem.Api.Entities.User", "User")
@@ -306,6 +479,10 @@ namespace HotelBookingSystem.Api.Migrations
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.Hotel", b =>
                 {
+                    b.Navigation("Favorites");
+
+                    b.Navigation("Reviews");
+
                     b.Navigation("RoomTypes");
                 });
 
@@ -316,12 +493,20 @@ namespace HotelBookingSystem.Api.Migrations
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.RoomType", b =>
                 {
+                    b.Navigation("Reviews");
+
                     b.Navigation("Rooms");
                 });
 
             modelBuilder.Entity("HotelBookingSystem.Api.Entities.User", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("FavoriteHotels");
+
+                    b.Navigation("Reviews");
+
+                    b.Navigation("Settings");
                 });
 #pragma warning restore 612, 618
         }

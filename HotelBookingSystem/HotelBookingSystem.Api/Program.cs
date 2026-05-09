@@ -19,6 +19,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
@@ -33,27 +37,27 @@ if (string.IsNullOrWhiteSpace(jwt.Issuer) || string.IsNullOrWhiteSpace(jwt.Audie
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.MapInboundClaims = false;
+
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.MapInboundClaims = false;
+        NameClaimType = JwtRegisteredClaimNames.Sub,
+        RoleClaimType = "role",
 
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            NameClaimType = JwtRegisteredClaimNames.Sub,
-            RoleClaimType = "role",
+        ValidateIssuer = true,
+        ValidIssuer = jwt.Issuer,
 
-            ValidateIssuer = true,
-            ValidIssuer = jwt.Issuer,
+        ValidateAudience = true,
+        ValidAudience = jwt.Audience,
 
-            ValidateAudience = true,
-            ValidAudience = jwt.Audience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
 
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
-
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
 var authorizationBuilder = builder.Services.AddAuthorizationBuilder();
 
@@ -64,10 +68,12 @@ foreach (var permission in RolePermissions.Map.Values.SelectMany(x => x).Distinc
 
 builder.Services.AddScoped<HotelSearchService>();
 builder.Services.AddScoped<HotelManagementService>();
+builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<RoomTypeManagementService>();
 builder.Services.AddScoped<RoomManagementService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<UserManagementService>();
+builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TokenService>();
 
@@ -87,6 +93,13 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
+
 await AdminSeeder.SeedAsync(app.Services, app.Configuration);
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

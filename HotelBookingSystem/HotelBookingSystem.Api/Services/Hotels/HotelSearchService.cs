@@ -50,8 +50,12 @@ namespace HotelBookingSystem.Api.Services.Hotels
                 {
                     Id = h.Id,
                     Name = h.Name,
+                    Description = h.Description,
+                    ImageUrl = h.ImageUrl,
                     City = h.City,
                     Address = h.Address,
+                    AverageRating = h.Reviews.Any() ? h.Reviews.Average(r => r.Rating) : 0,
+                    ReviewCount = h.Reviews.Count,
                     RoomTypes = h.RoomTypes
                         .Where(rt => rt.IsActive)
                         .Where(rt => rt.Capacity >= req.GuestsCount)
@@ -66,6 +70,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
                             RoomTypeId = rt.Id,
                             Name = rt.Name,
                             Description = rt.Description,
+                            ImageUrl = rt.ImageUrl,
                             Capacity = rt.Capacity,
                             Price = rt.Price,
                             AvailableCount = rt.Rooms.Count(r =>
@@ -103,8 +108,11 @@ namespace HotelBookingSystem.Api.Services.Hotels
                     Id = h.Id,
                     Name = h.Name,
                     Description = h.Description,
+                    ImageUrl = h.ImageUrl,
                     City = h.City,
                     Address = h.Address,
+                    AverageRating = h.Reviews.Any() ? h.Reviews.Average(r => r.Rating) : 0,
+                    ReviewCount = h.Reviews.Count,
 
                     RoomTypes = h.RoomTypes
                         .Where(rt => rt.IsActive)
@@ -120,6 +128,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
                             RoomTypeId = rt.Id,
                             Name = rt.Name,
                             Description = rt.Description,
+                            ImageUrl = rt.ImageUrl,
                             Capacity = rt.Capacity,
                             Price = rt.Price,
                             AvailableCount = rt.Rooms.Count(r =>

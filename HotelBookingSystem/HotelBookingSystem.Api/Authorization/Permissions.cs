@@ -18,6 +18,7 @@
 
         // Hotels
         public const string HotelsCreate = "hotels:create";
+        public const string HotelsCreateOwn = "hotels:create_own";
         public const string HotelsReadAny = "hotels:read_any";
         public const string HotelsUpdateAny = "hotels:update_any";
         public const string HotelsDeactivateAny = "hotels:deactivate_any";

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using HotelBookingSystem.Api.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace HotelBookingSystem.Api.Contracts.Auth
 {
@@ -16,5 +17,7 @@ namespace HotelBookingSystem.Api.Contracts.Auth
         [Required]
         [StringLength (100, MinimumLength = 8)]
         public string Password {  get; set; } = string.Empty;
+
+        public Role? Role { get; set; }
     }
 }

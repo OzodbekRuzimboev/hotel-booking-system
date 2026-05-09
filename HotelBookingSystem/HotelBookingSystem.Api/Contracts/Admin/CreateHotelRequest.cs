@@ -13,6 +13,9 @@ namespace HotelBookingSystem.Api.Contracts.Admin
         [StringLength(2000)]
         public string? Description { get; set; }
 
+        [StringLength(1000000)]
+        public string? ImageUrl { get; set; }
+
         [Required]
         [StringLength(100, MinimumLength = 2)]
         [RegularExpression(@".*\S.*", ErrorMessage = "City cannot be empty or whitespace.")]

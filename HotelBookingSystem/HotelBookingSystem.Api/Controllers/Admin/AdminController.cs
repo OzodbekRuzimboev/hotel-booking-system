@@ -72,6 +72,16 @@ namespace HotelBookingSystem.Api.Controllers.Admin
             return Ok(result);
         }
 
+
+        [HttpPost("hotels/{hotelId:int}/room-types")]
+        [Authorize(Policy = Permissions.RoomTypesCreateAny)]
+        public async Task<IActionResult> CreateRoomType(int hotelId, RoomTypeRequest req)
+        {
+            var result = await _roomTypeService.CreateRoomTypeAsync(hotelId, req);
+
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+
         [HttpPatch("room-types/{roomTypeId:int}")]
         [Authorize(Policy = Permissions.RoomTypesUpdateAny)]
         public async Task<IActionResult> UpdateRoomType(int roomTypeId, UpdateRoomTypeRequest req)
@@ -140,6 +150,24 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         public async Task<IActionResult> CreateBookingForUser(int userId, CreateBookingRequest req)
         {
             var result = await _bookingService.CreateBookingForUserAsync(userId, req);
+
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+
+        [HttpGet("users")]
+        [Authorize(Policy = Permissions.UsersManageRoles)]
+        public async Task<IActionResult> GetUsers()
+        {
+            var result = await _userService.GetUsersAsync();
+
+            return Ok(result);
+        }
+
+        [HttpPost("users")]
+        [Authorize(Policy = Permissions.UsersManageRoles)]
+        public async Task<IActionResult> CreateUser(CreateUserRequest req)
+        {
+            var result = await _userService.CreateUserAsync(req);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }

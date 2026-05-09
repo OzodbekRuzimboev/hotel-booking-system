@@ -15,6 +15,7 @@ namespace HotelBookingSystem.Api.Authorization
 
             [Role.Owner] =
             [
+                Permissions.HotelsCreateOwn,
                 Permissions.HotelsUpdateOwn,
 
                 Permissions.RoomTypesCreateOwn,

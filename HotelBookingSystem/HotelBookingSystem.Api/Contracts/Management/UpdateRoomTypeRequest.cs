@@ -12,6 +12,9 @@ namespace HotelBookingSystem.Api.Contracts.Management
         [StringLength(2000)]
         public string? Description { get; set; }
 
+        [StringLength(1000000)]
+        public string? ImageUrl { get; set; }
+
         [Range(1, int.MaxValue, ErrorMessage = "Capacity must be greater than zero.")]
         public int Capacity { get; set; }
 

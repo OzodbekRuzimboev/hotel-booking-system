@@ -21,9 +21,9 @@ namespace HotelBookingSystem.Api.Controllers.Owner
         private readonly BookingService _bookingService;
 
         public OwnerController(
-            HotelManagementService hotelService, 
-            RoomTypeManagementService roomTypeService, 
-            RoomManagementService roomService, 
+            HotelManagementService hotelService,
+            RoomTypeManagementService roomTypeService,
+            RoomManagementService roomService,
             BookingService bookingService)
         {
             _hotelService = hotelService;
@@ -40,6 +40,17 @@ namespace HotelBookingSystem.Api.Controllers.Owner
             var result = await _hotelService.GetOwnerHotelsAsync(ownerId);
 
             return Ok(result);
+        }
+
+
+        [HttpPost("hotels")]
+        [Authorize(Policy = Permissions.HotelsCreateOwn)]
+        public async Task<IActionResult> CreateHotel(CreateHotelRequest req)
+        {
+            var ownerId = User.GetUserId();
+            var result = await _hotelService.CreateOwnerHotelAsync(ownerId, req);
+
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         [HttpPatch("hotels/{hotelId:int}")]

@@ -1,0 +1,57 @@
+import { createBrowserRouter } from "react-router-dom";
+import { Role } from "./types";
+import { ProtectedRoute } from "./auth/ProtectedRoute";
+import { RoleRoute } from "./auth/RoleRoute";
+import { AppLayout } from "./components/AppLayout";
+
+import { HomePage } from "./pages/HomePage";
+import { SearchPage } from "./pages/SearchPage";
+import { HotelDetailsPage } from "./pages/HotelDetailsPage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { PartnerPage } from "./pages/PartnerPage";
+import { MyBookingsPage } from "./pages/MyBookingsPage";
+import { AccountPage } from "./pages/AccountPage";
+
+import { OwnerHotelsPage } from "./pages/owner/OwnerHotelsPage";
+import { OwnerBookingsPage } from "./pages/owner/OwnerBookingsPage";
+
+import { AdminHotelsPage } from "./pages/admin/AdminHotelsPage";
+import { AdminBookingsPage } from "./pages/admin/AdminBookingsPage";
+import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+
+export const router = createBrowserRouter([
+  {
+    element: <AppLayout />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/search", element: <SearchPage /> },
+      { path: "/hotels/:hotelId", element: <HotelDetailsPage /> },
+      { path: "/login", element: <LoginPage /> },
+      { path: "/register", element: <RegisterPage /> },
+      { path: "/list-your-property", element: <PartnerPage /> },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: "/account", element: <AccountPage /> },
+          { path: "/my-bookings", element: <MyBookingsPage /> },
+        ],
+      },
+      {
+        element: <RoleRoute allowed={[Role.Owner]} />,
+        children: [
+          { path: "/owner/hotels", element: <OwnerHotelsPage /> },
+          { path: "/owner/bookings", element: <OwnerBookingsPage /> },
+        ],
+      },
+      {
+        element: <RoleRoute allowed={[Role.Admin]} />,
+        children: [
+          { path: "/admin/hotels", element: <AdminHotelsPage /> },
+          { path: "/admin/bookings", element: <AdminBookingsPage /> },
+          { path: "/admin/users", element: <AdminUsersPage /> },
+        ],
+      },
+    ],
+  },
+]);

@@ -1,6 +1,7 @@
 ﻿using HotelBookingSystem.Api.Contracts.Auth;
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
+using HotelBookingSystem.Api.Enums;
 using HotelBookingSystem.Api.Exceptions;
 using HotelBookingSystem.Api.Users;
 using Microsoft.AspNetCore.Identity;
@@ -28,6 +29,10 @@ namespace HotelBookingSystem.Api.Services
             var email = req.Email.Trim().ToLowerInvariant();
             var name = req.Name.Trim();
             var password = req.Password;
+            var role = req.Role ?? Role.User;
+
+            if (role is not Role.User and not Role.Owner)
+                throw new ValidationException("Only customer and owner accounts can be registered publicly.");
 
             var exists = await _context.Users.AnyAsync(u => u.Email == email);
             if (exists)
@@ -37,7 +42,9 @@ namespace HotelBookingSystem.Api.Services
             {
                 Name = name,
                 Email = email,
-                PasswordHash = string.Empty
+                Role = role,
+                PasswordHash = string.Empty,
+                Settings = new UserSettings()
             };
 
             user.PasswordHash = _passwordHasher.HashPassword(user, password);

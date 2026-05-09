@@ -33,7 +33,8 @@ namespace HotelBookingSystem.Api.Services.Admin
                 Name = "Admin",
                 Email = normalizedEmail,
                 Role = Role.Admin,
-                PasswordHash = string.Empty
+                PasswordHash = string.Empty,
+                Settings = new UserSettings()
             };
 
             admin.PasswordHash = passwordHasher.HashPassword(admin, password);
