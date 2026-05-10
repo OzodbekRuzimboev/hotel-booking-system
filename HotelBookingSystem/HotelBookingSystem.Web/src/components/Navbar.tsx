@@ -1,9 +1,16 @@
+import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Role } from "../types";
 import { useAuth } from "../auth/AuthContext";
 
 export function Navbar() {
   const { user, logoutUser } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  function handleLogout() {
+    setMenuOpen(false);
+    logoutUser();
+  }
 
   return (
     <header className="site-header">
@@ -12,21 +19,12 @@ export function Navbar() {
       </Link>
 
       <nav className="nav-links" aria-label="Main navigation">
-        <NavLink to="/">Search</NavLink>
-        {user && <NavLink to="/account">My account</NavLink>}
         {user?.role === Role.Owner && (
           <NavLink to="/owner/hotels">Owner hotels</NavLink>
         )}
         {user?.role === Role.Owner && (
           <NavLink to="/owner/bookings">Owner bookings</NavLink>
         )}
-        {user?.role === Role.Admin && (
-          <NavLink to="/admin/hotels">Admin hotels</NavLink>
-        )}
-        {user?.role === Role.Admin && (
-          <NavLink to="/admin/bookings">Admin bookings</NavLink>
-        )}
-        {user?.role === Role.Admin && <NavLink to="/admin/users">Users</NavLink>}
       </nav>
 
       <div className="auth-actions">
@@ -37,10 +35,48 @@ export function Navbar() {
                 List your property
               </Link>
             )}
-            <span className="muted small user-name">{user.name}</span>
-            <button className="button secondary" onClick={logoutUser} type="button">
-              Logout
-            </button>
+            <div className="user-menu-wrap">
+              <button
+                aria-expanded={menuOpen}
+                className="user-menu-button"
+                onClick={() => setMenuOpen((open) => !open)}
+                type="button"
+              >
+                <span className="user-name">{user.name}</span>
+              </button>
+              {menuOpen && (
+                <div className="user-menu">
+                  {user.role === Role.Admin ? (
+                    <>
+                      <Link to="/admin/hotels" onClick={() => setMenuOpen(false)}>
+                        Admin hotels
+                      </Link>
+                      <Link to="/admin/bookings" onClick={() => setMenuOpen(false)}>
+                        Admin bookings
+                      </Link>
+                      <Link to="/admin/users" onClick={() => setMenuOpen(false)}>
+                        Users
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/account" onClick={() => setMenuOpen(false)}>
+                        Personal account
+                      </Link>
+                      <Link to="/favorites" onClick={() => setMenuOpen(false)}>
+                        Favorites
+                      </Link>
+                      <Link to="/my-bookings" onClick={() => setMenuOpen(false)}>
+                        My reservations
+                      </Link>
+                    </>
+                  )}
+                  <button type="button" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </>
         ) : (
           <>

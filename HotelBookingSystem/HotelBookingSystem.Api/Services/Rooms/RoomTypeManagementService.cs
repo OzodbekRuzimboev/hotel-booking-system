@@ -24,12 +24,17 @@ namespace HotelBookingSystem.Api.Services.Rooms
             if (!hotelExists)
                 throw new NotFoundException("Hotel not found.");
 
+            var imageUrls = NormalizeImageUrls(req.ImageUrl, req.ImageUrls);
+
             var roomType = new RoomType
             {
                 HotelId = hotelId,
                 Name = req.Name.Trim(),
                 Description = req.Description,
-                ImageUrl = NormalizeImageUrl(req.ImageUrl),
+                ImageUrl = imageUrls.FirstOrDefault(),
+                ImageUrls = imageUrls,
+                Amenities = NormalizeTags(req.Amenities),
+                MealOptions = NormalizeTags(req.MealOptions),
                 Capacity = req.Capacity,
                 Price = req.Price,
                 IsActive = true,
@@ -131,17 +136,54 @@ namespace HotelBookingSystem.Api.Services.Rooms
         private static void ApplyRoomTypeChanges(RoomType roomType, UpdateRoomTypeRequest req)
         {
             ValidateRoomType(req.Name, req.Capacity, req.Price, roomsCount: 1);
+            var imageUrls = NormalizeImageUrls(req.ImageUrl, req.ImageUrls);
 
             roomType.Name = req.Name.Trim();
             roomType.Description = req.Description;
-            roomType.ImageUrl = NormalizeImageUrl(req.ImageUrl);
+            roomType.ImageUrl = imageUrls.FirstOrDefault();
+            roomType.ImageUrls = imageUrls;
+            roomType.Amenities = NormalizeTags(req.Amenities);
+            roomType.MealOptions = NormalizeTags(req.MealOptions);
             roomType.Capacity = req.Capacity;
             roomType.Price = req.Price;
         }
 
-        private static string? NormalizeImageUrl(string? imageUrl)
+        private static string[] NormalizeImageUrls(string? imageUrl, IEnumerable<string>? imageUrls)
         {
-            return string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim();
+            var normalized = new List<string>();
+
+            AddImageUrl(imageUrl);
+
+            if (imageUrls is not null)
+            {
+                foreach (var value in imageUrls)
+                    AddImageUrl(value);
+            }
+
+            return normalized
+                .Distinct(StringComparer.Ordinal)
+                .Take(10)
+                .ToArray();
+
+            void AddImageUrl(string? value)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    return;
+
+                normalized.Add(value.Trim());
+            }
+        }
+
+        private static string[] NormalizeTags(IEnumerable<string>? values)
+        {
+            return values is null
+                ? []
+                : values
+                    .Select(value => value.Trim())
+                    .Where(value => value.Length > 0)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Take(30)
+                    .ToArray();
         }
 
         private static void ValidateRoomType(string name, int capacity, decimal price, int roomsCount)
@@ -171,6 +213,9 @@ namespace HotelBookingSystem.Api.Services.Rooms
                     Name = rt.Name,
                     Description = rt.Description,
                     ImageUrl = rt.ImageUrl,
+                    ImageUrls = rt.ImageUrls,
+                    Amenities = rt.Amenities,
+                    MealOptions = rt.MealOptions,
                     Capacity = rt.Capacity,
                     Price = rt.Price,
                     IsActive = rt.IsActive,

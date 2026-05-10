@@ -13,5 +13,7 @@ namespace HotelBookingSystem.Api.Contracts.Account
 
         [StringLength(100)]
         public string? Country { get; set; }
+
+        public string? ProfileImageUrl { get; set; }
     }
 }

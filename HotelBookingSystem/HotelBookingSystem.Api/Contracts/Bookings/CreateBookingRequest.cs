@@ -14,6 +14,17 @@ namespace HotelBookingSystem.Api.Contracts.Bookings
         [Range(1, int.MaxValue, ErrorMessage = "Guests count must be greater than zero.")]
         public int GuestsCount { get; set; }
 
+        [Required]
+        [EmailAddress]
+        [StringLength(256)]
+        public string GuestEmail { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string? GuestCountry { get; set; }
+
+        [StringLength(40)]
+        public string? GuestPhoneNumber { get; set; }
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (CheckInDate == default)

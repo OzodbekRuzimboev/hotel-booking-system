@@ -43,11 +43,15 @@ namespace HotelBookingSystem.Api.Services.Hotels
                     throw new NotFoundException("Owner not found.");
             }
 
+            var hotelImages = NormalizeImageUrls(req.ImageUrl, req.ImageUrls);
+
             var hotel = new Hotel
             {
                 Name = req.Name.Trim(),
                 Description = NormalizeOptionalText(req.Description),
-                ImageUrl = NormalizeImageUrl(req.ImageUrl),
+                ImageUrl = hotelImages.FirstOrDefault(),
+                ImageUrls = hotelImages,
+                Amenities = NormalizeTags(req.Amenities),
                 City = req.City.Trim(),
                 Address = req.Address.Trim(),
                 OwnerId = ownerId,
@@ -55,12 +59,16 @@ namespace HotelBookingSystem.Api.Services.Hotels
                 RoomTypes = req.RoomTypes.Select(rt =>
                 {
                     ValidateRoomType(rt.Name, rt.Capacity, rt.Price, rt.Rooms.Count);
+                    var roomTypeImages = NormalizeImageUrls(rt.ImageUrl, rt.ImageUrls);
 
                     return new RoomType
                     {
                         Name = rt.Name.Trim(),
                         Description = NormalizeOptionalText(rt.Description),
-                        ImageUrl = NormalizeImageUrl(rt.ImageUrl),
+                        ImageUrl = roomTypeImages.FirstOrDefault(),
+                        ImageUrls = roomTypeImages,
+                        Amenities = NormalizeTags(rt.Amenities),
+                        MealOptions = NormalizeTags(rt.MealOptions),
                         Capacity = rt.Capacity,
                         Price = rt.Price,
                         IsActive = true,
@@ -158,16 +166,53 @@ namespace HotelBookingSystem.Api.Services.Hotels
 
         private static void ApplyHotelChanges(Hotel hotel, UpdateHotelRequest req)
         {
+            var imageUrls = NormalizeImageUrls(req.ImageUrl, req.ImageUrls);
+
             hotel.Name = req.Name.Trim();
             hotel.Description = NormalizeOptionalText(req.Description);
-            hotel.ImageUrl = NormalizeImageUrl(req.ImageUrl);
+            hotel.ImageUrl = imageUrls.FirstOrDefault();
+            hotel.ImageUrls = imageUrls;
+            hotel.Amenities = NormalizeTags(req.Amenities);
             hotel.City = req.City.Trim();
             hotel.Address = req.Address.Trim();
         }
 
-        private static string? NormalizeImageUrl(string? imageUrl)
+        private static string[] NormalizeImageUrls(string? imageUrl, IEnumerable<string>? imageUrls)
         {
-            return string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim();
+            var normalized = new List<string>();
+
+            AddImageUrl(imageUrl);
+
+            if (imageUrls is not null)
+            {
+                foreach (var value in imageUrls)
+                    AddImageUrl(value);
+            }
+
+            return normalized
+                .Distinct(StringComparer.Ordinal)
+                .Take(10)
+                .ToArray();
+
+            void AddImageUrl(string? value)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    return;
+
+                normalized.Add(value.Trim());
+            }
+        }
+
+        private static string[] NormalizeTags(IEnumerable<string>? values)
+        {
+            return values is null
+                ? []
+                : values
+                    .Select(value => value.Trim())
+                    .Where(value => value.Length > 0)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Take(30)
+                    .ToArray();
         }
 
         private static string? NormalizeOptionalText(string? value)
@@ -206,6 +251,8 @@ namespace HotelBookingSystem.Api.Services.Hotels
             Name = h.Name,
             Description = h.Description,
             ImageUrl = h.ImageUrl,
+            ImageUrls = h.ImageUrls,
+            Amenities = h.Amenities,
             City = h.City,
             Address = h.Address,
             IsActive = h.IsActive,
@@ -217,6 +264,9 @@ namespace HotelBookingSystem.Api.Services.Hotels
                 Name = rt.Name,
                 Description = rt.Description,
                 ImageUrl = rt.ImageUrl,
+                ImageUrls = rt.ImageUrls,
+                Amenities = rt.Amenities,
+                MealOptions = rt.MealOptions,
                 Capacity = rt.Capacity,
                 Price = rt.Price,
                 IsActive = rt.IsActive,

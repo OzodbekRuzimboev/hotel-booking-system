@@ -67,7 +67,17 @@ namespace HotelBookingSystem.Api.Data
 
             modelBuilder.Entity<Hotel>().Property(h => h.IsActive).HasDefaultValue(true);
 
+            modelBuilder.Entity<Hotel>().Property(h => h.ImageUrls).HasColumnType("text[]").HasDefaultValueSql("ARRAY[]::text[]");
+
+            modelBuilder.Entity<Hotel>().Property(h => h.Amenities).HasColumnType("text[]").HasDefaultValueSql("ARRAY[]::text[]");
+
             modelBuilder.Entity<RoomType>().Property(rt => rt.IsActive).HasDefaultValue(true);
+
+            modelBuilder.Entity<RoomType>().Property(rt => rt.ImageUrls).HasColumnType("text[]").HasDefaultValueSql("ARRAY[]::text[]");
+
+            modelBuilder.Entity<RoomType>().Property(rt => rt.Amenities).HasColumnType("text[]").HasDefaultValueSql("ARRAY[]::text[]");
+
+            modelBuilder.Entity<RoomType>().Property(rt => rt.MealOptions).HasColumnType("text[]").HasDefaultValueSql("ARRAY[]::text[]");
 
             modelBuilder.Entity<Room>().Property(r => r.IsActive).HasDefaultValue(true);
 

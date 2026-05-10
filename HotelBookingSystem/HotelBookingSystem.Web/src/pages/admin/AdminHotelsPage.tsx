@@ -28,6 +28,7 @@ export function AdminHotelsPage() {
       createRoom={createRoom}
       updateRoom={updateRoom}
       deactivateRoom={deactivateRoom}
+      hotelDetailsPath={(hotel) => `/admin/hotels/${hotel.id}`}
     />
   );
 }

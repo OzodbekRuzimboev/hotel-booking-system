@@ -13,6 +13,9 @@ namespace HotelBookingSystem.Api.Entities
         public DateOnly CheckOutDate { get; set; }
         public int GuestsCount { get; set; }
         public decimal TotalPrice { get; set; }
+        public required string GuestEmail { get; set; }
+        public string? GuestCountry { get; set; }
+        public string? GuestPhoneNumber { get; set; }
         public BookingStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? CancelledAt { get; set; }

@@ -7,16 +7,20 @@ import { AppLayout } from "./components/AppLayout";
 import { HomePage } from "./pages/HomePage";
 import { SearchPage } from "./pages/SearchPage";
 import { HotelDetailsPage } from "./pages/HotelDetailsPage";
+import { RoomTypeDetailsPage } from "./pages/RoomTypeDetailsPage";
+import { BookingConfirmationPage } from "./pages/BookingConfirmationPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { PartnerPage } from "./pages/PartnerPage";
 import { MyBookingsPage } from "./pages/MyBookingsPage";
 import { AccountPage } from "./pages/AccountPage";
+import { FavoritesPage } from "./pages/FavoritesPage";
 
 import { OwnerHotelsPage } from "./pages/owner/OwnerHotelsPage";
 import { OwnerBookingsPage } from "./pages/owner/OwnerBookingsPage";
 
 import { AdminHotelsPage } from "./pages/admin/AdminHotelsPage";
+import { AdminHotelDetailsPage } from "./pages/admin/AdminHotelDetailsPage";
 import { AdminBookingsPage } from "./pages/admin/AdminBookingsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 
@@ -27,6 +31,7 @@ export const router = createBrowserRouter([
       { path: "/", element: <HomePage /> },
       { path: "/search", element: <SearchPage /> },
       { path: "/hotels/:hotelId", element: <HotelDetailsPage /> },
+      { path: "/hotels/:hotelId/room-types/:roomTypeId", element: <RoomTypeDetailsPage /> },
       { path: "/login", element: <LoginPage /> },
       { path: "/register", element: <RegisterPage /> },
       { path: "/list-your-property", element: <PartnerPage /> },
@@ -34,7 +39,14 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: "/account", element: <AccountPage /> },
-          { path: "/my-bookings", element: <MyBookingsPage /> },
+          {
+            element: <RoleRoute allowed={[Role.User, Role.Owner]} />,
+            children: [
+              { path: "/favorites", element: <FavoritesPage /> },
+              { path: "/my-bookings", element: <MyBookingsPage /> },
+              { path: "/bookings/new", element: <BookingConfirmationPage /> },
+            ],
+          },
         ],
       },
       {
@@ -48,6 +60,7 @@ export const router = createBrowserRouter([
         element: <RoleRoute allowed={[Role.Admin]} />,
         children: [
           { path: "/admin/hotels", element: <AdminHotelsPage /> },
+          { path: "/admin/hotels/:hotelId", element: <AdminHotelDetailsPage /> },
           { path: "/admin/bookings", element: <AdminBookingsPage /> },
           { path: "/admin/users", element: <AdminUsersPage /> },
         ],

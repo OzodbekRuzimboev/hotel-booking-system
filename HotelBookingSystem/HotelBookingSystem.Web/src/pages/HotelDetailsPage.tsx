@@ -1,21 +1,36 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  addFavorite,
-  getFavoriteStatus,
-  removeFavorite,
-} from "../api/accountApi";
-import { createBooking } from "../api/bookingsApi";
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { getApiErrorMessage } from "../api/client";
 import {
   createReview,
+  deleteReview,
   getHotelDetails,
   getHotelReviews,
+  updateReview,
 } from "../api/hotelsApi";
 import { useAuth } from "../auth/AuthContext";
+import { FavoriteButton } from "../components/FavoriteButton";
+import { getGalleryImages, ImageGallery } from "../components/ImageGallery";
 import { ImageWithFallback } from "../components/ImageWithFallback";
+import {
+  getAmenityLabels,
+  HOTEL_AMENITIES,
+  MEAL_OPTIONS,
+  ROOM_AMENITIES,
+} from "../constants/amenities";
 import type { HotelSearchResponse, ReviewResponse } from "../types";
-import { countNights, getDefaultStayDates } from "../utils/dates";
+import {
+  countNights,
+  getDefaultStayDates,
+  isValidStayRange,
+  toDateInputValue,
+} from "../utils/dates";
 import { formatCurrency, formatDateRange } from "../utils/format";
 
 function reviewScoreText(score: number) {
@@ -29,6 +44,7 @@ function reviewScoreText(score: number) {
 export function HotelDetailsPage() {
   const { hotelId } = useParams();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const defaults = getDefaultStayDates();
@@ -37,22 +53,23 @@ export function HotelDetailsPage() {
   const checkInDate = searchParams.get("checkInDate") || defaults.checkInDate;
   const checkOutDate =
     searchParams.get("checkOutDate") || defaults.checkOutDate;
-  const guestsCount = Number(searchParams.get("guestsCount") || "1");
+  const guestsCount = Number(searchParams.get("guestsCount") || "2");
+  const today = toDateInputValue(new Date());
 
   const [hotel, setHotel] = useState<HotelSearchResponse | null>(null);
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [bookingRoomTypeId, setBookingRoomTypeId] = useState<number | null>(
-    null
-  );
-  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [reviewDraft, setReviewDraft] = useState({
     roomTypeId: "",
     rating: 5,
     comment: "",
+  });
+  const [searchDraft, setSearchDraft] = useState({
+    checkInDate,
+    checkOutDate,
+    guestsCount,
   });
 
   const nights = useMemo(
@@ -71,6 +88,14 @@ export function HotelDetailsPage() {
     if (!id) return;
     setReviews(await getHotelReviews(id));
   }
+
+  useEffect(() => {
+    setSearchDraft({
+      checkInDate,
+      checkOutDate,
+      guestsCount,
+    });
+  }, [checkInDate, checkOutDate, guestsCount]);
 
   useEffect(() => {
     async function loadHotel() {
@@ -106,67 +131,64 @@ export function HotelDetailsPage() {
   }, [numericHotelId, checkInDate, checkOutDate, guestsCount]);
 
   useEffect(() => {
-    async function loadFavorite() {
-      if (!user || !numericHotelId) {
-        setIsFavorite(false);
-        return;
-      }
+    if (location.hash !== "#reviews" || !hotel) return;
 
-      try {
-        const result = await getFavoriteStatus(numericHotelId);
-        setIsFavorite(result.isFavorite);
-      } catch {
-        setIsFavorite(false);
-      }
-    }
+    requestAnimationFrame(() => {
+      document.getElementById("reviews")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [hotel, location.hash]);
 
-    loadFavorite();
-  }, [user, numericHotelId]);
+  function getBookingUrl(roomTypeId: number) {
+    const bookingSearch = new URLSearchParams({
+      hotelId: numericHotelId.toString(),
+      roomTypeId: roomTypeId.toString(),
+      checkInDate,
+      checkOutDate,
+      guestsCount: guestsCount.toString(),
+    });
 
-  async function handleBook(roomTypeId: number) {
-    if (!user) {
-      const returnTo = window.location.pathname + window.location.search;
-      navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
-      return;
-    }
-
-    setError("");
-    setSuccess("");
-    setBookingRoomTypeId(roomTypeId);
-
-    try {
-      await createBooking({ roomTypeId, checkInDate, checkOutDate, guestsCount });
-      setSuccess("Booking created. You can see it in My account.");
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-    } finally {
-      setBookingRoomTypeId(null);
-    }
+    return `/bookings/new?${bookingSearch.toString()}`;
   }
 
-  async function handleFavorite() {
-    if (!user) {
-      const returnTo = window.location.pathname + window.location.search;
-      navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+  function getRoomTypeUrl(roomTypeId: number) {
+    return `/hotels/${numericHotelId}/room-types/${roomTypeId}?${new URLSearchParams({
+      checkInDate,
+      checkOutDate,
+      guestsCount: guestsCount.toString(),
+    }).toString()}`;
+  }
+
+  function handleSearchParameterSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!isValidStayRange(searchDraft.checkInDate, searchDraft.checkOutDate)) {
+      setError("Check-out date must be after check-in date.");
       return;
     }
 
-    setFavoriteLoading(true);
-    setError("");
+    navigate(
+      `/hotels/${numericHotelId}?${new URLSearchParams({
+        checkInDate: searchDraft.checkInDate,
+        checkOutDate: searchDraft.checkOutDate,
+        guestsCount: searchDraft.guestsCount.toString(),
+      }).toString()}`
+    );
+  }
 
-    try {
-      if (isFavorite) {
-        await removeFavorite(numericHotelId);
-        setIsFavorite(false);
-      } else {
-        await addFavorite(numericHotelId);
-        setIsFavorite(true);
-      }
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-    } finally {
-      setFavoriteLoading(false);
+  function handleBook(roomTypeId: number) {
+    const bookingUrl = getBookingUrl(roomTypeId);
+
+    if (!user) {
+      navigate(`/login?returnTo=${encodeURIComponent(bookingUrl)}`);
+      return;
     }
+
+    navigate(bookingUrl);
   }
 
   async function handleReviewSubmit(event: FormEvent) {
@@ -189,6 +211,42 @@ export function HotelDetailsPage() {
       });
       setSuccess("Review saved.");
       setReviewDraft((draft) => ({ ...draft, comment: "" }));
+      await loadReviews();
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    }
+  }
+
+  async function handleReviewUpdate(
+    review: ReviewResponse,
+    rating: number,
+    comment: string
+  ) {
+    setError("");
+    setSuccess("");
+
+    try {
+      await updateReview(numericHotelId, review.id, {
+        roomTypeId: review.roomTypeId,
+        rating,
+        comment: comment || null,
+      });
+      setSuccess("Review updated.");
+      await loadReviews();
+      return true;
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+      return false;
+    }
+  }
+
+  async function handleReviewDelete(reviewId: number) {
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteReview(numericHotelId, reviewId);
+      setSuccess("Review deleted.");
       await loadReviews();
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -223,25 +281,14 @@ export function HotelDetailsPage() {
             <p className="muted">{hotel.address}</p>
           </div>
           <div className="hotel-actions">
-            <button
-              className="button secondary"
-              type="button"
-              disabled={favoriteLoading}
-              onClick={handleFavorite}
-            >
-              {isFavorite ? "Saved" : "Save"}
-            </button>
-            <Link className="button" to="#rooms">
-              See rooms
-            </Link>
+            <FavoriteButton hotelId={numericHotelId} />
           </div>
         </div>
 
         <div className="hotel-media-grid">
-          <ImageWithFallback
+          <ImageGallery
             alt={hotel.name}
-            className="hotel-main-image"
-            src={hotel.imageUrl}
+            images={getGalleryImages(hotel.imageUrls, hotel.imageUrl)}
           />
           <div className="hotel-info-card panel">
             <div className="review-score">
@@ -265,6 +312,19 @@ export function HotelDetailsPage() {
             {hotel.description && <p>{hotel.description}</p>}
           </div>
         </div>
+
+        {hotel.amenities.length > 0 && (
+          <section className="amenity-section">
+            <p className="eyebrow">Hotel amenities</p>
+            <div className="amenity-grid">
+              {getAmenityLabels(hotel.amenities, HOTEL_AMENITIES).map((amenity) => (
+                <span className="amenity-chip" key={amenity}>
+                  {amenity}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
       </section>
 
       {error && <p className="alert error">{error}</p>}
@@ -276,10 +336,61 @@ export function HotelDetailsPage() {
             <p className="eyebrow">Availability</p>
             <h2>Choose your room type</h2>
           </div>
-          <Link className="button secondary" to="/">
-            Change search
-          </Link>
         </div>
+
+        <form
+          className="availability-search-form panel"
+          onSubmit={handleSearchParameterSubmit}
+        >
+          <label>
+            Check-in
+            <input
+              type="date"
+              min={today}
+              value={searchDraft.checkInDate}
+              onChange={(event) =>
+                setSearchDraft({
+                  ...searchDraft,
+                  checkInDate: event.target.value,
+                })
+              }
+              required
+            />
+          </label>
+          <label>
+            Check-out
+            <input
+              type="date"
+              min={searchDraft.checkInDate || today}
+              value={searchDraft.checkOutDate}
+              onChange={(event) =>
+                setSearchDraft({
+                  ...searchDraft,
+                  checkOutDate: event.target.value,
+                })
+              }
+              required
+            />
+          </label>
+          <label>
+            Guests
+            <input
+              type="number"
+              min={1}
+              value={searchDraft.guestsCount}
+              onChange={(event) =>
+                setSearchDraft({
+                  ...searchDraft,
+                  guestsCount: Number(event.target.value),
+                })
+              }
+              required
+            />
+          </label>
+          <button className="button" type="submit">
+            Change search parameters
+          </button>
+        </form>
 
         {hotel.roomTypes.length === 0 && (
           <p className="muted">No room types are available for these dates.</p>
@@ -294,7 +405,14 @@ export function HotelDetailsPage() {
                 src={roomType.imageUrl}
               />
               <div className="stack-sm">
-                <h3>{roomType.name}</h3>
+                <h3>
+                  <Link
+                    className="room-type-name-link"
+                    to={getRoomTypeUrl(roomType.roomTypeId)}
+                  >
+                    {roomType.name}
+                  </Link>
+                </h3>
                 {roomType.description && <p>{roomType.description}</p>}
                 <div className="pill-row">
                   <span className="pill">Sleeps {roomType.capacity}</span>
@@ -302,24 +420,43 @@ export function HotelDetailsPage() {
                     {roomType.availableCount} available
                   </span>
                   <span className="pill">
-                    {formatCurrency(roomType.price)}/night
+                    Final price {formatCurrency(roomType.price * Math.max(1, nights))}
                   </span>
                 </div>
+                {(roomType.amenities.length > 0 ||
+                  roomType.mealOptions.length > 0) && (
+                  <div className="amenity-chip-row compact">
+                    {getAmenityLabels(roomType.amenities, ROOM_AMENITIES).map(
+                      (amenity) => (
+                        <span className="amenity-chip small" key={amenity}>
+                          {amenity}
+                        </span>
+                      )
+                    )}
+                    {getAmenityLabels(roomType.mealOptions, MEAL_OPTIONS).map(
+                      (mealOption) => (
+                        <span className="amenity-chip small" key={mealOption}>
+                          {mealOption}
+                        </span>
+                      )
+                    )}
+                  </div>
+                )}
               </div>
               <div className="booking-side">
-                <span className="muted small">Total</span>
+                <span className="muted small">
+                  Total for {Math.max(1, nights)} night{Math.max(1, nights) === 1 ? "" : "s"}
+                </span>
                 <strong>
                   {formatCurrency(roomType.price * Math.max(1, nights))}
                 </strong>
+                <span>{formatCurrency(roomType.price)}/night</span>
                 <button
                   className="button"
                   type="button"
-                  disabled={bookingRoomTypeId === roomType.roomTypeId}
                   onClick={() => handleBook(roomType.roomTypeId)}
                 >
-                  {bookingRoomTypeId === roomType.roomTypeId
-                    ? "Booking..."
-                    : "Reserve"}
+                  Reserve
                 </button>
               </div>
             </article>
@@ -327,7 +464,7 @@ export function HotelDetailsPage() {
         </div>
       </section>
 
-      <section className="reviews-layout">
+      <section className="reviews-layout" id="reviews">
         <div className="panel stack">
           <div>
             <p className="eyebrow">Guest reviews</p>
@@ -339,16 +476,13 @@ export function HotelDetailsPage() {
           ) : (
             <div className="review-list">
               {reviews.map((review) => (
-                <article className="review-card" key={review.id}>
-                  <div className="row between gap wrap">
-                    <div>
-                      <strong>{review.userName}</strong>
-                      <p className="muted small">{review.roomTypeName}</p>
-                    </div>
-                    <span className="review-rating">{review.rating}/5</span>
-                  </div>
-                  {review.comment && <p>{review.comment}</p>}
-                </article>
+                <ReviewCard
+                  canManage={user?.userId === review.userId}
+                  key={review.id}
+                  onDelete={handleReviewDelete}
+                  onUpdate={handleReviewUpdate}
+                  review={review}
+                />
               ))}
             </div>
           )}
@@ -416,5 +550,120 @@ export function HotelDetailsPage() {
         </form>
       </section>
     </main>
+  );
+}
+
+function ReviewCard({
+  review,
+  canManage,
+  onUpdate,
+  onDelete,
+}: {
+  review: ReviewResponse;
+  canManage: boolean;
+  onUpdate: (
+    review: ReviewResponse,
+    rating: number,
+    comment: string
+  ) => Promise<boolean>;
+  onDelete: (reviewId: number) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [rating, setRating] = useState(review.rating);
+  const [comment, setComment] = useState(review.comment ?? "");
+
+  useEffect(() => {
+    setRating(review.rating);
+    setComment(review.comment ?? "");
+  }, [review]);
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    const saved = await onUpdate(review, rating, comment);
+    if (saved) setEditing(false);
+  }
+
+  async function handleDelete() {
+    if (!window.confirm("Delete this review?")) return;
+    await onDelete(review.id);
+  }
+
+  if (editing) {
+    return (
+      <article className="review-card">
+        <form className="form" onSubmit={handleSubmit}>
+          <div className="row between gap wrap">
+            <div>
+              <strong>{review.userName}</strong>
+              <p className="muted small">{review.roomTypeName}</p>
+            </div>
+            <label className="compact-field">
+              Rating
+              <select
+                value={rating}
+                onChange={(event) => setRating(Number(event.target.value))}
+              >
+                <option value={5}>5</option>
+                <option value={4}>4</option>
+                <option value={3}>3</option>
+                <option value={2}>2</option>
+                <option value={1}>1</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Review
+            <textarea
+              value={comment}
+              onChange={(event) => setComment(event.target.value)}
+              rows={4}
+            />
+          </label>
+          <div className="row gap wrap">
+            <button className="button secondary" type="submit">
+              Save
+            </button>
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </article>
+    );
+  }
+
+  return (
+    <article className="review-card">
+      <div className="row between gap wrap">
+        <div>
+          <strong>{review.userName}</strong>
+          <p className="muted small">{review.roomTypeName}</p>
+        </div>
+        <span className="review-rating">{review.rating}/5</span>
+      </div>
+      {review.comment && <p>{review.comment}</p>}
+      {canManage && (
+        <div className="row gap wrap">
+          <button
+            className="mini-button"
+            type="button"
+            onClick={() => setEditing(true)}
+          >
+            Edit
+          </button>
+          <button
+            className="mini-button danger-text"
+            type="button"
+            onClick={handleDelete}
+          >
+            Delete
+          </button>
+        </div>
+      )}
+    </article>
   );
 }

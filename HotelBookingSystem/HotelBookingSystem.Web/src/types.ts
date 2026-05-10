@@ -41,6 +41,11 @@ export type HotelSearchRequest = {
   checkInDate: string;
   checkOutDate: string;
   guestsCount: number;
+  minNightlyPrice?: number | null;
+  maxNightlyPrice?: number | null;
+  hotelAmenities?: string[];
+  roomAmenities?: string[];
+  mealOptions?: string[];
 };
 
 export type AvailableRoomTypeResponse = {
@@ -48,9 +53,12 @@ export type AvailableRoomTypeResponse = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   capacity: number;
   price: number;
   availableCount: number;
+  amenities: string[];
+  mealOptions: string[];
 };
 
 export type HotelSearchResponse = {
@@ -58,10 +66,12 @@ export type HotelSearchResponse = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   city: string;
   address: string;
   averageRating: number;
   reviewCount: number;
+  amenities: string[];
   roomTypes: AvailableRoomTypeResponse[];
 };
 
@@ -76,12 +86,14 @@ export type HotelDetailsResponse = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   city: string;
   address: string;
   isActive: boolean;
   ownerId?: number | null;
   averageRating: number;
   reviewCount: number;
+  amenities: string[];
   roomTypes: RoomTypeResponse[];
 };
 
@@ -90,9 +102,12 @@ export type RoomTypeResponse = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   capacity: number;
   price: number;
   totalCount: number;
+  amenities: string[];
+  mealOptions: string[];
 };
 
 export type CreateBookingRequest = {
@@ -100,18 +115,27 @@ export type CreateBookingRequest = {
   checkInDate: string;
   checkOutDate: string;
   guestsCount: number;
+  guestEmail: string;
+  guestCountry?: string | null;
+  guestPhoneNumber?: string | null;
 };
 
 export type BookingResponse = {
   id: number;
   userId: number;
   roomId: number;
+  hotelId: number;
   hotelName: string;
+  hotelImageUrl?: string | null;
+  hotelImageUrls: string[];
   roomTypeName: string;
   checkInDate: string;
   checkOutDate: string;
   guestsCount: number;
   totalPrice: number;
+  guestEmail: string;
+  guestCountry?: string | null;
+  guestPhoneNumber?: string | null;
   status: BookingDisplayStatus;
   createdAt: string;
   cancelledAt?: string | null;
@@ -125,8 +149,11 @@ export type RoomTypeRequest = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   capacity: number;
   price: number;
+  amenities: string[];
+  mealOptions: string[];
   rooms: RoomRequest[];
 };
 
@@ -134,8 +161,10 @@ export type CreateHotelRequest = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   city: string;
   address: string;
+  amenities: string[];
   roomTypes: RoomTypeRequest[];
 };
 
@@ -143,16 +172,21 @@ export type UpdateHotelRequest = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   city: string;
   address: string;
+  amenities: string[];
 };
 
 export type UpdateRoomTypeRequest = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   capacity: number;
   price: number;
+  amenities: string[];
+  mealOptions: string[];
 };
 
 export type CreateRoomRequest = {
@@ -176,11 +210,14 @@ export type ManagedRoomTypeResponse = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   capacity: number;
   price: number;
   isActive: boolean;
   totalRooms: number;
   activeRooms: number;
+  amenities: string[];
+  mealOptions: string[];
   rooms: ManagedRoomResponse[];
 };
 
@@ -189,10 +226,12 @@ export type ManagedHotelResponse = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  imageUrls: string[];
   city: string;
   address: string;
   isActive: boolean;
   ownerId?: number | null;
+  amenities: string[];
   roomTypes: ManagedRoomTypeResponse[];
 };
 
@@ -233,6 +272,7 @@ export type UserAccountResponse = {
   role: Role;
   phoneNumber?: string | null;
   country?: string | null;
+  profileImageUrl?: string | null;
   settings: AccountSettings;
 };
 
@@ -240,6 +280,7 @@ export type UpdateProfileRequest = {
   name: string;
   phoneNumber?: string | null;
   country?: string | null;
+  profileImageUrl?: string | null;
 };
 
 export type FavoriteHotelResponse = {
@@ -283,4 +324,5 @@ export type ProblemDetails = {
   detail?: string;
   instance?: string;
   traceId?: string;
+  errors?: Record<string, string[]>;
 };
