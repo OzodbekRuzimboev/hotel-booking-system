@@ -66,6 +66,38 @@ namespace HotelBookingSystem.Api.Services.Hotels
             return await GetReviewAsync(existing.Id);
         }
 
+        public async Task<ReviewResponse> UpdateReviewAsync(int userId, int hotelId, int reviewId, CreateReviewRequest req)
+        {
+            var review = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.Id == reviewId && r.UserId == userId && r.HotelId == hotelId)
+                ?? throw new NotFoundException("Review not found.");
+
+            var roomTypeExists = await _context.RoomTypes
+                .AsNoTracking()
+                .AnyAsync(rt => rt.Id == req.RoomTypeId && rt.HotelId == hotelId && rt.IsActive && rt.Hotel.IsActive);
+
+            if (!roomTypeExists)
+                throw new NotFoundException("Room type not found for this hotel.");
+
+            review.RoomTypeId = req.RoomTypeId;
+            review.Rating = req.Rating;
+            review.Comment = NormalizeOptionalText(req.Comment);
+            review.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return await GetReviewAsync(review.Id);
+        }
+
+        public async Task DeleteReviewAsync(int userId, int hotelId, int reviewId)
+        {
+            var review = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.Id == reviewId && r.UserId == userId && r.HotelId == hotelId)
+                ?? throw new NotFoundException("Review not found.");
+
+            _context.Reviews.Remove(review);
+            await _context.SaveChangesAsync();
+        }
+
         private async Task<ReviewResponse> GetReviewAsync(int reviewId)
         {
             return await _context.Reviews

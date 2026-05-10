@@ -37,7 +37,8 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 RoomTypeId = roomTypeId,
                 CheckInDate = checkInDate,
                 CheckOutDate = checkOutDate,
-                GuestsCount = 2
+                GuestsCount = 2,
+                GuestEmail = "guest@test.com"
             });
 
             bookingResponse.StatusCode.Should().Be(HttpStatusCode.Created);

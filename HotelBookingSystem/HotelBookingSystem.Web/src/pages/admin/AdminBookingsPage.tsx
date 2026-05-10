@@ -16,6 +16,9 @@ export function AdminBookingsPage() {
   const [checkInDate, setCheckInDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [guestsCount, setGuestsCount] = useState(1);
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestCountry, setGuestCountry] = useState("");
+  const [guestPhoneNumber, setGuestPhoneNumber] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -57,6 +60,9 @@ export function AdminBookingsPage() {
           checkInDate,
           checkOutDate,
           guestsCount,
+          guestEmail,
+          guestCountry: guestCountry || null,
+          guestPhoneNumber: guestPhoneNumber || null,
         }),
       "Booking created."
     );
@@ -69,9 +75,6 @@ export function AdminBookingsPage() {
           <p className="eyebrow">Admin</p>
           <h1>Bookings</h1>
         </div>
-        <button className="button secondary" type="button" onClick={loadBookings}>
-          Refresh
-        </button>
       </div>
 
       {error && <p className="alert error">{error}</p>}
@@ -128,6 +131,29 @@ export function AdminBookingsPage() {
               required
             />
           </label>
+          <label>
+            Email
+            <input
+              type="email"
+              value={guestEmail}
+              onChange={(event) => setGuestEmail(event.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Country
+            <input
+              value={guestCountry}
+              onChange={(event) => setGuestCountry(event.target.value)}
+            />
+          </label>
+          <label>
+            Phone
+            <input
+              value={guestPhoneNumber}
+              onChange={(event) => setGuestPhoneNumber(event.target.value)}
+            />
+          </label>
           <button className="button" type="submit">
             Create
           </button>
@@ -164,6 +190,7 @@ function BookingAdminList({
             <p>{booking.roomTypeName}</p>
             <p>{formatDateRange(booking.checkInDate, booking.checkOutDate)}</p>
             <p>Guests: {booking.guestsCount}</p>
+            <p className="muted small">{booking.guestEmail}</p>
           </div>
           <div className="booking-side">
             <BookingStatusBadge status={booking.status} />

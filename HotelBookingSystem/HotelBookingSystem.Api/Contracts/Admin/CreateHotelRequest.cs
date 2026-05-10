@@ -13,8 +13,11 @@ namespace HotelBookingSystem.Api.Contracts.Admin
         [StringLength(2000)]
         public string? Description { get; set; }
 
-        [StringLength(1000000)]
         public string? ImageUrl { get; set; }
+
+        public List<string> ImageUrls { get; set; } = [];
+
+        public List<string> Amenities { get; set; } = [];
 
         [Required]
         [StringLength(100, MinimumLength = 2)]

@@ -30,6 +30,17 @@ api.interceptors.response.use(
 
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError<ProblemDetails>(error)) {
+    const validationErrors = error.response?.data?.errors;
+    const messages = validationErrors
+      ? Object.entries(validationErrors).flatMap(([field, values]) =>
+          values.map((message) => (field ? `${field}: ${message}` : message))
+        )
+      : [];
+
+    if (messages.length > 0) {
+      return messages.slice(0, 4).join(" ");
+    }
+
     return (
       error.response?.data?.detail ||
       error.response?.data?.title ||

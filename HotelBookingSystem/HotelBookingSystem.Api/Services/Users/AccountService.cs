@@ -36,6 +36,7 @@ namespace HotelBookingSystem.Api.Services.Users
             user.Name = req.Name.Trim();
             user.PhoneNumber = NormalizeOptionalText(req.PhoneNumber);
             user.Country = NormalizeOptionalText(req.Country);
+            user.ProfileImageUrl = NormalizeOptionalText(req.ProfileImageUrl);
 
             await EnsureSettingsAsync(user);
             await _context.SaveChangesAsync();
@@ -137,6 +138,7 @@ namespace HotelBookingSystem.Api.Services.Users
             Role = user.Role,
             PhoneNumber = user.PhoneNumber,
             Country = user.Country,
+            ProfileImageUrl = user.ProfileImageUrl,
             Settings = user.Settings is null
                 ? new AccountSettingsResponse()
                 : ToSettingsResponse(user.Settings)

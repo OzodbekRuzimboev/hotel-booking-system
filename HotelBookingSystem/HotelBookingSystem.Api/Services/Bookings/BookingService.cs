@@ -10,17 +10,27 @@ namespace HotelBookingSystem.Api.Services.Bookings
     public class BookingService
     {
         private readonly AppDbContext _context;
+        private readonly BookingConfirmationEmailService _confirmationEmailService;
 
-        public BookingService(AppDbContext context)
+        public BookingService(AppDbContext context, BookingConfirmationEmailService confirmationEmailService)
         {
             _context = context;
+            _confirmationEmailService = confirmationEmailService;
         }
 
         public async Task<BookingResponse> CreateBookingAsync(int userId, CreateBookingRequest req)
         {
-            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            var user = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Email
+                })
+                .FirstOrDefaultAsync();
 
-            if (!userExists) 
+            if (user is null)
                 throw new NotFoundException("User not found.");
 
             if (req.CheckInDate >= req.CheckOutDate)
@@ -65,6 +75,10 @@ namespace HotelBookingSystem.Api.Services.Bookings
                 .FirstOrDefaultAsync()
                 ?? throw new ConflictException("No available rooms of this type for the selected dates.");
 
+            var guestEmail = NormalizeRequiredText(req.GuestEmail, "Guest email is required.").ToLowerInvariant();
+            var guestCountry = NormalizeOptionalText(req.GuestCountry);
+            var guestPhoneNumber = NormalizeOptionalText(req.GuestPhoneNumber);
+
             var booking = new Booking
             {
                 UserId = userId,
@@ -73,6 +87,9 @@ namespace HotelBookingSystem.Api.Services.Bookings
                 CheckOutDate = req.CheckOutDate,
                 GuestsCount = req.GuestsCount,
                 TotalPrice = (req.CheckOutDate.DayNumber - req.CheckInDate.DayNumber) * roomType.Price,
+                GuestEmail = guestEmail,
+                GuestCountry = guestCountry,
+                GuestPhoneNumber = guestPhoneNumber,
                 Status = BookingStatus.Active,
                 CreatedAt = DateTime.UtcNow
             };
@@ -96,17 +113,25 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     Id = b.Id,
                     UserId = b.UserId,
                     RoomId = b.RoomId,
+                    HotelId = b.Room.RoomType.HotelId,
                     HotelName = b.Room.RoomType.Hotel.Name,
+                    HotelImageUrl = b.Room.RoomType.Hotel.ImageUrl,
+                    HotelImageUrls = b.Room.RoomType.Hotel.ImageUrls,
                     RoomTypeName = b.Room.RoomType.Name,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
                     GuestsCount = b.GuestsCount,
                     TotalPrice = b.TotalPrice,
+                    GuestEmail = b.GuestEmail,
+                    GuestCountry = b.GuestCountry,
+                    GuestPhoneNumber = b.GuestPhoneNumber,
                     Status = BookingDisplayStatus.Active,
                     CreatedAt = b.CreatedAt,
                     CancelledAt = b.CancelledAt
                 })
                 .FirstAsync();
+
+            await _confirmationEmailService.SendBookingConfirmationAsync(bookingResponse);
 
             return bookingResponse;
         }
@@ -123,12 +148,18 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     Id = b.Id,
                     UserId = b.UserId,
                     RoomId = b.RoomId,
+                    HotelId = b.Room.RoomType.HotelId,
                     HotelName = b.Room.RoomType.Hotel.Name,
+                    HotelImageUrl = b.Room.RoomType.Hotel.ImageUrl,
+                    HotelImageUrls = b.Room.RoomType.Hotel.ImageUrls,
                     RoomTypeName = b.Room.RoomType.Name,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
                     GuestsCount = b.GuestsCount,
                     TotalPrice = b.TotalPrice,
+                    GuestEmail = b.GuestEmail,
+                    GuestCountry = b.GuestCountry,
+                    GuestPhoneNumber = b.GuestPhoneNumber,
                     Status = b.Status == BookingStatus.Cancelled
                         ? BookingDisplayStatus.Cancelled
                         : b.CheckOutDate <= today
@@ -175,12 +206,18 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     Id = b.Id,
                     UserId = b.UserId,
                     RoomId = b.RoomId,
+                    HotelId = b.Room.RoomType.HotelId,
                     HotelName = b.Room.RoomType.Hotel.Name,
+                    HotelImageUrl = b.Room.RoomType.Hotel.ImageUrl,
+                    HotelImageUrls = b.Room.RoomType.Hotel.ImageUrls,
                     RoomTypeName = b.Room.RoomType.Name,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
                     GuestsCount = b.GuestsCount,
                     TotalPrice = b.TotalPrice,
+                    GuestEmail = b.GuestEmail,
+                    GuestCountry = b.GuestCountry,
+                    GuestPhoneNumber = b.GuestPhoneNumber,
                     Status = b.Status == BookingStatus.Cancelled
                         ? BookingDisplayStatus.Cancelled
                         : b.CheckOutDate <= today
@@ -238,12 +275,18 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     Id = b.Id,
                     UserId = b.UserId,
                     RoomId = b.RoomId,
+                    HotelId = b.Room.RoomType.HotelId,
                     HotelName = b.Room.RoomType.Hotel.Name,
+                    HotelImageUrl = b.Room.RoomType.Hotel.ImageUrl,
+                    HotelImageUrls = b.Room.RoomType.Hotel.ImageUrls,
                     RoomTypeName = b.Room.RoomType.Name,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
                     GuestsCount = b.GuestsCount,
                     TotalPrice = b.TotalPrice,
+                    GuestEmail = b.GuestEmail,
+                    GuestCountry = b.GuestCountry,
+                    GuestPhoneNumber = b.GuestPhoneNumber,
                     Status = b.Status == BookingStatus.Cancelled
                         ? BookingDisplayStatus.Cancelled
                         : b.CheckOutDate <= today
@@ -287,6 +330,18 @@ namespace HotelBookingSystem.Api.Services.Bookings
 
             booking.Status = BookingStatus.Cancelled;
             booking.CancelledAt = DateTime.UtcNow;
+        }
+
+        private static string NormalizeRequiredText(string? value, string errorMessage)
+        {
+            var trimmed = value?.Trim();
+            return string.IsNullOrWhiteSpace(trimmed) ? throw new ValidationException(errorMessage) : trimmed;
+        }
+
+        private static string? NormalizeOptionalText(string? value)
+        {
+            var trimmed = value?.Trim();
+            return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
         }
     }
 }

@@ -80,9 +80,6 @@ export function AdminUsersPage() {
           <p className="eyebrow">Admin</p>
           <h1>User accounts</h1>
         </div>
-        <button className="button secondary" type="button" onClick={loadUsers}>
-          Refresh
-        </button>
       </div>
 
       {error && <p className="alert error">{error}</p>}

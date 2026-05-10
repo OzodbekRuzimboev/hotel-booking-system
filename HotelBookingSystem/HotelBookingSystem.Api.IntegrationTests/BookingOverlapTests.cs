@@ -27,7 +27,8 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 RoomTypeId = roomTypeId,
                 CheckInDate = DateOnly.FromDateTime(DateTime.Today.AddDays(10)),
                 CheckOutDate = DateOnly.FromDateTime(DateTime.Today.AddDays(12)),
-                GuestsCount = 2
+                GuestsCount = 2,
+                GuestEmail = "guest@test.com"
             };
 
             var overlapBooking = new CreateBookingRequest
@@ -35,7 +36,8 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 RoomTypeId = roomTypeId,
                 CheckInDate = DateOnly.FromDateTime(DateTime.Today.AddDays(11)),
                 CheckOutDate = DateOnly.FromDateTime(DateTime.Today.AddDays(13)),
-                GuestsCount = 2
+                GuestsCount = 2,
+                GuestEmail = "guest@test.com"
             };
 
             var firstResponse = await Client.PostAsJsonAsync("/api/bookings", firstBooking);
@@ -63,7 +65,8 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 RoomTypeId = roomTypeId,
                 CheckInDate = DateOnly.FromDateTime(DateTime.Today.AddDays(10)),
                 CheckOutDate = DateOnly.FromDateTime(DateTime.Today.AddDays(12)),
-                GuestsCount = 2
+                GuestsCount = 2,
+                GuestEmail = "guest@test.com"
             };
 
             var adjacentBooking = new CreateBookingRequest
@@ -71,7 +74,8 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 RoomTypeId = roomTypeId,
                 CheckInDate = DateOnly.FromDateTime(DateTime.Today.AddDays(12)),
                 CheckOutDate = DateOnly.FromDateTime(DateTime.Today.AddDays(15)),
-                GuestsCount = 2
+                GuestsCount = 2,
+                GuestEmail = "guest@test.com"
             };
 
             var firstResponse = await Client.PostAsJsonAsync("/api/bookings", firstBooking);

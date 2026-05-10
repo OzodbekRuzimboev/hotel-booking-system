@@ -74,5 +74,21 @@ namespace HotelBookingSystem.Api.Controllers
             var result = await _reviewService.CreateOrUpdateReviewAsync(User.GetUserId(), id, req);
             return Ok(result);
         }
+
+        [HttpPatch("{id:int}/reviews/{reviewId:int}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateReview(int id, int reviewId, CreateReviewRequest req)
+        {
+            var result = await _reviewService.UpdateReviewAsync(User.GetUserId(), id, reviewId, req);
+            return Ok(result);
+        }
+
+        [HttpDelete("{id:int}/reviews/{reviewId:int}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteReview(int id, int reviewId)
+        {
+            await _reviewService.DeleteReviewAsync(User.GetUserId(), id, reviewId);
+            return NoContent();
+        }
     }
 }

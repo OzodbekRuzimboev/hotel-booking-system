@@ -1,48 +1,26 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
 import {
   getAccount,
-  getFavorites,
   updateProfile,
   updateSettings,
 } from "../api/accountApi";
-import { cancelMyBooking, getMyBookings } from "../api/bookingsApi";
 import { getApiErrorMessage } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
-import { BookingStatusBadge } from "../components/BookingStatus";
+import { ImageField } from "../components/ImageField";
 import { ImageWithFallback } from "../components/ImageWithFallback";
 import {
-  BookingDisplayStatus,
-  Role,
   type AccountSettings,
-  type BookingResponse,
-  type FavoriteHotelResponse,
   type UserAccountResponse,
 } from "../types";
-import { getDefaultStayDates } from "../utils/dates";
-import { formatCurrency, formatDateRange } from "../utils/format";
-
-function roleLabel(role: Role) {
-  switch (role) {
-    case Role.Admin:
-      return "Admin";
-    case Role.Owner:
-      return "Partner";
-    default:
-      return "Customer";
-  }
-}
 
 export function AccountPage() {
   const { updateUser } = useAuth();
-  const defaults = getDefaultStayDates();
   const [account, setAccount] = useState<UserAccountResponse | null>(null);
-  const [bookings, setBookings] = useState<BookingResponse[]>([]);
-  const [favorites, setFavorites] = useState<FavoriteHotelResponse[]>([]);
   const [profileDraft, setProfileDraft] = useState({
     name: "",
     phoneNumber: "",
     country: "",
+    profileImageUrl: "",
   });
   const [settingsDraft, setSettingsDraft] = useState<AccountSettings>({
     preferredCurrency: "USD",
@@ -59,18 +37,12 @@ export function AccountPage() {
 
     try {
       const nextAccount = await getAccount();
-      const [nextBookings, nextFavorites] = await Promise.all([
-        nextAccount.role === Role.User ? getMyBookings() : Promise.resolve([]),
-        getFavorites(),
-      ]);
-
       setAccount(nextAccount);
-      setBookings(nextBookings);
-      setFavorites(nextFavorites);
       setProfileDraft({
         name: nextAccount.name,
         phoneNumber: nextAccount.phoneNumber ?? "",
         country: nextAccount.country ?? "",
+        profileImageUrl: nextAccount.profileImageUrl ?? "",
       });
       setSettingsDraft(nextAccount.settings);
     } catch (err) {
@@ -94,6 +66,7 @@ export function AccountPage() {
         name: profileDraft.name,
         phoneNumber: profileDraft.phoneNumber || null,
         country: profileDraft.country || null,
+        profileImageUrl: profileDraft.profileImageUrl || null,
       });
       setAccount(updated);
       updateUser({ name: updated.name });
@@ -117,29 +90,13 @@ export function AccountPage() {
     }
   }
 
-  async function handleCancel(id: number) {
-    setError("");
-    setSuccess("");
-
-    try {
-      await cancelMyBooking(id);
-      setBookings(await getMyBookings());
-      setSuccess("Booking cancelled.");
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-    }
-  }
-
   return (
     <main className="page stack-lg">
       <div className="page-header">
         <div>
           <p className="eyebrow">Account</p>
-          <h1>My account</h1>
+          <h1>Personal account</h1>
         </div>
-        <button className="button secondary" type="button" onClick={loadAccount}>
-          Refresh
-        </button>
       </div>
 
       {loading && <p className="muted">Loading account...</p>}
@@ -150,13 +107,16 @@ export function AccountPage() {
         <>
           <section className="account-summary panel">
             <div>
-              <span className="avatar">{account.name.slice(0, 1).toUpperCase()}</span>
+              <ImageWithFallback
+                alt={account.name}
+                className="avatar profile-avatar"
+                src={account.profileImageUrl}
+              />
             </div>
-            <div>
+            <div className="account-identity">
               <h2>{account.name}</h2>
               <p className="muted">{account.email}</p>
               <div className="pill-row">
-                <span className="pill">{roleLabel(account.role)}</span>
                 {account.country && <span className="pill">{account.country}</span>}
               </div>
             </div>
@@ -205,6 +165,24 @@ export function AccountPage() {
                     placeholder="Uzbekistan"
                   />
                 </label>
+                <div className="profile-photo-field">
+                  <ImageField
+                    label="Profile photo"
+                    maxImages={1}
+                    previewAlt={profileDraft.name || "Profile photo"}
+                    values={
+                      profileDraft.profileImageUrl
+                        ? [profileDraft.profileImageUrl]
+                        : []
+                    }
+                    onChange={(imageUrls) =>
+                      setProfileDraft({
+                        ...profileDraft,
+                        profileImageUrl: imageUrls[0] ?? "",
+                      })
+                    }
+                  />
+                </div>
                 <button className="button" type="submit">
                   Save profile
                 </button>
@@ -270,89 +248,6 @@ export function AccountPage() {
           </div>
         </>
       )}
-
-      <section className="panel stack">
-        <div>
-          <p className="eyebrow">Reservations</p>
-          <h2>My bookings</h2>
-        </div>
-        {bookings.length === 0 ? (
-          <p className="muted">You have no bookings yet.</p>
-        ) : (
-          <div className="booking-list">
-            {bookings.map((booking) => (
-              <article className="booking-card account-booking" key={booking.id}>
-                <div>
-                  <h3>{booking.hotelName}</h3>
-                  <p className="muted">{booking.roomTypeName}</p>
-                  <p>{formatDateRange(booking.checkInDate, booking.checkOutDate)}</p>
-                  <p>Guests: {booking.guestsCount}</p>
-                </div>
-                <div className="booking-side">
-                  <BookingStatusBadge status={booking.status} />
-                  <strong>{formatCurrency(booking.totalPrice)}</strong>
-                  {booking.status === BookingDisplayStatus.Active && (
-                    <button
-                      className="button danger"
-                      type="button"
-                      onClick={() => handleCancel(booking.id)}
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="panel stack">
-        <div>
-          <p className="eyebrow">Saved stays</p>
-          <h2>Favorites</h2>
-        </div>
-        {favorites.length === 0 ? (
-          <p className="muted">Save hotels from the hotel page to see them here.</p>
-        ) : (
-          <div className="favorite-grid">
-            {favorites.map((favorite) => {
-              const search = new URLSearchParams({
-                checkInDate: defaults.checkInDate,
-                checkOutDate: defaults.checkOutDate,
-                guestsCount: "1",
-              });
-
-              return (
-                <article className="favorite-card" key={favorite.hotelId}>
-                  <ImageWithFallback
-                    alt={favorite.name}
-                    className="favorite-image"
-                    src={favorite.imageUrl}
-                  />
-                  <div className="stack-sm">
-                    <h3>{favorite.name}</h3>
-                    <p className="muted">{favorite.city} - {favorite.address}</p>
-                    <div className="pill-row">
-                      <span className="pill">
-                        {favorite.reviewCount > 0
-                          ? `${favorite.averageRating.toFixed(1)} review score`
-                          : "No reviews yet"}
-                      </span>
-                    </div>
-                    <Link
-                      className="button secondary inline-button"
-                      to={`/hotels/${favorite.hotelId}?${search.toString()}`}
-                    >
-                      View hotel
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
     </main>
   );
 }

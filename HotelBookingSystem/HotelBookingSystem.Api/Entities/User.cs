@@ -11,6 +11,7 @@ namespace HotelBookingSystem.Api.Entities
         public Role Role { get; set; } = Role.User;
         public string? PhoneNumber { get; set; }
         public string? Country { get; set; }
+        public string? ProfileImageUrl { get; set; }
 
         public List<Booking> Bookings { get; set; } = [];
         public UserSettings? Settings { get; set; }

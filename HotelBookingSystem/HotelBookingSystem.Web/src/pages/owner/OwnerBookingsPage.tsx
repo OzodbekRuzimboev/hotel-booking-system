@@ -79,13 +79,6 @@ export function OwnerBookingsPage() {
           <p className="eyebrow">Owner</p>
           <h1>Hotel bookings</h1>
         </div>
-        <button
-          className="button secondary"
-          type="button"
-          onClick={() => loadBookings()}
-        >
-          Refresh
-        </button>
       </div>
 
       {error && <p className="alert error">{error}</p>}
@@ -128,6 +121,7 @@ export function OwnerBookingsPage() {
               <p>{booking.roomTypeName}</p>
               <p>{formatDateRange(booking.checkInDate, booking.checkOutDate)}</p>
               <p>Guests: {booking.guestsCount}</p>
+              <p className="muted small">Confirmation: {booking.guestEmail}</p>
             </div>
             <div className="booking-side">
               <BookingStatusBadge status={booking.status} />

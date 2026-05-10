@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { getApiErrorMessage } from "../api/client";
+import {
+  HOTEL_AMENITIES,
+  MEAL_OPTIONS,
+  ROOM_AMENITIES,
+  type AmenityOption,
+} from "../constants/amenities";
 import type {
   AssignHotelOwnerRequest,
   CreateHotelRequest,
@@ -18,6 +25,7 @@ import { ImageWithFallback } from "./ImageWithFallback";
 
 type HotelManagementProps = {
   title: string;
+  listTitle?: string;
   loadHotels: () => Promise<ManagedHotelResponse[]>;
   updateHotel: (hotelId: number, request: UpdateHotelRequest) => Promise<ManagedHotelResponse>;
   createRoomType: (hotelId: number, request: RoomTypeRequest) => Promise<ManagedRoomTypeResponse>;
@@ -29,41 +37,49 @@ type HotelManagementProps = {
   createHotel?: (request: CreateHotelRequest) => Promise<unknown>;
   deactivateHotel?: (hotelId: number) => Promise<void>;
   assignHotelOwner?: (hotelId: number, request: AssignHotelOwnerRequest) => Promise<ManagedHotelResponse>;
+  hotelFilter?: (hotel: ManagedHotelResponse) => boolean;
+  hotelDetailsPath?: (hotel: ManagedHotelResponse) => string;
 };
 
 type RoomTypeDraft = {
   name: string;
   description: string;
-  imageUrl: string;
+  imageUrls: string[];
+  amenities: string[];
+  mealOptions: string[];
   capacity: number;
-  price: number;
+  price: string;
   roomsText: string;
 };
 
 type HotelDraft = {
   name: string;
   description: string;
-  imageUrl: string;
+  imageUrls: string[];
   city: string;
   address: string;
+  amenities: string[];
   roomTypes: RoomTypeDraft[];
 };
 
 const blankRoomType = (): RoomTypeDraft => ({
   name: "",
   description: "",
-  imageUrl: "",
+  imageUrls: [],
+  amenities: [],
+  mealOptions: [],
   capacity: 1,
-  price: 100,
+  price: "100",
   roomsText: "101",
 });
 
 const blankHotel = (): HotelDraft => ({
   name: "",
   description: "",
-  imageUrl: "",
+  imageUrls: [],
   city: "",
   address: "",
+  amenities: [],
   roomTypes: [blankRoomType()],
 });
 
@@ -80,13 +96,67 @@ function roomsFromText(value: string) {
     .map((number) => ({ number }));
 }
 
+function primaryImageUrl(imageUrls: string[]) {
+  return imageUrls.find((imageUrl) => imageUrl.trim().length > 0) ?? null;
+}
+
+function imageUrlsFromResponse(imageUrls?: string[] | null, imageUrl?: string | null) {
+  return imageUrls && imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [];
+}
+
+function parseDecimalInput(value: string | number) {
+  if (typeof value === "number") return value;
+
+  const parsed = Number(value.trim().replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function toggleSelection(values: string[], value: string) {
+  return values.includes(value)
+    ? values.filter((current) => current !== value)
+    : [...values, value];
+}
+
+function CheckboxFieldGroup({
+  options,
+  selected,
+  title,
+  onToggle,
+}: {
+  options: AmenityOption[];
+  selected: string[];
+  title: string;
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <fieldset className="checkbox-group">
+      <legend>{title}</legend>
+      <div className="checkbox-grid">
+        {options.map((option) => (
+          <label className="checkbox-label" key={option.value}>
+            <input
+              checked={selected.includes(option.value)}
+              type="checkbox"
+              onChange={() => onToggle(option.value)}
+            />
+            <span>{option.label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 function roomTypeRequestFromDraft(draft: RoomTypeDraft): RoomTypeRequest {
   return {
     name: draft.name.trim(),
     description: optionalText(draft.description),
-    imageUrl: optionalText(draft.imageUrl),
+    imageUrl: primaryImageUrl(draft.imageUrls),
+    imageUrls: draft.imageUrls,
+    amenities: draft.amenities,
+    mealOptions: draft.mealOptions,
     capacity: Number(draft.capacity),
-    price: Number(draft.price),
+    price: parseDecimalInput(draft.price),
     rooms: roomsFromText(draft.roomsText),
   };
 }
@@ -95,9 +165,11 @@ function hotelRequestFromDraft(draft: HotelDraft): CreateHotelRequest {
   return {
     name: draft.name.trim(),
     description: optionalText(draft.description),
-    imageUrl: optionalText(draft.imageUrl),
+    imageUrl: primaryImageUrl(draft.imageUrls),
+    imageUrls: draft.imageUrls,
     city: draft.city.trim(),
     address: draft.address.trim(),
+    amenities: draft.amenities,
     roomTypes: draft.roomTypes
       .filter((roomType) => roomType.name.trim().length > 0)
       .map(roomTypeRequestFromDraft),
@@ -106,6 +178,7 @@ function hotelRequestFromDraft(draft: HotelDraft): CreateHotelRequest {
 
 export function HotelManagement({
   title,
+  listTitle = "Hotels",
   loadHotels,
   updateHotel,
   createRoomType,
@@ -117,6 +190,8 @@ export function HotelManagement({
   createHotel,
   deactivateHotel,
   assignHotelOwner,
+  hotelFilter,
+  hotelDetailsPath,
 }: HotelManagementProps) {
   const [hotels, setHotels] = useState<ManagedHotelResponse[]>([]);
   const [selectedHotelId, setSelectedHotelId] = useState<number | "all">("all");
@@ -125,10 +200,15 @@ export function HotelManagement({
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const filteredHotels = useMemo(
+    () => (hotelFilter ? hotels.filter(hotelFilter) : hotels),
+    [hotels, hotelFilter]
+  );
+
   const visibleHotels = useMemo(() => {
-    if (selectedHotelId === "all") return hotels;
-    return hotels.filter((hotel) => hotel.id === selectedHotelId);
-  }, [hotels, selectedHotelId]);
+    if (selectedHotelId === "all") return filteredHotels;
+    return filteredHotels.filter((hotel) => hotel.id === selectedHotelId);
+  }, [filteredHotels, selectedHotelId]);
 
   const refreshHotels = useCallback(async () => {
     setLoading(true);
@@ -177,9 +257,6 @@ export function HotelManagement({
           <p className="eyebrow">Management</p>
           <h1>{title}</h1>
         </div>
-        <button className="button secondary" type="button" onClick={refreshHotels}>
-          Refresh
-        </button>
       </div>
 
       {error && <p className="alert error">{error}</p>}
@@ -214,14 +291,27 @@ export function HotelManagement({
                 <ImageField
                   label="Hotel cover image"
                   previewAlt={draft.name || "Hotel cover image"}
-                  value={draft.imageUrl}
-                  onChange={(imageUrl) => setDraft({ ...draft, imageUrl })}
+                  values={draft.imageUrls}
+                  onChange={(imageUrls) => setDraft({ ...draft, imageUrls })}
                 />
               </div>
               <label className="full">
                 Description
                 <textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} rows={3} />
               </label>
+              <div className="full">
+                <CheckboxFieldGroup
+                  options={HOTEL_AMENITIES}
+                  selected={draft.amenities}
+                  title="Hotel amenities"
+                  onToggle={(value) =>
+                    setDraft({
+                      ...draft,
+                      amenities: toggleSelection(draft.amenities, value),
+                    })
+                  }
+                />
+              </div>
             </div>
 
             <div className="stack">
@@ -261,10 +351,10 @@ export function HotelManagement({
 
       <section className="panel stack">
         <div className="row between gap wrap">
-          <h2>Hotels</h2>
+          <h2>{listTitle}</h2>
           <select value={selectedHotelId} onChange={(event) => setSelectedHotelId(event.target.value === "all" ? "all" : Number(event.target.value))}>
             <option value="all">All hotels</option>
-            {hotels.map((hotel) => (
+            {filteredHotels.map((hotel) => (
               <option key={hotel.id} value={hotel.id}>{hotel.name}</option>
             ))}
           </select>
@@ -274,20 +364,49 @@ export function HotelManagement({
 
         <div className="management-list">
           {visibleHotels.map((hotel) => (
-            <ManagedHotelCard
-              key={hotel.id}
-              hotel={hotel}
-              updateHotel={updateHotel}
-              createRoomType={createRoomType}
-              updateRoomType={updateRoomType}
-              deactivateRoomType={deactivateRoomType}
-              createRoom={createRoom}
-              updateRoom={updateRoom}
-              deactivateRoom={deactivateRoom}
-              deactivateHotel={deactivateHotel}
-              assignHotelOwner={assignHotelOwner}
-              runAction={runAction}
-            />
+            hotelDetailsPath ? (
+              <Link
+                className="admin-hotel-summary"
+                key={hotel.id}
+                to={hotelDetailsPath(hotel)}
+              >
+                <ImageWithFallback
+                  alt={hotel.name}
+                  className="management-image"
+                  src={hotel.imageUrl}
+                />
+                <div className="stack-sm">
+                  <div className="row gap wrap">
+                    <h3>{hotel.name}</h3>
+                    <span className={hotel.isActive ? "status active" : "status inactive"}>
+                      {hotel.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <p className="muted">
+                    #{hotel.id} - {hotel.city} - {hotel.address}
+                  </p>
+                  <p className="muted small">
+                    {hotel.roomTypes.length} room type{hotel.roomTypes.length === 1 ? "" : "s"}
+                    {hotel.ownerId ? ` - Owner ID: ${hotel.ownerId}` : ""}
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <ManagedHotelCard
+                key={hotel.id}
+                hotel={hotel}
+                updateHotel={updateHotel}
+                createRoomType={createRoomType}
+                updateRoomType={updateRoomType}
+                deactivateRoomType={deactivateRoomType}
+                createRoom={createRoom}
+                updateRoom={updateRoom}
+                deactivateRoom={deactivateRoom}
+                deactivateHotel={deactivateHotel}
+                assignHotelOwner={assignHotelOwner}
+                runAction={runAction}
+              />
+            )
           ))}
         </div>
       </section>
@@ -312,8 +431,8 @@ function RoomTypeDraftFields({
         <ImageField
           label="Room image"
           previewAlt={draft.name || "Room image"}
-          value={draft.imageUrl}
-          onChange={(imageUrl) => onChange({ ...draft, imageUrl })}
+          values={draft.imageUrls}
+          onChange={(imageUrls) => onChange({ ...draft, imageUrls })}
         />
       </div>
       <label>
@@ -322,7 +441,7 @@ function RoomTypeDraftFields({
       </label>
       <label>
         Price per night
-        <input type="number" min={0.01} step="0.01" value={draft.price} onChange={(event) => onChange({ ...draft, price: Number(event.target.value) })} required />
+        <input inputMode="decimal" value={draft.price} onChange={(event) => onChange({ ...draft, price: event.target.value })} required />
       </label>
       <label className="full">
         Room numbers
@@ -332,11 +451,37 @@ function RoomTypeDraftFields({
         Description
         <textarea value={draft.description} onChange={(event) => onChange({ ...draft, description: event.target.value })} rows={2} />
       </label>
+      <div className="full">
+        <CheckboxFieldGroup
+          options={ROOM_AMENITIES}
+          selected={draft.amenities}
+          title="Room amenities"
+          onToggle={(value) =>
+            onChange({
+              ...draft,
+              amenities: toggleSelection(draft.amenities, value),
+            })
+          }
+        />
+      </div>
+      <div className="full">
+        <CheckboxFieldGroup
+          options={MEAL_OPTIONS}
+          selected={draft.mealOptions}
+          title="Meals"
+          onToggle={(value) =>
+            onChange({
+              ...draft,
+              mealOptions: toggleSelection(draft.mealOptions, value),
+            })
+          }
+        />
+      </div>
     </div>
   );
 }
 
-type ManagedHotelCardProps = {
+export type ManagedHotelCardProps = {
   hotel: ManagedHotelResponse;
   updateHotel: (hotelId: number, request: UpdateHotelRequest) => Promise<ManagedHotelResponse>;
   createRoomType: (hotelId: number, request: RoomTypeRequest) => Promise<ManagedRoomTypeResponse>;
@@ -350,7 +495,7 @@ type ManagedHotelCardProps = {
   runAction: (action: () => Promise<unknown>, message: string) => Promise<void>;
 };
 
-function ManagedHotelCard({
+export function ManagedHotelCard({
   hotel,
   updateHotel,
   createRoomType,
@@ -366,12 +511,25 @@ function ManagedHotelCard({
   const [hotelDraft, setHotelDraft] = useState({
     name: hotel.name,
     description: hotel.description ?? "",
-    imageUrl: hotel.imageUrl ?? "",
+    imageUrls: imageUrlsFromResponse(hotel.imageUrls, hotel.imageUrl),
     city: hotel.city,
     address: hotel.address,
+    amenities: hotel.amenities ?? [],
   });
   const [ownerId, setOwnerId] = useState(hotel.ownerId?.toString() ?? "");
   const [newRoomType, setNewRoomType] = useState<RoomTypeDraft>(blankRoomType());
+
+  useEffect(() => {
+    setHotelDraft({
+      name: hotel.name,
+      description: hotel.description ?? "",
+      imageUrls: imageUrlsFromResponse(hotel.imageUrls, hotel.imageUrl),
+      city: hotel.city,
+      address: hotel.address,
+      amenities: hotel.amenities ?? [],
+    });
+    setOwnerId(hotel.ownerId?.toString() ?? "");
+  }, [hotel]);
 
   return (
     <article className="card stack-lg">
@@ -392,9 +550,11 @@ function ManagedHotelCard({
         runAction(() => updateHotel(hotel.id, {
           name: hotelDraft.name,
           description: optionalText(hotelDraft.description),
-          imageUrl: optionalText(hotelDraft.imageUrl),
+          imageUrl: primaryImageUrl(hotelDraft.imageUrls),
+          imageUrls: hotelDraft.imageUrls,
           city: hotelDraft.city,
           address: hotelDraft.address,
+          amenities: hotelDraft.amenities,
         }), "Hotel updated.");
       }}>
         <div className="form-grid two">
@@ -405,11 +565,24 @@ function ManagedHotelCard({
             <ImageField
               label="Hotel cover image"
               previewAlt={hotelDraft.name || hotel.name}
-              value={hotelDraft.imageUrl}
-              onChange={(imageUrl) => setHotelDraft({ ...hotelDraft, imageUrl })}
+              values={hotelDraft.imageUrls}
+              onChange={(imageUrls) => setHotelDraft({ ...hotelDraft, imageUrls })}
             />
           </div>
           <label className="full">Description<textarea value={hotelDraft.description} onChange={(event) => setHotelDraft({ ...hotelDraft, description: event.target.value })} rows={2} /></label>
+          <div className="full">
+            <CheckboxFieldGroup
+              options={HOTEL_AMENITIES}
+              selected={hotelDraft.amenities}
+              title="Hotel amenities"
+              onToggle={(value) =>
+                setHotelDraft({
+                  ...hotelDraft,
+                  amenities: toggleSelection(hotelDraft.amenities, value),
+                })
+              }
+            />
+          </div>
         </div>
         <div className="row gap wrap">
           <button className="button" type="submit">Save hotel</button>
@@ -488,11 +661,25 @@ function RoomTypeManagementCard({
   const [draft, setDraft] = useState({
     name: roomType.name,
     description: roomType.description ?? "",
-    imageUrl: roomType.imageUrl ?? "",
+    imageUrls: imageUrlsFromResponse(roomType.imageUrls, roomType.imageUrl),
+    amenities: roomType.amenities ?? [],
+    mealOptions: roomType.mealOptions ?? [],
     capacity: roomType.capacity,
-    price: roomType.price,
+    price: roomType.price.toString(),
   });
   const [roomNumber, setRoomNumber] = useState("");
+
+  useEffect(() => {
+    setDraft({
+      name: roomType.name,
+      description: roomType.description ?? "",
+      imageUrls: imageUrlsFromResponse(roomType.imageUrls, roomType.imageUrl),
+      amenities: roomType.amenities ?? [],
+      mealOptions: roomType.mealOptions ?? [],
+      capacity: roomType.capacity,
+      price: roomType.price.toString(),
+    });
+  }, [roomType]);
 
   return (
     <article className="room-type-card stack">
@@ -512,9 +699,12 @@ function RoomTypeManagementCard({
         runAction(() => updateRoomType(roomType.id, {
           name: draft.name,
           description: optionalText(draft.description),
-          imageUrl: optionalText(draft.imageUrl),
+          imageUrl: primaryImageUrl(draft.imageUrls),
+          imageUrls: draft.imageUrls,
+          amenities: draft.amenities,
+          mealOptions: draft.mealOptions,
           capacity: Number(draft.capacity),
-          price: Number(draft.price),
+          price: parseDecimalInput(draft.price),
         }), "Room type updated.");
       }}>
         <div className="form-grid two">
@@ -523,13 +713,39 @@ function RoomTypeManagementCard({
             <ImageField
               label="Room image"
               previewAlt={draft.name || roomType.name}
-              value={draft.imageUrl}
-              onChange={(imageUrl) => setDraft({ ...draft, imageUrl })}
+              values={draft.imageUrls}
+              onChange={(imageUrls) => setDraft({ ...draft, imageUrls })}
             />
           </div>
           <label>Capacity<input type="number" min={1} value={draft.capacity} onChange={(event) => setDraft({ ...draft, capacity: Number(event.target.value) })} required /></label>
-          <label>Price<input type="number" min={0.01} step="0.01" value={draft.price} onChange={(event) => setDraft({ ...draft, price: Number(event.target.value) })} required /></label>
+          <label>Price<input inputMode="decimal" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} required /></label>
           <label className="full">Description<textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} rows={2} /></label>
+          <div className="full">
+            <CheckboxFieldGroup
+              options={ROOM_AMENITIES}
+              selected={draft.amenities}
+              title="Room amenities"
+              onToggle={(value) =>
+                setDraft({
+                  ...draft,
+                  amenities: toggleSelection(draft.amenities, value),
+                })
+              }
+            />
+          </div>
+          <div className="full">
+            <CheckboxFieldGroup
+              options={MEAL_OPTIONS}
+              selected={draft.mealOptions}
+              title="Meals"
+              onToggle={(value) =>
+                setDraft({
+                  ...draft,
+                  mealOptions: toggleSelection(draft.mealOptions, value),
+                })
+              }
+            />
+          </div>
         </div>
         <div className="row gap wrap">
           <button className="button secondary" type="submit">Save room type</button>

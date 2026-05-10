@@ -2,35 +2,80 @@ import { useState, type FormEvent } from "react";
 import { getApiErrorMessage } from "../api/client";
 import { searchHotels } from "../api/hotelsApi";
 import { HotelCard } from "../components/HotelCard";
+import {
+  HOTEL_AMENITIES,
+  MEAL_OPTIONS,
+  ROOM_AMENITIES,
+  type AmenityOption,
+} from "../constants/amenities";
 import type { HotelSearchResponse } from "../types";
 import {
-  getDefaultStayDates,
   isValidStayRange,
   toDateInputValue,
 } from "../utils/dates";
 
-const popularCities = ["Tashkent", "Samarkand", "Bukhara"];
+type SearchFilters = {
+  minNightlyPrice: string;
+  maxNightlyPrice: string;
+  hotelAmenities: string[];
+  roomAmenities: string[];
+  mealOptions: string[];
+};
 
 export function HomePage() {
-  const defaults = getDefaultStayDates();
   const today = toDateInputValue(new Date());
-  const [city, setCity] = useState("Tashkent");
-  const [checkInDate, setCheckInDate] = useState(defaults.checkInDate);
-  const [checkOutDate, setCheckOutDate] = useState(defaults.checkOutDate);
-  const [guestsCount, setGuestsCount] = useState(1);
+  const [city, setCity] = useState("");
+  const [checkInDate, setCheckInDate] = useState("");
+  const [checkOutDate, setCheckOutDate] = useState("");
+  const [guestsCount, setGuestsCount] = useState(2);
+  const [filters, setFilters] = useState<SearchFilters>({
+    minNightlyPrice: "",
+    maxNightlyPrice: "",
+    hotelAmenities: [],
+    roomAmenities: [],
+    mealOptions: [],
+  });
 
   const [hotels, setHotels] = useState<HotelSearchResponse[]>([]);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSearch(event: FormEvent) {
-    event.preventDefault();
+  async function runSearch() {
     setError("");
-    setSearched(true);
 
     if (!isValidStayRange(checkInDate, checkOutDate)) {
       setError("Check-out date must be after check-in date.");
+      setHotels([]);
+      return;
+    }
+
+    const minNightlyPrice =
+      filters.minNightlyPrice.trim().length > 0
+        ? Number(filters.minNightlyPrice)
+        : null;
+    const maxNightlyPrice =
+      filters.maxNightlyPrice.trim().length > 0
+        ? Number(filters.maxNightlyPrice)
+        : null;
+
+    if (
+      (minNightlyPrice !== null &&
+        (!Number.isFinite(minNightlyPrice) || minNightlyPrice <= 0)) ||
+      (maxNightlyPrice !== null &&
+        (!Number.isFinite(maxNightlyPrice) || maxNightlyPrice <= 0))
+    ) {
+      setError("Nightly budget must be a positive number.");
+      setHotels([]);
+      return;
+    }
+
+    if (
+      minNightlyPrice !== null &&
+      maxNightlyPrice !== null &&
+      minNightlyPrice > maxNightlyPrice
+    ) {
+      setError("Minimum nightly budget cannot be greater than maximum nightly budget.");
       setHotels([]);
       return;
     }
@@ -43,6 +88,11 @@ export function HomePage() {
         checkInDate,
         checkOutDate,
         guestsCount,
+        minNightlyPrice,
+        maxNightlyPrice,
+        hotelAmenities: filters.hotelAmenities,
+        roomAmenities: filters.roomAmenities,
+        mealOptions: filters.mealOptions,
       });
 
       setHotels(result);
@@ -52,6 +102,28 @@ export function HomePage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSearch(event: FormEvent) {
+    event.preventDefault();
+    setSearched(true);
+    await runSearch();
+  }
+
+  async function handleFilterSubmit(event: FormEvent) {
+    event.preventDefault();
+    setSearched(true);
+    await runSearch();
+  }
+
+  function toggleFilter(
+    key: keyof Pick<SearchFilters, "hotelAmenities" | "roomAmenities" | "mealOptions">,
+    value: string
+  ) {
+    setFilters((current) => ({
+      ...current,
+      [key]: toggleValue(current[key], value),
+    }));
   }
 
   return (
@@ -115,19 +187,6 @@ export function HomePage() {
               {loading ? "Searching..." : "Search"}
             </button>
           </form>
-
-          <div className="city-chip-row" aria-label="Popular cities">
-            {popularCities.map((popularCity) => (
-              <button
-                className="city-chip"
-                key={popularCity}
-                type="button"
-                onClick={() => setCity(popularCity)}
-              >
-                {popularCity}
-              </button>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -154,24 +213,121 @@ export function HomePage() {
           </p>
         )}
 
-        {searched && !loading && hotels.length === 0 && !error && (
-          <p className="muted">
-            No hotels match the selected city, dates, and guest count.
-          </p>
-        )}
+        {searched && (
+          <div className="search-results-layout">
+            <form className="filter-panel panel stack" onSubmit={handleFilterSubmit}>
+              <div>
+                <p className="eyebrow">Filters</p>
+                <h3>Refine your stay</h3>
+              </div>
+              <label>
+                Nightly budget
+                <div className="budget-range">
+                  <input
+                    inputMode="decimal"
+                    min={1}
+                    placeholder="From"
+                    type="number"
+                    value={filters.minNightlyPrice}
+                    onChange={(event) =>
+                      setFilters({
+                        ...filters,
+                        minNightlyPrice: event.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    inputMode="decimal"
+                    min={1}
+                    placeholder="To"
+                    type="number"
+                    value={filters.maxNightlyPrice}
+                    onChange={(event) =>
+                      setFilters({
+                        ...filters,
+                        maxNightlyPrice: event.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </label>
+              <FilterGroup
+                options={HOTEL_AMENITIES}
+                selected={filters.hotelAmenities}
+                title="Hotel amenities"
+                onToggle={(value) => toggleFilter("hotelAmenities", value)}
+              />
+              <FilterGroup
+                options={ROOM_AMENITIES}
+                selected={filters.roomAmenities}
+                title="Room amenities"
+                onToggle={(value) => toggleFilter("roomAmenities", value)}
+              />
+              <FilterGroup
+                options={MEAL_OPTIONS}
+                selected={filters.mealOptions}
+                title="Meals"
+                onToggle={(value) => toggleFilter("mealOptions", value)}
+              />
+              <button className="button" disabled={loading} type="submit">
+                Apply filters
+              </button>
+            </form>
 
-        <div className="hotel-results">
-          {hotels.map((hotel) => (
-            <HotelCard
-              key={hotel.id}
-              hotel={hotel}
-              checkInDate={checkInDate}
-              checkOutDate={checkOutDate}
-              guestsCount={guestsCount}
-            />
-          ))}
-        </div>
+            <div className="hotel-results">
+              {!loading && hotels.length === 0 && !error && (
+                <p className="muted">
+                  No hotels match the selected city, dates, guests, and filters.
+                </p>
+              )}
+
+              {hotels.map((hotel) => (
+                <HotelCard
+                  key={hotel.id}
+                  hotel={hotel}
+                  checkInDate={checkInDate}
+                  checkOutDate={checkOutDate}
+                  guestsCount={guestsCount}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );
+}
+
+function FilterGroup({
+  options,
+  selected,
+  title,
+  onToggle,
+}: {
+  options: AmenityOption[];
+  selected: string[];
+  title: string;
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <fieldset className="filter-group">
+      <legend>{title}</legend>
+      {options.map((option) => (
+        <label className="filter-option" key={option.value}>
+          <input
+            checked={selected.includes(option.value)}
+            type="checkbox"
+            onChange={() => onToggle(option.value)}
+          />
+          <span>{option.label}</span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+function toggleValue(values: string[], value: string) {
+  return values.includes(value)
+    ? values.filter((current) => current !== value)
+    : [...values, value];
 }

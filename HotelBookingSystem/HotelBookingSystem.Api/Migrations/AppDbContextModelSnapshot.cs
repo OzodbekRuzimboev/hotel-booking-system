@@ -42,6 +42,16 @@ namespace HotelBookingSystem.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("GuestCountry")
+                        .HasColumnType("text");
+
+                    b.Property<string>("GuestEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("GuestPhoneNumber")
+                        .HasColumnType("text");
+
                     b.Property<int>("GuestsCount")
                         .HasColumnType("integer");
 
@@ -107,6 +117,12 @@ namespace HotelBookingSystem.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.PrimitiveCollection<string[]>("Amenities")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValueSql("ARRAY[]::text[]");
+
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("text");
@@ -116,6 +132,12 @@ namespace HotelBookingSystem.Api.Migrations
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
+
+                    b.PrimitiveCollection<string[]>("ImageUrls")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValueSql("ARRAY[]::text[]");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -213,6 +235,12 @@ namespace HotelBookingSystem.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.PrimitiveCollection<string[]>("Amenities")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValueSql("ARRAY[]::text[]");
+
                     b.Property<int>("Capacity")
                         .HasColumnType("integer");
 
@@ -225,10 +253,22 @@ namespace HotelBookingSystem.Api.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
+                    b.PrimitiveCollection<string[]>("ImageUrls")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValueSql("ARRAY[]::text[]");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
+
+                    b.PrimitiveCollection<string[]>("MealOptions")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValueSql("ARRAY[]::text[]");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -268,6 +308,9 @@ namespace HotelBookingSystem.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProfileImageUrl")
                         .HasColumnType("text");
 
                     b.Property<string>("Role")

@@ -12,13 +12,18 @@ namespace HotelBookingSystem.Api.Contracts.Management
         [StringLength(2000)]
         public string? Description { get; set; }
 
-        [StringLength(1000000)]
         public string? ImageUrl { get; set; }
+
+        public List<string> ImageUrls { get; set; } = [];
+
+        public List<string> Amenities { get; set; } = [];
+
+        public List<string> MealOptions { get; set; } = [];
 
         [Range(1, int.MaxValue, ErrorMessage = "Capacity must be greater than zero.")]
         public int Capacity { get; set; }
 
-        [Range(typeof(decimal), "0.01", "1000000", ErrorMessage = "Price must be greater than zero.")]
+        [Range(0.01, 1000000, ErrorMessage = "Price must be greater than zero.")]
         public decimal Price { get; set; }
     }
 }

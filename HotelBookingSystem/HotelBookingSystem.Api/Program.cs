@@ -6,6 +6,7 @@ using HotelBookingSystem.Api.Options;
 using HotelBookingSystem.Api.Services;
 using HotelBookingSystem.Api.Services.Admin;
 using HotelBookingSystem.Api.Services.Bookings;
+using HotelBookingSystem.Api.Services.Email;
 using HotelBookingSystem.Api.Services.Hotels;
 using HotelBookingSystem.Api.Services.Rooms;
 using HotelBookingSystem.Api.Services.Users;
@@ -26,6 +27,7 @@ builder.Logging.AddDebug();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
     ?? throw new InvalidOperationException("Jwt settings are missing.");
@@ -72,10 +74,12 @@ builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<RoomTypeManagementService>();
 builder.Services.AddScoped<RoomManagementService>();
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<BookingConfirmationEmailService>();
 builder.Services.AddScoped<UserManagementService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 

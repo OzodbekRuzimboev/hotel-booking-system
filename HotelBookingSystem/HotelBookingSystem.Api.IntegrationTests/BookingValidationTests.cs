@@ -27,7 +27,8 @@ namespace HotelBookingSystem.Api.IntegrationTests
                 RoomTypeId = roomTypeId,
                 CheckInDate = DateOnly.FromDateTime(DateTime.Today.AddDays(16)),
                 CheckOutDate = DateOnly.FromDateTime(DateTime.Today.AddDays(12)),
-                GuestsCount = 2
+                GuestsCount = 2,
+                GuestEmail = "guest@test.com"
             };
 
             var response = await Client.PostAsJsonAsync("/api/bookings", invalidBooking);
