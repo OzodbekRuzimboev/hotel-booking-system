@@ -24,6 +24,7 @@ export function OwnerHotelsPage() {
       createRoom={createOwnerRoom}
       updateRoom={updateOwnerRoom}
       deactivateRoom={deactivateOwnerRoom}
+      hotelDetailsPath={(hotel) => `/owner/hotels/${hotel.id}`}
     />
   );
 }

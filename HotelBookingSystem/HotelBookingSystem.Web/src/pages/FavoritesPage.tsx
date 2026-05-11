@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getFavorites } from "../api/accountApi";
 import { getApiErrorMessage } from "../api/client";
+import { FavoriteButton } from "../components/FavoriteButton";
 import { ImageWithFallback } from "../components/ImageWithFallback";
 import type { FavoriteHotelResponse } from "../types";
 
 export function FavoritesPage() {
+  const navigate = useNavigate();
   const [favorites, setFavorites] = useState<FavoriteHotelResponse[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,14 @@ export function FavoritesPage() {
   useEffect(() => {
     loadFavorites();
   }, []);
+
+  function getHotelUrl(favorite: FavoriteHotelResponse) {
+    return `/hotels/${favorite.hotelId}?guestsCount=2`;
+  }
+
+  function openHotel(favorite: FavoriteHotelResponse) {
+    navigate(getHotelUrl(favorite));
+  }
 
   return (
     <main className="page stack-lg">
@@ -49,16 +59,32 @@ export function FavoritesPage() {
       ) : (
         <div className="favorite-grid">
           {favorites.map((favorite) => (
-            <Link
+            <article
               className="favorite-card clickable-card"
               key={favorite.hotelId}
-              to={`/hotels/${favorite.hotelId}?guestsCount=2`}
+              role="link"
+              tabIndex={0}
+              onClick={() => openHotel(favorite)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openHotel(favorite);
+                }
+              }}
             >
-              <ImageWithFallback
-                alt={favorite.name}
-                className="favorite-image"
-                src={favorite.imageUrl}
-              />
+              <div className="favorite-media">
+                <ImageWithFallback
+                  alt={favorite.name}
+                  className="favorite-image"
+                  src={favorite.imageUrl}
+                />
+                <FavoriteButton
+                  className="favorite-card-button"
+                  hotelId={favorite.hotelId}
+                  initialIsFavorite
+                  stopPropagation
+                />
+              </div>
               <div className="stack-sm">
                 <h3>{favorite.name}</h3>
                 <p className="muted">
@@ -72,7 +98,7 @@ export function FavoritesPage() {
                   </span>
                 </div>
               </div>
-            </Link>
+            </article>
           ))}
         </div>
       )}

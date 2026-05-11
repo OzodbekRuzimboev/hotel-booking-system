@@ -11,23 +11,29 @@ import { Role } from "../types";
 type FavoriteButtonProps = {
   hotelId: number;
   className?: string;
+  initialIsFavorite?: boolean;
   stopPropagation?: boolean;
 };
 
 export function FavoriteButton({
   hotelId,
   className,
+  initialIsFavorite = false,
   stopPropagation = false,
 }: FavoriteButtonProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = user?.role === Role.Admin;
-  const [isFavorite, setIsFavorite] = useState(false);
+  const canUseFavorites = !user || user.role === Role.User;
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setIsFavorite(initialIsFavorite);
+  }, [hotelId, initialIsFavorite]);
+
+  useEffect(() => {
     async function loadFavoriteStatus() {
-      if (!user || isAdmin || !hotelId) {
+      if (!user || user.role !== Role.User || !hotelId) {
         setIsFavorite(false);
         return;
       }
@@ -41,7 +47,7 @@ export function FavoriteButton({
     }
 
     loadFavoriteStatus();
-  }, [hotelId, isAdmin, user]);
+  }, [hotelId, user]);
 
   async function handleClick(event: MouseEvent<HTMLButtonElement>) {
     if (stopPropagation) {
@@ -70,7 +76,7 @@ export function FavoriteButton({
     }
   }
 
-  if (isAdmin) {
+  if (!canUseFavorites) {
     return null;
   }
 
@@ -83,7 +89,7 @@ export function FavoriteButton({
       type="button"
       onClick={handleClick}
     >
-      <span aria-hidden="true">{isFavorite ? "♥" : "♡"}</span>
+      <span aria-hidden="true">{isFavorite ? "\u2665" : "\u2661"}</span>
     </button>
   );
 }

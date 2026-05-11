@@ -22,6 +22,7 @@ export type AuthResponse = {
   name: string;
   email: string;
   role: Role;
+  profileImageUrl?: string | null;
 };
 
 export type LoginRequest = {
@@ -129,6 +130,7 @@ export type BookingResponse = {
   hotelImageUrl?: string | null;
   hotelImageUrls: string[];
   roomTypeName: string;
+  roomNumber: string;
   checkInDate: string;
   checkOutDate: string;
   guestsCount: number;
@@ -281,6 +283,11 @@ export type UpdateProfileRequest = {
   phoneNumber?: string | null;
   country?: string | null;
   profileImageUrl?: string | null;
+};
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
 };
 
 export type FavoriteHotelResponse = {

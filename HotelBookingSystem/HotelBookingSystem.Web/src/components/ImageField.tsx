@@ -188,12 +188,15 @@ export function ImageField({
           />
         </label>
         <label>
-          Image link
+          Image URL (optional)
           <input
             value={imageLink}
             onChange={(event) => setImageLink(event.target.value)}
-            placeholder="Paste an image link or choose files above"
+            placeholder="https://example.com/photo.jpg"
           />
+          <span className="field-hint">
+            Use this only when the image is already online. You can leave it empty.
+          </span>
         </label>
         <div className="image-field-actions">
           <button
@@ -201,7 +204,7 @@ export function ImageField({
             type="button"
             onClick={handleAddLink}
           >
-            Add image link
+            Add URL
           </button>
           {images.length > 0 && (
             <button

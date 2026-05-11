@@ -20,10 +20,16 @@ export function HotelCard({
   guestsCount,
 }: HotelCardProps) {
   const navigate = useNavigate();
-  const recommendedRoomType = getRecommendedRoomType(hotel.roomTypes);
+  const displayedRoomType = getDisplayedRoomType(hotel.roomTypes);
+  const roomCardDescription = displayedRoomType
+    ? getRoomCardDescription(displayedRoomType)
+    : null;
+  const roomBenefit = displayedRoomType
+    ? getRoomBenefit(displayedRoomType)
+    : null;
   const nights = Math.max(1, countNights(checkInDate, checkOutDate));
-  const totalPrice = recommendedRoomType
-    ? recommendedRoomType.price * nights
+  const totalPrice = displayedRoomType
+    ? displayedRoomType.price * nights
     : 0;
   const detailsSearch = new URLSearchParams({
     checkInDate,
@@ -66,49 +72,64 @@ export function HotelCard({
         stopPropagation
       />
       <div className="hotel-card-body">
-        <div className="row between gap hotel-card-top">
-          <div>
+        <div className="hotel-card-top">
+          <div className="hotel-card-main">
             <h2>{hotel.name}</h2>
-            <p className="muted">
+            <p className="muted hotel-card-address">
               {hotel.city} - {hotel.address}
             </p>
             {hotel.description && (
               <p className="hotel-card-description">{hotel.description}</p>
             )}
           </div>
-          {recommendedRoomType && (
-            <div className="price-block">
+          <button
+            className="hotel-card-rating"
+            type="button"
+            onClick={openReviews}
+          >
+            {hotel.reviewCount > 0 ? (
+              <>
+                <span className="hotel-card-rating-copy">
+                  <strong>{getRatingLabel(hotel.averageRating)}</strong>
+                  <span>
+                    {hotel.reviewCount.toLocaleString()} review
+                    {hotel.reviewCount === 1 ? "" : "s"}
+                  </span>
+                </span>
+                <span className="hotel-card-rating-score">
+                  {hotel.averageRating.toFixed(1)}
+                </span>
+              </>
+            ) : (
+              <span className="hotel-card-rating-copy">
+                <strong>No reviews yet</strong>
+              </span>
+            )}
+          </button>
+        </div>
+
+        {displayedRoomType && (
+          <div className="hotel-card-bottom">
+            <div className="recommended-room">
+              <h3>{displayedRoomType.name}</h3>
+              {roomCardDescription && (
+                <p className="room-short-description">
+                  {roomCardDescription}
+                </p>
+              )}
+              {roomBenefit && (
+                <p className="room-benefit">
+                  <span aria-hidden="true">{"\u2713"}</span>
+                  {roomBenefit}
+                </p>
+              )}
+            </div>
+            <div className="price-block hotel-card-price">
               <span>
                 total for {nights} night{nights === 1 ? "" : "s"}
               </span>
               <strong>{formatCurrency(totalPrice)}</strong>
-              <span>{formatCurrency(recommendedRoomType.price)}/night</span>
-            </div>
-          )}
-        </div>
-
-        <div className="pill-row">
-          <button
-            className="pill review-pill-button"
-            type="button"
-            onClick={openReviews}
-          >
-            {hotel.reviewCount > 0
-              ? `${hotel.averageRating.toFixed(1)} rating - ${hotel.reviewCount} review${hotel.reviewCount === 1 ? "" : "s"}`
-              : "No reviews yet"}
-          </button>
-        </div>
-
-        {recommendedRoomType && (
-          <div className="recommended-room stack-sm">
-            <p className="eyebrow">Recommended room</p>
-            <h3>{recommendedRoomType.name}</h3>
-            <p>{getRoomTypeSummary(recommendedRoomType)}</p>
-            <div className="pill-row">
-              <span className="pill">
-                {recommendedRoomType.availableCount} available
-              </span>
-              <span className="pill">Sleeps {recommendedRoomType.capacity}</span>
+              <span>{formatCurrency(displayedRoomType.price)}/night</span>
             </div>
           </div>
         )}
@@ -117,23 +138,43 @@ export function HotelCard({
   );
 }
 
-function getRecommendedRoomType(roomTypes: AvailableRoomTypeResponse[]) {
+function getDisplayedRoomType(roomTypes: AvailableRoomTypeResponse[]) {
   return [...roomTypes].sort((left, right) => {
     if (left.price !== right.price) return left.price - right.price;
     return right.availableCount - left.availableCount;
   })[0];
 }
 
-function getRoomTypeSummary(roomType: AvailableRoomTypeResponse) {
-  const text = `${roomType.name} ${roomType.description ?? ""}`.toLowerCase();
+function getRatingLabel(rating: number) {
+  if (rating >= 9) return "Superb";
+  if (rating >= 8) return "Fabulous";
+  if (rating >= 7) return "Very good";
+  if (rating >= 6) return "Good";
+  return "Review score";
+}
 
-  if (text.includes("king")) return "1 king bed";
-  if (text.includes("queen")) return "1 queen bed";
-  if (text.includes("twin")) return "2 twin beds";
-  if (text.includes("double")) return "1 double bed";
-  if (text.includes("suite")) return "Separate living area";
+function getRoomCardDescription(roomType: AvailableRoomTypeResponse) {
+  const description = roomType.description?.trim();
+  return description ? shortenText(description, 92) : null;
+}
 
-  if (roomType.capacity === 1) return "1 single bed";
-  if (roomType.capacity === 2) return "1 double bed";
-  return `Sleeps ${roomType.capacity} guests`;
+function getRoomBenefit(roomType: AvailableRoomTypeResponse) {
+  if (roomType.mealOptions.includes("breakfast-included")) {
+    return "Breakfast included";
+  }
+
+  if (roomType.mealOptions.includes("all-inclusive")) {
+    return "All-inclusive";
+  }
+
+  if (roomType.mealOptions.includes("self-catering")) {
+    return "Self-catering";
+  }
+
+  return null;
+}
+
+function shortenText(text: string, maxLength: number) {
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 3).trim()}...`;
 }

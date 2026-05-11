@@ -1,129 +1,102 @@
 import { useState, type FormEvent } from "react";
-import { getApiErrorMessage } from "../api/client";
-import { searchHotels } from "../api/hotelsApi";
-import { HotelCard } from "../components/HotelCard";
+import { useNavigate } from "react-router-dom";
 import {
-  HOTEL_AMENITIES,
-  MEAL_OPTIONS,
-  ROOM_AMENITIES,
-  type AmenityOption,
-} from "../constants/amenities";
-import type { HotelSearchResponse } from "../types";
-import {
-  isValidStayRange,
-  toDateInputValue,
-} from "../utils/dates";
+  SearchCard,
+  type SearchCardValues,
+} from "../components/SearchCard";
+import { isValidStayRange, toDateInputValue } from "../utils/dates";
 
-type SearchFilters = {
-  minNightlyPrice: string;
-  maxNightlyPrice: string;
-  hotelAmenities: string[];
-  roomAmenities: string[];
-  mealOptions: string[];
+type Destination = {
+  city: string;
+  country: string;
+  imageUrl: string;
 };
 
+const POPULAR_DESTINATIONS: Destination[] = [
+  {
+    city: "Budapest",
+    country: "Hungary",
+    imageUrl:
+      "https://images.unsplash.com/photo-1549877452-9c387954fbc2?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    city: "Prague",
+    country: "Czechia",
+    imageUrl:
+      "https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    city: "Istanbul",
+    country: "Turkey",
+    imageUrl:
+      "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1000&q=80",
+  },
+  {
+    city: "Bucharest",
+    country: "Romania",
+    imageUrl:
+      "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=1000&q=80",
+  },
+  {
+    city: "Paris",
+    country: "France",
+    imageUrl:
+      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1000&q=80",
+  },
+];
+
 export function HomePage() {
-  const today = toDateInputValue(new Date());
-  const [city, setCity] = useState("");
-  const [checkInDate, setCheckInDate] = useState("");
-  const [checkOutDate, setCheckOutDate] = useState("");
-  const [guestsCount, setGuestsCount] = useState(2);
-  const [filters, setFilters] = useState<SearchFilters>({
-    minNightlyPrice: "",
-    maxNightlyPrice: "",
-    hotelAmenities: [],
-    roomAmenities: [],
-    mealOptions: [],
+  const navigate = useNavigate();
+  const [searchDraft, setSearchDraft] = useState<SearchCardValues>({
+    city: "",
+    checkInDate: "",
+    checkOutDate: "",
+    guestsCount: 2,
   });
-
-  const [hotels, setHotels] = useState<HotelSearchResponse[]>([]);
-  const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function runSearch() {
-    setError("");
+  function openSearch(values: SearchCardValues) {
+    const city = values.city.trim();
 
-    if (!isValidStayRange(checkInDate, checkOutDate)) {
+    if (!city) {
+      setError("City is required.");
+      return;
+    }
+
+    if (!isValidStayRange(values.checkInDate, values.checkOutDate)) {
       setError("Check-out date must be after check-in date.");
-      setHotels([]);
       return;
     }
 
-    const minNightlyPrice =
-      filters.minNightlyPrice.trim().length > 0
-        ? Number(filters.minNightlyPrice)
-        : null;
-    const maxNightlyPrice =
-      filters.maxNightlyPrice.trim().length > 0
-        ? Number(filters.maxNightlyPrice)
-        : null;
+    const params = new URLSearchParams({
+      city,
+      checkInDate: values.checkInDate,
+      checkOutDate: values.checkOutDate,
+      guestsCount: values.guestsCount.toString(),
+    });
 
-    if (
-      (minNightlyPrice !== null &&
-        (!Number.isFinite(minNightlyPrice) || minNightlyPrice <= 0)) ||
-      (maxNightlyPrice !== null &&
-        (!Number.isFinite(maxNightlyPrice) || maxNightlyPrice <= 0))
-    ) {
-      setError("Nightly budget must be a positive number.");
-      setHotels([]);
-      return;
-    }
-
-    if (
-      minNightlyPrice !== null &&
-      maxNightlyPrice !== null &&
-      minNightlyPrice > maxNightlyPrice
-    ) {
-      setError("Minimum nightly budget cannot be greater than maximum nightly budget.");
-      setHotels([]);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const result = await searchHotels({
-        city: city.trim(),
-        checkInDate,
-        checkOutDate,
-        guestsCount,
-        minNightlyPrice,
-        maxNightlyPrice,
-        hotelAmenities: filters.hotelAmenities,
-        roomAmenities: filters.roomAmenities,
-        mealOptions: filters.mealOptions,
-      });
-
-      setHotels(result);
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-      setHotels([]);
-    } finally {
-      setLoading(false);
-    }
+    navigate(`/search?${params.toString()}`);
   }
 
-  async function handleSearch(event: FormEvent) {
+  function handleSearch(event: FormEvent) {
     event.preventDefault();
-    setSearched(true);
-    await runSearch();
+    openSearch(searchDraft);
   }
 
-  async function handleFilterSubmit(event: FormEvent) {
-    event.preventDefault();
-    setSearched(true);
-    await runSearch();
-  }
+  function handleDestinationSelect(city: string) {
+    const stayDates = getDestinationStayDates(
+      searchDraft.checkInDate,
+      searchDraft.checkOutDate
+    );
+    const nextSearch = {
+      ...searchDraft,
+      city,
+      checkInDate: stayDates.checkInDate,
+      checkOutDate: stayDates.checkOutDate,
+    };
 
-  function toggleFilter(
-    key: keyof Pick<SearchFilters, "hotelAmenities" | "roomAmenities" | "mealOptions">,
-    value: string
-  ) {
-    setFilters((current) => ({
-      ...current,
-      [key]: toggleValue(current[key], value),
-    }));
+    setSearchDraft(nextSearch);
+    openSearch(nextSearch);
   }
 
   return (
@@ -139,195 +112,76 @@ export function HomePage() {
             </p>
           </div>
 
-          <form className="search-form hero-search" onSubmit={handleSearch}>
-            <label>
-              City
-              <input
-                placeholder="City"
-                value={city}
-                onChange={(event) => setCity(event.target.value)}
-                required
-              />
-            </label>
-
-            <label>
-              Check-in
-              <input
-                type="date"
-                min={today}
-                value={checkInDate}
-                onChange={(event) => setCheckInDate(event.target.value)}
-                required
-              />
-            </label>
-
-            <label>
-              Check-out
-              <input
-                type="date"
-                min={checkInDate || today}
-                value={checkOutDate}
-                onChange={(event) => setCheckOutDate(event.target.value)}
-                required
-              />
-            </label>
-
-            <label>
-              Guests
-              <input
-                type="number"
-                min={1}
-                value={guestsCount}
-                onChange={(event) => setGuestsCount(Number(event.target.value))}
-                required
-              />
-            </label>
-
-            <button className="button search-button" disabled={loading} type="submit">
-              {loading ? "Searching..." : "Search"}
-            </button>
-          </form>
+          <SearchCard
+            values={searchDraft}
+            onChange={(values) => {
+              setError("");
+              setSearchDraft(values);
+            }}
+            onSubmit={handleSearch}
+          />
         </div>
       </section>
 
       <section className="page stack-lg results-section">
         {error && <p className="alert error">{error}</p>}
 
-        <div className="page-header">
-          <div>
-            <p className="eyebrow">Available hotels</p>
-            <h2>Search results</h2>
-          </div>
-          {searched && (
-            <span className="muted small">
-              {hotels.length} hotel{hotels.length === 1 ? "" : "s"}
-            </span>
-          )}
-        </div>
-
-        {loading && <p className="muted">Searching hotels...</p>}
-
-        {!searched && (
-          <p className="muted">
-            Choose a city and dates to see available hotels.
-          </p>
-        )}
-
-        {searched && (
-          <div className="search-results-layout">
-            <form className="filter-panel panel stack" onSubmit={handleFilterSubmit}>
-              <div>
-                <p className="eyebrow">Filters</p>
-                <h3>Refine your stay</h3>
-              </div>
-              <label>
-                Nightly budget
-                <div className="budget-range">
-                  <input
-                    inputMode="decimal"
-                    min={1}
-                    placeholder="From"
-                    type="number"
-                    value={filters.minNightlyPrice}
-                    onChange={(event) =>
-                      setFilters({
-                        ...filters,
-                        minNightlyPrice: event.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    inputMode="decimal"
-                    min={1}
-                    placeholder="To"
-                    type="number"
-                    value={filters.maxNightlyPrice}
-                    onChange={(event) =>
-                      setFilters({
-                        ...filters,
-                        maxNightlyPrice: event.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </label>
-              <FilterGroup
-                options={HOTEL_AMENITIES}
-                selected={filters.hotelAmenities}
-                title="Hotel amenities"
-                onToggle={(value) => toggleFilter("hotelAmenities", value)}
-              />
-              <FilterGroup
-                options={ROOM_AMENITIES}
-                selected={filters.roomAmenities}
-                title="Room amenities"
-                onToggle={(value) => toggleFilter("roomAmenities", value)}
-              />
-              <FilterGroup
-                options={MEAL_OPTIONS}
-                selected={filters.mealOptions}
-                title="Meals"
-                onToggle={(value) => toggleFilter("mealOptions", value)}
-              />
-              <button className="button" disabled={loading} type="submit">
-                Apply filters
-              </button>
-            </form>
-
-            <div className="hotel-results">
-              {!loading && hotels.length === 0 && !error && (
-                <p className="muted">
-                  No hotels match the selected city, dates, guests, and filters.
-                </p>
-              )}
-
-              {hotels.map((hotel) => (
-                <HotelCard
-                  key={hotel.id}
-                  hotel={hotel}
-                  checkInDate={checkInDate}
-                  checkOutDate={checkOutDate}
-                  guestsCount={guestsCount}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        <PopularDestinations
+          destinations={POPULAR_DESTINATIONS}
+          onSelect={handleDestinationSelect}
+        />
       </section>
     </main>
   );
 }
 
-function FilterGroup({
-  options,
-  selected,
-  title,
-  onToggle,
+function PopularDestinations({
+  destinations,
+  onSelect,
 }: {
-  options: AmenityOption[];
-  selected: string[];
-  title: string;
-  onToggle: (value: string) => void;
+  destinations: Destination[];
+  onSelect: (city: string) => void;
 }) {
   return (
-    <fieldset className="filter-group">
-      <legend>{title}</legend>
-      {options.map((option) => (
-        <label className="filter-option" key={option.value}>
-          <input
-            checked={selected.includes(option.value)}
-            type="checkbox"
-            onChange={() => onToggle(option.value)}
-          />
-          <span>{option.label}</span>
-        </label>
-      ))}
-    </fieldset>
+    <section className="popular-destinations stack">
+      <div>
+        <p className="eyebrow">Explore</p>
+        <h2>Popular destinations</h2>
+      </div>
+      <div className="destination-grid">
+        {destinations.map((destination, index) => (
+          <button
+            aria-label={`Search hotels in ${destination.city}`}
+            className={`destination-card ${index < 2 ? "featured" : ""}`}
+            key={destination.city}
+            style={{
+              backgroundImage: `linear-gradient(180deg, rgba(8, 33, 61, 0.72), rgba(8, 33, 61, 0.08) 44%, rgba(8, 33, 61, 0.5)), url("${destination.imageUrl}")`,
+            }}
+            type="button"
+            onClick={() => onSelect(destination.city)}
+          >
+            <span className="destination-name">{destination.city}</span>
+            <span className="destination-country">{destination.country}</span>
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 
-function toggleValue(values: string[], value: string) {
-  return values.includes(value)
-    ? values.filter((current) => current !== value)
-    : [...values, value];
+function getDestinationStayDates(checkInDate: string, checkOutDate: string) {
+  if (isValidStayRange(checkInDate, checkOutDate)) {
+    return { checkInDate, checkOutDate };
+  }
+
+  return {
+    checkInDate: toDateInputValue(addDays(new Date(), 1)),
+    checkOutDate: toDateInputValue(addDays(new Date(), 2)),
+  };
+}
+
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
 }

@@ -81,7 +81,8 @@ namespace HotelBookingSystem.Api.Services
                 UserId = user.Id,
                 Name = user.Name,
                 Email = user.Email,
-                Role = user.Role
+                Role = user.Role,
+                ProfileImageUrl = user.ProfileImageUrl
             };
         }
 
@@ -119,7 +120,8 @@ namespace HotelBookingSystem.Api.Services
                 UserId = user.Id,
                 Name = user.Name,
                 Email = user.Email,
-                Role = user.Role
+                Role = user.Role,
+                ProfileImageUrl = user.ProfileImageUrl
             };
         }
 
@@ -161,7 +163,8 @@ namespace HotelBookingSystem.Api.Services
                 UserId = user.Id,
                 Name = user.Name,
                 Email = user.Email,
-                Role = user.Role
+                Role = user.Role,
+                ProfileImageUrl = user.ProfileImageUrl
             };
         }
 

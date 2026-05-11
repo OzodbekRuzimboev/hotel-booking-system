@@ -36,14 +36,14 @@ export function LoginPage() {
       <section className="auth-card panel stack">
         <div>
           <p className="eyebrow">Welcome back</p>
-          <h1>Login</h1>
+          <h1>Sign in</h1>
         </div>
 
         <form className="form" onSubmit={handleSubmit}>
           <label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
           {error && <p className="alert error">{error}</p>}
-          <button className="button" disabled={loading} type="submit">{loading ? "Logging in..." : "Login"}</button>
+          <button className="button" disabled={loading} type="submit">{loading ? "Signing in..." : "Sign in"}</button>
         </form>
 
         <p className="muted small">

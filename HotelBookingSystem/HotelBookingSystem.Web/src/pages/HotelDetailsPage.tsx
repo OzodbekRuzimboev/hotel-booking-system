@@ -24,7 +24,7 @@ import {
   MEAL_OPTIONS,
   ROOM_AMENITIES,
 } from "../constants/amenities";
-import type { HotelSearchResponse, ReviewResponse } from "../types";
+import { Role, type HotelSearchResponse, type ReviewResponse } from "../types";
 import {
   countNights,
   getDefaultStayDates,
@@ -55,6 +55,7 @@ export function HotelDetailsPage() {
     searchParams.get("checkOutDate") || defaults.checkOutDate;
   const guestsCount = Number(searchParams.get("guestsCount") || "2");
   const today = toDateInputValue(new Date());
+  const canBookRoom = !user || user.role === Role.User;
 
   const [hotel, setHotel] = useState<HotelSearchResponse | null>(null);
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
@@ -181,6 +182,8 @@ export function HotelDetailsPage() {
   }
 
   function handleBook(roomTypeId: number) {
+    if (user && user.role !== Role.User) return;
+
     const bookingUrl = getBookingUrl(roomTypeId);
 
     if (!user) {
@@ -451,13 +454,15 @@ export function HotelDetailsPage() {
                   {formatCurrency(roomType.price * Math.max(1, nights))}
                 </strong>
                 <span>{formatCurrency(roomType.price)}/night</span>
-                <button
-                  className="button"
-                  type="button"
-                  onClick={() => handleBook(roomType.roomTypeId)}
-                >
-                  Reserve
-                </button>
+                {canBookRoom && (
+                  <button
+                    className="button"
+                    type="button"
+                    onClick={() => handleBook(roomType.roomTypeId)}
+                  >
+                    Reserve
+                  </button>
+                )}
               </div>
             </article>
           ))}

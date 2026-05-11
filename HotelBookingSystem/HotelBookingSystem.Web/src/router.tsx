@@ -17,6 +17,7 @@ import { AccountPage } from "./pages/AccountPage";
 import { FavoritesPage } from "./pages/FavoritesPage";
 
 import { OwnerHotelsPage } from "./pages/owner/OwnerHotelsPage";
+import { OwnerHotelDetailsPage } from "./pages/owner/OwnerHotelDetailsPage";
 import { OwnerBookingsPage } from "./pages/owner/OwnerBookingsPage";
 
 import { AdminHotelsPage } from "./pages/admin/AdminHotelsPage";
@@ -40,7 +41,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "/account", element: <AccountPage /> },
           {
-            element: <RoleRoute allowed={[Role.User, Role.Owner]} />,
+            element: <RoleRoute allowed={[Role.User]} />,
             children: [
               { path: "/favorites", element: <FavoritesPage /> },
               { path: "/my-bookings", element: <MyBookingsPage /> },
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
         element: <RoleRoute allowed={[Role.Owner]} />,
         children: [
           { path: "/owner/hotels", element: <OwnerHotelsPage /> },
+          { path: "/owner/hotels/:hotelId", element: <OwnerHotelDetailsPage /> },
           { path: "/owner/bookings", element: <OwnerBookingsPage /> },
         ],
       },

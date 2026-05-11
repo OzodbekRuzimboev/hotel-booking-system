@@ -10,6 +10,7 @@
         public string? HotelImageUrl { get; set; }
         public string[] HotelImageUrls { get; set; } = [];
         public required string RoomTypeName { get; set; }
+        public required string RoomNumber { get; set; }
         public DateOnly CheckInDate { get; set; }
         public DateOnly CheckOutDate { get; set; }
         public int GuestsCount { get; set; }

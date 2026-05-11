@@ -1,22 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
-  assignHotelOwner,
-  createRoom,
-  createRoomType,
-  deactivateHotel,
-  deactivateRoom,
-  deactivateRoomType,
-  getAdminHotel,
-  updateHotel,
-  updateRoom,
-  updateRoomType,
-} from "../../api/adminApi";
+  createOwnerRoom,
+  createOwnerRoomType,
+  deactivateOwnerRoom,
+  deactivateOwnerRoomType,
+  getOwnerHotel,
+  updateOwnerHotel,
+  updateOwnerRoom,
+  updateOwnerRoomType,
+} from "../../api/ownerApi";
 import { getApiErrorMessage } from "../../api/client";
 import { ManagedHotelCard, type ActionFeedbackOptions } from "../../components/HotelManagement";
 import type { ManagedHotelResponse } from "../../types";
 
-export function AdminHotelDetailsPage() {
+export function OwnerHotelDetailsPage() {
   const { hotelId } = useParams();
   const numericHotelId = Number(hotelId);
   const [hotel, setHotel] = useState<ManagedHotelResponse | null>(null);
@@ -31,7 +29,7 @@ export function AdminHotelDetailsPage() {
     setLoading(true);
 
     try {
-      setHotel(await getAdminHotel(numericHotelId));
+      setHotel(await getOwnerHotel(numericHotelId));
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -53,7 +51,7 @@ export function AdminHotelDetailsPage() {
 
     try {
       await action();
-      setHotel(await getAdminHotel(numericHotelId));
+      setHotel(await getOwnerHotel(numericHotelId));
       if (feedback?.onSuccess) {
         feedback.onSuccess(message);
       } else {
@@ -79,8 +77,8 @@ export function AdminHotelDetailsPage() {
           <h1>{hotel ? hotel.name : "Hotel details"}</h1>
         </div>
         <div className="row gap wrap">
-          <Link className="button secondary" to="/admin/hotels">
-            Back to admin hotels
+          <Link className="button secondary" to="/owner/hotels">
+            Back to owner hotels
           </Link>
         </div>
       </div>
@@ -93,15 +91,13 @@ export function AdminHotelDetailsPage() {
         <ManagedHotelCard
           key={`${hotel.id}-${hotel.roomTypes.length}-${hotel.imageUrls.join("|")}`}
           hotel={hotel}
-          updateHotel={updateHotel}
-          createRoomType={createRoomType}
-          updateRoomType={updateRoomType}
-          deactivateRoomType={deactivateRoomType}
-          createRoom={createRoom}
-          updateRoom={updateRoom}
-          deactivateRoom={deactivateRoom}
-          deactivateHotel={deactivateHotel}
-          assignHotelOwner={assignHotelOwner}
+          updateHotel={updateOwnerHotel}
+          createRoomType={createOwnerRoomType}
+          updateRoomType={updateOwnerRoomType}
+          deactivateRoomType={deactivateOwnerRoomType}
+          createRoom={createOwnerRoom}
+          updateRoom={updateOwnerRoom}
+          deactivateRoom={deactivateOwnerRoom}
           runAction={runAction}
         />
       )}

@@ -13,6 +13,7 @@ type AuthUser = {
   name: string;
   email: string;
   role: Role;
+  profileImageUrl?: string | null;
 };
 
 type AuthContextValue = {
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name: auth.name,
       email: auth.email,
       role: auth.role,
+      profileImageUrl: auth.profileImageUrl ?? null,
     };
 
     localStorage.setItem("accessToken", auth.accessToken);

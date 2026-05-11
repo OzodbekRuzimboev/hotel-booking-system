@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
+  changePassword,
   getAccount,
   updateProfile,
   updateSettings,
@@ -26,6 +27,11 @@ export function AccountPage() {
     preferredCurrency: "USD",
     preferredLanguage: "en",
     emailNotificationsEnabled: true,
+  });
+  const [passwordDraft, setPasswordDraft] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -69,7 +75,10 @@ export function AccountPage() {
         profileImageUrl: profileDraft.profileImageUrl || null,
       });
       setAccount(updated);
-      updateUser({ name: updated.name });
+      updateUser({
+        name: updated.name,
+        profileImageUrl: updated.profileImageUrl ?? null,
+      });
       setSuccess("Profile updated.");
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -85,6 +94,32 @@ export function AccountPage() {
       const updated = await updateSettings(settingsDraft);
       setSettingsDraft(updated);
       setSuccess("Settings saved.");
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    }
+  }
+
+  async function handlePasswordSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (passwordDraft.newPassword !== passwordDraft.confirmPassword) {
+      setError("New password and confirmation do not match.");
+      return;
+    }
+
+    try {
+      await changePassword({
+        currentPassword: passwordDraft.currentPassword,
+        newPassword: passwordDraft.newPassword,
+      });
+      setPasswordDraft({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setSuccess("Password updated.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -185,6 +220,65 @@ export function AccountPage() {
                 </div>
                 <button className="button" type="submit">
                   Save profile
+                </button>
+              </form>
+            </section>
+
+            <section className="panel stack">
+              <div>
+                <p className="eyebrow">Security</p>
+                <h2>Password</h2>
+              </div>
+              <form className="form" onSubmit={handlePasswordSubmit}>
+                <label>
+                  Current password
+                  <input
+                    autoComplete="current-password"
+                    type="password"
+                    value={passwordDraft.currentPassword}
+                    onChange={(event) =>
+                      setPasswordDraft({
+                        ...passwordDraft,
+                        currentPassword: event.target.value,
+                      })
+                    }
+                    required
+                  />
+                </label>
+                <label>
+                  New password
+                  <input
+                    autoComplete="new-password"
+                    minLength={8}
+                    type="password"
+                    value={passwordDraft.newPassword}
+                    onChange={(event) =>
+                      setPasswordDraft({
+                        ...passwordDraft,
+                        newPassword: event.target.value,
+                      })
+                    }
+                    required
+                  />
+                </label>
+                <label>
+                  Confirm new password
+                  <input
+                    autoComplete="new-password"
+                    minLength={8}
+                    type="password"
+                    value={passwordDraft.confirmPassword}
+                    onChange={(event) =>
+                      setPasswordDraft({
+                        ...passwordDraft,
+                        confirmPassword: event.target.value,
+                      })
+                    }
+                    required
+                  />
+                </label>
+                <button className="button secondary" type="submit">
+                  Change password
                 </button>
               </form>
             </section>

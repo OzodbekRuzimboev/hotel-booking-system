@@ -42,6 +42,15 @@ namespace HotelBookingSystem.Api.Controllers.Owner
             return Ok(result);
         }
 
+        [HttpGet("hotels/{hotelId:int}")]
+        [Authorize(Policy = Permissions.HotelsUpdateOwn)]
+        public async Task<IActionResult> GetMyHotel(int hotelId)
+        {
+            var ownerId = User.GetUserId();
+            var result = await _hotelService.GetOwnerHotelByIdAsync(ownerId, hotelId);
+
+            return Ok(result);
+        }
 
         [HttpPost("hotels")]
         [Authorize(Policy = Permissions.HotelsCreateOwn)]

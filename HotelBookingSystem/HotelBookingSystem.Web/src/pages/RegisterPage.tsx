@@ -51,7 +51,7 @@ export function RegisterPage() {
         <p className="muted small">
           Already registered?{" "}
           <Link to={`/login?returnTo=${encodeURIComponent(returnTo)}`}>
-            Login
+            Sign in
           </Link>
         </p>
       </section>

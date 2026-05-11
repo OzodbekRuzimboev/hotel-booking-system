@@ -1,6 +1,7 @@
 import { api } from "./client";
 import type {
   AccountSettings,
+  ChangePasswordRequest,
   FavoriteHotelResponse,
   FavoriteStatusResponse,
   UpdateProfileRequest,
@@ -27,6 +28,12 @@ export async function updateSettings(
 ): Promise<AccountSettings> {
   const response = await api.patch<AccountSettings>("/account/settings", request);
   return response.data;
+}
+
+export async function changePassword(
+  request: ChangePasswordRequest
+): Promise<void> {
+  await api.patch("/account/password", request);
 }
 
 export async function getFavorites(): Promise<FavoriteHotelResponse[]> {
