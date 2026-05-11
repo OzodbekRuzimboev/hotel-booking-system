@@ -1,4 +1,5 @@
 using HotelBookingSystem.Api.Contracts.Account;
+using HotelBookingSystem.Api.Enums;
 using HotelBookingSystem.Api.Extensions;
 using HotelBookingSystem.Api.Services.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -39,7 +40,15 @@ namespace HotelBookingSystem.Api.Controllers
             return Ok(result);
         }
 
+        [HttpPatch("password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordRequest req)
+        {
+            await _accountService.ChangePasswordAsync(User.GetUserId(), req);
+            return NoContent();
+        }
+
         [HttpGet("favorites")]
+        [Authorize(Roles = nameof(Role.User))]
         public async Task<IActionResult> GetFavorites()
         {
             var result = await _accountService.GetFavoritesAsync(User.GetUserId());
@@ -47,6 +56,7 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpGet("favorites/{hotelId:int}")]
+        [Authorize(Roles = nameof(Role.User))]
         public async Task<IActionResult> GetFavoriteStatus(int hotelId)
         {
             var result = await _accountService.IsFavoriteAsync(User.GetUserId(), hotelId);
@@ -54,6 +64,7 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpPost("favorites/{hotelId:int}")]
+        [Authorize(Roles = nameof(Role.User))]
         public async Task<IActionResult> AddFavorite(int hotelId)
         {
             await _accountService.AddFavoriteAsync(User.GetUserId(), hotelId);
@@ -61,6 +72,7 @@ namespace HotelBookingSystem.Api.Controllers
         }
 
         [HttpDelete("favorites/{hotelId:int}")]
+        [Authorize(Roles = nameof(Role.User))]
         public async Task<IActionResult> RemoveFavorite(int hotelId)
         {
             await _accountService.RemoveFavoriteAsync(User.GetUserId(), hotelId);

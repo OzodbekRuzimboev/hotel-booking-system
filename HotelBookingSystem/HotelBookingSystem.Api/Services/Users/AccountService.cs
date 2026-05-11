@@ -2,6 +2,7 @@ using HotelBookingSystem.Api.Contracts.Account;
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Exceptions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingSystem.Api.Services.Users
@@ -9,10 +10,12 @@ namespace HotelBookingSystem.Api.Services.Users
     public class AccountService
     {
         private readonly AppDbContext _context;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
-        public AccountService(AppDbContext context)
+        public AccountService(AppDbContext context, IPasswordHasher<User> passwordHasher)
         {
             _context = context;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<UserAccountResponse> GetAccountAsync(int userId)
@@ -60,6 +63,33 @@ namespace HotelBookingSystem.Api.Services.Users
             await _context.SaveChangesAsync();
 
             return ToSettingsResponse(user.Settings);
+        }
+
+        public async Task ChangePasswordAsync(int userId, ChangePasswordRequest req)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new NotFoundException("User not found.");
+
+            var currentPasswordResult = _passwordHasher.VerifyHashedPassword(
+                user,
+                user.PasswordHash,
+                req.CurrentPassword);
+
+            if (currentPasswordResult == PasswordVerificationResult.Failed)
+                throw new ValidationException("Current password is incorrect.");
+
+            var newPasswordResult = _passwordHasher.VerifyHashedPassword(
+                user,
+                user.PasswordHash,
+                req.NewPassword);
+
+            if (newPasswordResult != PasswordVerificationResult.Failed)
+                throw new ValidationException("New password must be different from current password.");
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, req.NewPassword);
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task<List<FavoriteHotelResponse>> GetFavoritesAsync(int userId)

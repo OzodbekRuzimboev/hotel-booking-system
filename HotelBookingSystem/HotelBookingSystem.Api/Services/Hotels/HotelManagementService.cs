@@ -141,6 +141,16 @@ namespace HotelBookingSystem.Api.Services.Hotels
                 .ToListAsync();
         }
 
+        public async Task<ManagedHotelResponse> GetOwnerHotelByIdAsync(int ownerId, int hotelId)
+        {
+            return await _context.Hotels
+                .AsNoTracking()
+                .Where(h => h.Id == hotelId && h.OwnerId == ownerId)
+                .Select(ManagedHotelProjection())
+                .FirstOrDefaultAsync()
+                ?? throw new NotFoundException("Hotel not found.");
+        }
+
         public async Task<ManagedHotelResponse> UpdateOwnerHotelAsync(int ownerId, int hotelId, UpdateHotelRequest req)
         {
             var hotel = await _context.Hotels.FirstOrDefaultAsync(h => h.Id == hotelId && h.OwnerId == ownerId)

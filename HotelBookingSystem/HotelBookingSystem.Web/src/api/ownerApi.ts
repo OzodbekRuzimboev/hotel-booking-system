@@ -17,6 +17,11 @@ export async function getOwnerHotels(): Promise<ManagedHotelResponse[]> {
   return response.data;
 }
 
+export async function getOwnerHotel(id: number): Promise<ManagedHotelResponse> {
+  const response = await api.get<ManagedHotelResponse>(`/owner/hotels/${id}`);
+  return response.data;
+}
+
 export async function createOwnerHotel(
   request: CreateHotelRequest
 ): Promise<ManagedHotelResponse> {

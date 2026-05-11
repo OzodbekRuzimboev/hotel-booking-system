@@ -52,6 +52,13 @@ type RoomTypeDraft = {
   roomsText: string;
 };
 
+type RoomTypeEditDraft = Omit<RoomTypeDraft, "roomsText">;
+
+export type ActionFeedbackOptions = {
+  onError?: (message: string) => void;
+  onSuccess?: (message: string) => void;
+};
+
 type HotelDraft = {
   name: string;
   description: string;
@@ -70,7 +77,7 @@ const blankRoomType = (): RoomTypeDraft => ({
   mealOptions: [],
   capacity: 1,
   price: "100",
-  roomsText: "101",
+  roomsText: "",
 });
 
 const blankHotel = (): HotelDraft => ({
@@ -88,12 +95,15 @@ function optionalText(value: string) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function roomsFromText(value: string) {
+function roomNumbersFromText(value: string) {
   return value
     .split(/[\n,]+/)
     .map((number) => number.trim())
-    .filter(Boolean)
-    .map((number) => ({ number }));
+    .filter(Boolean);
+}
+
+function roomsFromText(value: string) {
+  return roomNumbersFromText(value).map((number) => ({ number }));
 }
 
 function primaryImageUrl(imageUrls: string[]) {
@@ -115,6 +125,31 @@ function toggleSelection(values: string[], value: string) {
   return values.includes(value)
     ? values.filter((current) => current !== value)
     : [...values, value];
+}
+
+function roomTypeEditDraftFromResponse(roomType: ManagedRoomTypeResponse): RoomTypeEditDraft {
+  return {
+    name: roomType.name,
+    description: roomType.description ?? "",
+    imageUrls: imageUrlsFromResponse(roomType.imageUrls, roomType.imageUrl),
+    amenities: roomType.amenities ?? [],
+    mealOptions: roomType.mealOptions ?? [],
+    capacity: roomType.capacity,
+    price: roomType.price.toString(),
+  };
+}
+
+function updateRoomTypeRequestFromDraft(draft: RoomTypeEditDraft): UpdateRoomTypeRequest {
+  return {
+    name: draft.name,
+    description: optionalText(draft.description),
+    imageUrl: primaryImageUrl(draft.imageUrls),
+    imageUrls: draft.imageUrls,
+    amenities: draft.amenities,
+    mealOptions: draft.mealOptions,
+    capacity: Number(draft.capacity),
+    price: parseDecimalInput(draft.price),
+  };
 }
 
 function CheckboxFieldGroup({
@@ -144,6 +179,93 @@ function CheckboxFieldGroup({
         ))}
       </div>
     </fieldset>
+  );
+}
+
+function RoomNumberDraftEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [roomNumber, setRoomNumber] = useState("");
+  const [localError, setLocalError] = useState("");
+  const roomNumbers = roomNumbersFromText(value);
+
+  function updateRoomNumbers(nextRoomNumbers: string[]) {
+    onChange(nextRoomNumbers.join("\n"));
+  }
+
+  function handleAddRoom() {
+    const nextRoomNumber = roomNumber.trim();
+    if (!nextRoomNumber) return;
+
+    if (roomNumbers.some((number) => number.toLowerCase() === nextRoomNumber.toLowerCase())) {
+      setLocalError("This room number is already in the list.");
+      return;
+    }
+
+    updateRoomNumbers([...roomNumbers, nextRoomNumber]);
+    setRoomNumber("");
+    setLocalError("");
+  }
+
+  return (
+    <section className="room-number-editor">
+      <div>
+        <strong>Rooms</strong>
+        <p className="muted small">
+          Add room numbers one at a time. At least one room is required.
+        </p>
+      </div>
+
+      <div className="room-number-add-form">
+        <label>
+          Room number
+          <input
+            value={roomNumber}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                handleAddRoom();
+              }
+            }}
+            onChange={(event) => {
+              setLocalError("");
+              setRoomNumber(event.target.value);
+            }}
+            placeholder="101"
+          />
+        </label>
+        <button className="button secondary" type="button" onClick={handleAddRoom}>
+          Add room
+        </button>
+      </div>
+
+      {localError && <p className="alert error compact-alert">{localError}</p>}
+
+      {roomNumbers.length > 0 ? (
+        <div className="room-grid">
+          {roomNumbers.map((number) => (
+            <span className="room-chip" key={number}>
+              <span>{number}</span>
+              <button
+                className="mini-button danger-text"
+                type="button"
+                onClick={() =>
+                  updateRoomNumbers(roomNumbers.filter((current) => current !== number))
+                }
+              >
+                Remove
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="muted small">No rooms added yet.</p>
+      )}
+    </section>
   );
 }
 
@@ -227,16 +349,31 @@ export function HotelManagement({
     refreshHotels();
   }, [refreshHotels]);
 
-  async function runAction(action: () => Promise<unknown>, message: string) {
+  async function runAction(
+    action: () => Promise<unknown>,
+    message: string,
+    feedback?: ActionFeedbackOptions
+  ) {
     setError("");
     setSuccess("");
 
     try {
       await action();
       await refreshHotels();
-      setSuccess(message);
+      if (feedback?.onSuccess) {
+        feedback.onSuccess(message);
+      } else {
+        setSuccess(message);
+      }
+      return true;
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      const errorMessage = getApiErrorMessage(err);
+      if (feedback?.onError) {
+        feedback.onError(errorMessage);
+      } else {
+        setError(errorMessage);
+      }
+      return false;
     }
   }
 
@@ -422,36 +559,53 @@ function RoomTypeDraftFields({
   onChange: (draft: RoomTypeDraft) => void;
 }) {
   return (
-    <div className="form-grid two">
-      <label>
-        Name
-        <input value={draft.name} onChange={(event) => onChange({ ...draft, name: event.target.value })} required minLength={2} />
-      </label>
-      <div>
+    <div className="room-type-draft-fields">
+      <div className="form-grid two">
+        <label>
+          Name
+          <input value={draft.name} onChange={(event) => onChange({ ...draft, name: event.target.value })} required minLength={2} />
+        </label>
+        <label>
+          Capacity
+          <input type="number" min={1} value={draft.capacity} onChange={(event) => onChange({ ...draft, capacity: Number(event.target.value) })} required />
+        </label>
+        <label>
+          Price per night
+          <input inputMode="decimal" value={draft.price} onChange={(event) => onChange({ ...draft, price: event.target.value })} required />
+        </label>
+        <label>
+          Listing room description
+          <textarea
+            value={draft.description}
+            onChange={(event) => onChange({ ...draft, description: event.target.value })}
+            placeholder="Example: Private suite with balcony and city view"
+            rows={2}
+          />
+          <span className="field-hint">
+            This exact text is shown on hotel listing cards. Leave it empty to show no room description.
+          </span>
+        </label>
+      </div>
+
+      <RoomNumberDraftEditor
+        value={draft.roomsText}
+        onChange={(roomsText) => onChange({ ...draft, roomsText })}
+      />
+
+      <details className="optional-image-section" open={draft.imageUrls.length > 0}>
+        <summary>Optional room photo</summary>
+        <p className="muted small">
+          Add a room image only if you want this room type to have its own photo.
+        </p>
         <ImageField
-          label="Room image"
+          label="Upload room image"
           previewAlt={draft.name || "Room image"}
           values={draft.imageUrls}
           onChange={(imageUrls) => onChange({ ...draft, imageUrls })}
         />
-      </div>
-      <label>
-        Capacity
-        <input type="number" min={1} value={draft.capacity} onChange={(event) => onChange({ ...draft, capacity: Number(event.target.value) })} required />
-      </label>
-      <label>
-        Price per night
-        <input inputMode="decimal" value={draft.price} onChange={(event) => onChange({ ...draft, price: event.target.value })} required />
-      </label>
-      <label className="full">
-        Room numbers
-        <textarea value={draft.roomsText} onChange={(event) => onChange({ ...draft, roomsText: event.target.value })} placeholder="101, 102, 103" rows={2} />
-      </label>
-      <label className="full">
-        Description
-        <textarea value={draft.description} onChange={(event) => onChange({ ...draft, description: event.target.value })} rows={2} />
-      </label>
-      <div className="full">
+      </details>
+
+      <div>
         <CheckboxFieldGroup
           options={ROOM_AMENITIES}
           selected={draft.amenities}
@@ -464,7 +618,7 @@ function RoomTypeDraftFields({
           }
         />
       </div>
-      <div className="full">
+      <div>
         <CheckboxFieldGroup
           options={MEAL_OPTIONS}
           selected={draft.mealOptions}
@@ -492,7 +646,11 @@ export type ManagedHotelCardProps = {
   deactivateRoom: (roomId: number) => Promise<void>;
   deactivateHotel?: (hotelId: number) => Promise<void>;
   assignHotelOwner?: (hotelId: number, request: AssignHotelOwnerRequest) => Promise<ManagedHotelResponse>;
-  runAction: (action: () => Promise<unknown>, message: string) => Promise<void>;
+  runAction: (
+    action: () => Promise<unknown>,
+    message: string,
+    feedback?: ActionFeedbackOptions
+  ) => Promise<boolean>;
 };
 
 export function ManagedHotelCard({
@@ -518,6 +676,17 @@ export function ManagedHotelCard({
   });
   const [ownerId, setOwnerId] = useState(hotel.ownerId?.toString() ?? "");
   const [newRoomType, setNewRoomType] = useState<RoomTypeDraft>(blankRoomType());
+  const [roomTypeDrafts, setRoomTypeDrafts] = useState<Record<number, RoomTypeEditDraft>>(
+    () =>
+      Object.fromEntries(
+        hotel.roomTypes.map((roomType) => [
+          roomType.id,
+          roomTypeEditDraftFromResponse(roomType),
+        ])
+      )
+  );
+  const [localError, setLocalError] = useState("");
+  const [localSuccess, setLocalSuccess] = useState("");
 
   useEffect(() => {
     setHotelDraft({
@@ -529,7 +698,49 @@ export function ManagedHotelCard({
       amenities: hotel.amenities ?? [],
     });
     setOwnerId(hotel.ownerId?.toString() ?? "");
+    setRoomTypeDrafts(
+      Object.fromEntries(
+        hotel.roomTypes.map((roomType) => [
+          roomType.id,
+          roomTypeEditDraftFromResponse(roomType),
+        ])
+      )
+    );
   }, [hotel]);
+
+  function clearLocalFeedback() {
+    setLocalError("");
+    setLocalSuccess("");
+  }
+
+  async function runCardAction(action: () => Promise<unknown>, message: string) {
+    clearLocalFeedback();
+    return await runAction(action, message, {
+      onError: setLocalError,
+      onSuccess: setLocalSuccess,
+    });
+  }
+
+  async function handleSaveChanges() {
+    await runCardAction(async () => {
+      await updateHotel(hotel.id, {
+        name: hotelDraft.name,
+        description: optionalText(hotelDraft.description),
+        imageUrl: primaryImageUrl(hotelDraft.imageUrls),
+        imageUrls: hotelDraft.imageUrls,
+        city: hotelDraft.city,
+        address: hotelDraft.address,
+        amenities: hotelDraft.amenities,
+      });
+
+      await Promise.all(
+        hotel.roomTypes.map((roomType) => {
+          const draft = roomTypeDrafts[roomType.id] ?? roomTypeEditDraftFromResponse(roomType);
+          return updateRoomType(roomType.id, updateRoomTypeRequestFromDraft(draft));
+        })
+      );
+    }, "Changes saved.");
+  }
 
   return (
     <article className="card stack-lg">
@@ -545,18 +756,10 @@ export function ManagedHotelCard({
         </div>
       </div>
 
-      <form className="form wide" onSubmit={(event) => {
-        event.preventDefault();
-        runAction(() => updateHotel(hotel.id, {
-          name: hotelDraft.name,
-          description: optionalText(hotelDraft.description),
-          imageUrl: primaryImageUrl(hotelDraft.imageUrls),
-          imageUrls: hotelDraft.imageUrls,
-          city: hotelDraft.city,
-          address: hotelDraft.address,
-          amenities: hotelDraft.amenities,
-        }), "Hotel updated.");
-      }}>
+      {localError && <p className="alert error">{localError}</p>}
+      {localSuccess && <p className="alert success">{localSuccess}</p>}
+
+      <div className="form wide">
         <div className="form-grid two">
           <label>Name<input value={hotelDraft.name} onChange={(event) => setHotelDraft({ ...hotelDraft, name: event.target.value })} required /></label>
           <label>City<input value={hotelDraft.city} onChange={(event) => setHotelDraft({ ...hotelDraft, city: event.target.value })} required /></label>
@@ -584,18 +787,12 @@ export function ManagedHotelCard({
             />
           </div>
         </div>
-        <div className="row gap wrap">
-          <button className="button" type="submit">Save hotel</button>
-          {deactivateHotel && hotel.isActive && (
-            <button className="button danger" type="button" onClick={() => runAction(() => deactivateHotel(hotel.id), "Hotel deactivated.")}>Deactivate hotel</button>
-          )}
-        </div>
-      </form>
+      </div>
 
       {assignHotelOwner && (
-        <form className="inline-form" onSubmit={(event) => {
+        <form className="inline-form owner-assign-form" onSubmit={(event) => {
           event.preventDefault();
-          runAction(() => assignHotelOwner(hotel.id, { ownerId: Number(ownerId) }), "Owner assigned.");
+          runCardAction(() => assignHotelOwner(hotel.id, { ownerId: Number(ownerId) }), "Owner assigned.");
         }}>
           <label>Owner ID<input type="number" min={1} value={ownerId} onChange={(event) => setOwnerId(event.target.value)} required /></label>
           <button className="button secondary" type="submit">Assign owner</button>
@@ -615,7 +812,13 @@ export function ManagedHotelCard({
             <RoomTypeManagementCard
               key={roomType.id}
               roomType={roomType}
-              updateRoomType={updateRoomType}
+              draft={roomTypeDrafts[roomType.id] ?? roomTypeEditDraftFromResponse(roomType)}
+              onDraftChange={(nextDraft) =>
+                setRoomTypeDrafts((current) => ({
+                  ...current,
+                  [roomType.id]: nextDraft,
+                }))
+              }
               deactivateRoomType={deactivateRoomType}
               createRoom={createRoom}
               updateRoom={updateRoom}
@@ -628,7 +831,7 @@ export function ManagedHotelCard({
 
       <form className="nested-form form wide" onSubmit={(event) => {
         event.preventDefault();
-        runAction(async () => {
+        runCardAction(async () => {
           await createRoomType(hotel.id, roomTypeRequestFromDraft(newRoomType));
           setNewRoomType(blankRoomType());
         }, "Room type created.");
@@ -637,13 +840,29 @@ export function ManagedHotelCard({
         <RoomTypeDraftFields draft={newRoomType} onChange={setNewRoomType} />
         <button className="button secondary" type="submit">Add room type</button>
       </form>
+
+      <div className="management-save-bar">
+        <button className="button" type="button" onClick={handleSaveChanges}>
+          Save changes
+        </button>
+        {deactivateHotel && hotel.isActive && (
+          <button
+            className="button danger"
+            type="button"
+            onClick={() => runCardAction(() => deactivateHotel(hotel.id), "Hotel deactivated.")}
+          >
+            Deactivate hotel
+          </button>
+        )}
+      </div>
     </article>
   );
 }
 
 function RoomTypeManagementCard({
   roomType,
-  updateRoomType,
+  draft,
+  onDraftChange,
   deactivateRoomType,
   createRoom,
   updateRoom,
@@ -651,35 +870,30 @@ function RoomTypeManagementCard({
   runAction,
 }: {
   roomType: ManagedRoomTypeResponse;
-  updateRoomType: (roomTypeId: number, request: UpdateRoomTypeRequest) => Promise<ManagedRoomTypeResponse>;
+  draft: RoomTypeEditDraft;
+  onDraftChange: (draft: RoomTypeEditDraft) => void;
   deactivateRoomType: (roomTypeId: number) => Promise<void>;
   createRoom: (roomTypeId: number, request: CreateRoomRequest) => Promise<ManagedRoomResponse>;
   updateRoom: (roomId: number, request: UpdateRoomRequest) => Promise<ManagedRoomResponse>;
   deactivateRoom: (roomId: number) => Promise<void>;
-  runAction: (action: () => Promise<unknown>, message: string) => Promise<void>;
+  runAction: (
+    action: () => Promise<unknown>,
+    message: string,
+    feedback?: ActionFeedbackOptions
+  ) => Promise<boolean>;
 }) {
-  const [draft, setDraft] = useState({
-    name: roomType.name,
-    description: roomType.description ?? "",
-    imageUrls: imageUrlsFromResponse(roomType.imageUrls, roomType.imageUrl),
-    amenities: roomType.amenities ?? [],
-    mealOptions: roomType.mealOptions ?? [],
-    capacity: roomType.capacity,
-    price: roomType.price.toString(),
-  });
   const [roomNumber, setRoomNumber] = useState("");
+  const [roomError, setRoomError] = useState("");
+  const [roomSuccess, setRoomSuccess] = useState("");
 
-  useEffect(() => {
-    setDraft({
-      name: roomType.name,
-      description: roomType.description ?? "",
-      imageUrls: imageUrlsFromResponse(roomType.imageUrls, roomType.imageUrl),
-      amenities: roomType.amenities ?? [],
-      mealOptions: roomType.mealOptions ?? [],
-      capacity: roomType.capacity,
-      price: roomType.price.toString(),
+  function runRoomAction(action: () => Promise<unknown>, message: string) {
+    setRoomError("");
+    setRoomSuccess("");
+    return runAction(action, message, {
+      onError: setRoomError,
+      onSuccess: setRoomSuccess,
     });
-  }, [roomType]);
+  }
 
   return (
     <article className="room-type-card stack">
@@ -694,39 +908,42 @@ function RoomTypeManagementCard({
         </div>
       </div>
 
-      <form className="form wide" onSubmit={(event) => {
-        event.preventDefault();
-        runAction(() => updateRoomType(roomType.id, {
-          name: draft.name,
-          description: optionalText(draft.description),
-          imageUrl: primaryImageUrl(draft.imageUrls),
-          imageUrls: draft.imageUrls,
-          amenities: draft.amenities,
-          mealOptions: draft.mealOptions,
-          capacity: Number(draft.capacity),
-          price: parseDecimalInput(draft.price),
-        }), "Room type updated.");
-      }}>
+      <div className="form wide">
         <div className="form-grid two">
-          <label>Name<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} required /></label>
-          <div>
+          <label>Name<input value={draft.name} onChange={(event) => onDraftChange({ ...draft, name: event.target.value })} required /></label>
+          <label>Capacity<input type="number" min={1} value={draft.capacity} onChange={(event) => onDraftChange({ ...draft, capacity: Number(event.target.value) })} required /></label>
+          <label>Price<input inputMode="decimal" value={draft.price} onChange={(event) => onDraftChange({ ...draft, price: event.target.value })} required /></label>
+          <label className="full">
+            Listing room description
+            <textarea
+              value={draft.description}
+              onChange={(event) => onDraftChange({ ...draft, description: event.target.value })}
+              placeholder="Example: Private suite with balcony and city view"
+              rows={2}
+            />
+            <span className="field-hint">
+              This exact text is shown on hotel listing cards. Leave it empty to show no room description.
+            </span>
+          </label>
+          <details className="optional-image-section full" open={draft.imageUrls.length > 0}>
+            <summary>Optional room photo</summary>
+            <p className="muted small">
+              Add a room image only if you want this room type to have its own photo.
+            </p>
             <ImageField
-              label="Room image"
+              label="Upload room image"
               previewAlt={draft.name || roomType.name}
               values={draft.imageUrls}
-              onChange={(imageUrls) => setDraft({ ...draft, imageUrls })}
+              onChange={(imageUrls) => onDraftChange({ ...draft, imageUrls })}
             />
-          </div>
-          <label>Capacity<input type="number" min={1} value={draft.capacity} onChange={(event) => setDraft({ ...draft, capacity: Number(event.target.value) })} required /></label>
-          <label>Price<input inputMode="decimal" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} required /></label>
-          <label className="full">Description<textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} rows={2} /></label>
+          </details>
           <div className="full">
             <CheckboxFieldGroup
               options={ROOM_AMENITIES}
               selected={draft.amenities}
               title="Room amenities"
               onToggle={(value) =>
-                setDraft({
+                onDraftChange({
                   ...draft,
                   amenities: toggleSelection(draft.amenities, value),
                 })
@@ -739,7 +956,7 @@ function RoomTypeManagementCard({
               selected={draft.mealOptions}
               title="Meals"
               onToggle={(value) =>
-                setDraft({
+                onDraftChange({
                   ...draft,
                   mealOptions: toggleSelection(draft.mealOptions, value),
                 })
@@ -747,33 +964,53 @@ function RoomTypeManagementCard({
             />
           </div>
         </div>
-        <div className="row gap wrap">
-          <button className="button secondary" type="submit">Save room type</button>
-          {roomType.isActive && <button className="button danger" type="button" onClick={() => runAction(() => deactivateRoomType(roomType.id), "Room type deactivated.")}>Deactivate</button>}
-        </div>
-      </form>
+        {roomType.isActive && (
+          <div className="row gap wrap">
+            <button
+              className="button danger"
+              type="button"
+              onClick={() => runRoomAction(() => deactivateRoomType(roomType.id), "Room type deactivated.")}
+            >
+              Deactivate room type
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="rooms-section stack-sm">
-        <div className="row between wrap gap">
+        <div className="rooms-title">
           <strong>Rooms</strong>
-          <form className="inline-form compact" onSubmit={(event) => {
-            event.preventDefault();
-            runAction(async () => {
-              await createRoom(roomType.id, { number: roomNumber.trim() });
-              setRoomNumber("");
-            }, "Room added.");
-          }}>
-            <input value={roomNumber} onChange={(event) => setRoomNumber(event.target.value)} placeholder="Room number" required />
-            <button className="button secondary" type="submit">Add room</button>
-          </form>
+          <p className="muted small">Add and manage room numbers for this room type.</p>
         </div>
+        <form className="room-add-form" onSubmit={(event) => {
+          event.preventDefault();
+          const nextRoomNumber = roomNumber.trim();
+          if (!nextRoomNumber) {
+            setRoomError("Enter a room number.");
+            setRoomSuccess("");
+            return;
+          }
+          runRoomAction(async () => {
+            await createRoom(roomType.id, { number: nextRoomNumber });
+            setRoomNumber("");
+          }, "Room added.");
+        }}>
+          <label>
+            Room number
+            <input value={roomNumber} onChange={(event) => setRoomNumber(event.target.value)} placeholder="101" required />
+          </label>
+          <button className="button secondary" type="submit">Add room</button>
+        </form>
+
+        {roomError && <p className="alert error compact-alert">{roomError}</p>}
+        {roomSuccess && <p className="alert success compact-alert">{roomSuccess}</p>}
 
         {roomType.rooms.length === 0 ? (
           <p className="muted small">No rooms yet.</p>
         ) : (
           <div className="room-grid">
             {roomType.rooms.map((room) => (
-              <RoomChip key={room.id} room={room} updateRoom={updateRoom} deactivateRoom={deactivateRoom} runAction={runAction} />
+              <RoomChip key={room.id} room={room} updateRoom={updateRoom} deactivateRoom={deactivateRoom} runAction={runRoomAction} />
             ))}
           </div>
         )}
@@ -791,7 +1028,7 @@ function RoomChip({
   room: ManagedRoomResponse;
   updateRoom: (roomId: number, request: UpdateRoomRequest) => Promise<ManagedRoomResponse>;
   deactivateRoom: (roomId: number) => Promise<void>;
-  runAction: (action: () => Promise<unknown>, message: string) => Promise<void>;
+  runAction: (action: () => Promise<unknown>, message: string) => Promise<boolean>;
 }) {
   const [editing, setEditing] = useState(false);
   const [number, setNumber] = useState(room.number);
@@ -800,7 +1037,9 @@ function RoomChip({
     return (
       <form className="room-chip editing" onSubmit={(event) => {
         event.preventDefault();
-        runAction(() => updateRoom(room.id, { number: number.trim() }), "Room updated.").then(() => setEditing(false));
+        runAction(() => updateRoom(room.id, { number: number.trim() }), "Room updated.").then((saved) => {
+          if (saved) setEditing(false);
+        });
       }}>
         <input value={number} onChange={(event) => setNumber(event.target.value)} required />
         <button className="mini-button" type="submit">Save</button>

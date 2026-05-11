@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { cancelMyBooking, getMyBookings } from "../api/bookingsApi";
 import { getApiErrorMessage } from "../api/client";
 import { BookingStatusBadge } from "../components/BookingStatus";
@@ -9,8 +9,8 @@ import { BookingDisplayStatus, type BookingResponse } from "../types";
 import { formatCurrency, formatDateRange } from "../utils/format";
 
 export function MyBookingsPage() {
-  const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -46,8 +46,10 @@ export function MyBookingsPage() {
     return `/hotels/${booking.hotelId}?guestsCount=${booking.guestsCount}`;
   }
 
-  function openHotel(booking: BookingResponse) {
-    navigate(getHotelUrl(booking));
+  function toggleBookingDetails(booking: BookingResponse) {
+    setSelectedBookingId((current) =>
+      current === booking.id ? null : booking.id
+    );
   }
 
   return (
@@ -70,13 +72,14 @@ export function MyBookingsPage() {
           <article
             className="card booking-card with-image clickable-card"
             key={booking.id}
-            role="link"
+            aria-expanded={selectedBookingId === booking.id}
+            role="button"
             tabIndex={0}
-            onClick={() => openHotel(booking)}
+            onClick={() => toggleBookingDetails(booking)}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                openHotel(booking);
+                toggleBookingDetails(booking);
               }
             }}
           >
@@ -89,7 +92,15 @@ export function MyBookingsPage() {
               )[0]}
             />
             <div>
-              <h2>{booking.hotelName}</h2>
+              <h2>
+                <Link
+                  className="booking-hotel-link"
+                  to={getHotelUrl(booking)}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {booking.hotelName}
+                </Link>
+              </h2>
               <p className="muted">{booking.roomTypeName}</p>
               <p>{formatDateRange(booking.checkInDate, booking.checkOutDate)}</p>
               <p>Guests: {booking.guestsCount}</p>
@@ -111,9 +122,63 @@ export function MyBookingsPage() {
                 </button>
               )}
             </div>
+            {selectedBookingId === booking.id && (
+              <div
+                className="booking-details"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <BookingDetail label="Booking ID" value={`#${booking.id}`} />
+                <BookingDetail label="Hotel" value={booking.hotelName} />
+                <BookingDetail label="Room type" value={booking.roomTypeName} />
+                <BookingDetail label="Room number" value={booking.roomNumber} />
+                <BookingDetail
+                  label="Stay dates"
+                  value={formatDateRange(
+                    booking.checkInDate,
+                    booking.checkOutDate
+                  )}
+                />
+                <BookingDetail
+                  label="Guests"
+                  value={booking.guestsCount.toString()}
+                />
+                <BookingDetail
+                  label="Total price"
+                  value={formatCurrency(booking.totalPrice)}
+                />
+                <BookingDetail label="Guest email" value={booking.guestEmail} />
+                <BookingDetail
+                  label="Guest country"
+                  value={booking.guestCountry ?? "Not provided"}
+                />
+                <BookingDetail
+                  label="Guest phone"
+                  value={booking.guestPhoneNumber ?? "Not provided"}
+                />
+                <BookingDetail
+                  label="Booked"
+                  value={new Date(booking.createdAt).toLocaleString()}
+                />
+                {booking.cancelledAt && (
+                  <BookingDetail
+                    label="Cancelled"
+                    value={new Date(booking.cancelledAt).toLocaleString()}
+                  />
+                )}
+              </div>
+            )}
           </article>
         ))}
       </div>
     </main>
+  );
+}
+
+function BookingDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="booking-detail">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }

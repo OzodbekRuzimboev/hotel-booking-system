@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Role } from "../types";
 import { useAuth } from "../auth/AuthContext";
+import { ImageWithFallback } from "./ImageWithFallback";
 
 export function Navbar() {
   const { user, logoutUser } = useAuth();
@@ -18,20 +19,13 @@ export function Navbar() {
         StayFinder
       </Link>
 
-      <nav className="nav-links" aria-label="Main navigation">
-        {user?.role === Role.Owner && (
-          <NavLink to="/owner/hotels">Owner hotels</NavLink>
-        )}
-        {user?.role === Role.Owner && (
-          <NavLink to="/owner/bookings">Owner bookings</NavLink>
-        )}
-      </nav>
+      <nav className="nav-links" aria-label="Main navigation" />
 
       <div className="auth-actions">
         {user ? (
           <>
             {user.role === Role.Owner && (
-              <Link className="button secondary" to="/owner/hotels">
+              <Link className="button secondary property-link" to="/owner/hotels">
                 List your property
               </Link>
             )}
@@ -43,6 +37,11 @@ export function Navbar() {
                 type="button"
               >
                 <span className="user-name">{user.name}</span>
+                <ImageWithFallback
+                  alt={user.name}
+                  className="avatar nav-avatar"
+                  src={user.profileImageUrl}
+                />
               </button>
               {menuOpen && (
                 <div className="user-menu">
@@ -60,15 +59,29 @@ export function Navbar() {
                     </>
                   ) : (
                     <>
+                      {user.role === Role.Owner && (
+                        <>
+                          <Link to="/owner/hotels" onClick={() => setMenuOpen(false)}>
+                            Owner hotels
+                          </Link>
+                          <Link to="/owner/bookings" onClick={() => setMenuOpen(false)}>
+                            Owner bookings
+                          </Link>
+                        </>
+                      )}
                       <Link to="/account" onClick={() => setMenuOpen(false)}>
                         Personal account
                       </Link>
-                      <Link to="/favorites" onClick={() => setMenuOpen(false)}>
-                        Favorites
-                      </Link>
-                      <Link to="/my-bookings" onClick={() => setMenuOpen(false)}>
-                        My reservations
-                      </Link>
+                      {user.role === Role.User && (
+                        <>
+                          <Link to="/favorites" onClick={() => setMenuOpen(false)}>
+                            Favorites
+                          </Link>
+                          <Link to="/my-bookings" onClick={() => setMenuOpen(false)}>
+                            My reservations
+                          </Link>
+                        </>
+                      )}
                     </>
                   )}
                   <button type="button" onClick={handleLogout}>
@@ -80,14 +93,14 @@ export function Navbar() {
           </>
         ) : (
           <>
-            <Link className="button secondary" to="/list-your-property">
+            <Link className="button secondary property-link" to="/list-your-property">
               List your property
-            </Link>
-            <Link className="button secondary" to="/login">
-              Login
             </Link>
             <Link className="button" to="/register">
               Register
+            </Link>
+            <Link className="button secondary" to="/login">
+              Sign in
             </Link>
           </>
         )}

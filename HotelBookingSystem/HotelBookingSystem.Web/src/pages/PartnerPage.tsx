@@ -8,6 +8,7 @@ import { Role } from "../types";
 export function PartnerPage() {
   const navigate = useNavigate();
   const { loginUser } = useAuth();
+  const [mode, setMode] = useState<"register" | "login">("register");
 
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
@@ -65,69 +66,121 @@ export function PartnerPage() {
 
   return (
     <main className="page partner-page stack-lg">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Partner access</p>
-          <h1>List your property</h1>
-          <p className="lead">
-            Create a partner account, then add your hotel, room types, rooms, and image URLs from the owner dashboard.
-          </p>
-        </div>
-      </div>
+      <h1 className="partner-title">List your hotel on StayFinder</h1>
 
-      <div className="partner-grid">
-        <section className="panel stack">
-          <div>
-            <p className="eyebrow">New partner</p>
-            <h2>Register owner account</h2>
-          </div>
+      <section className="panel stack partner-access-card">
+        {mode === "register" ? (
+          <>
+            <div>
+              <p className="eyebrow">New partner</p>
+              <h2>Register owner account</h2>
+            </div>
 
-          <form className="form" onSubmit={handlePartnerRegister}>
-            <label>
-              Name
-              <input value={registerName} onChange={(event) => setRegisterName(event.target.value)} minLength={2} required />
-            </label>
-            <label>
-              Email
-              <input type="email" value={registerEmail} onChange={(event) => setRegisterEmail(event.target.value)} required />
-            </label>
-            <label>
-              Password
-              <input type="password" value={registerPassword} onChange={(event) => setRegisterPassword(event.target.value)} minLength={8} required />
-            </label>
-            {registerError && <p className="alert error">{registerError}</p>}
-            <button className="button" disabled={registerLoading} type="submit">
-              {registerLoading ? "Creating account..." : "Register as partner"}
-            </button>
-          </form>
-        </section>
+            <form className="form" onSubmit={handlePartnerRegister}>
+              <label>
+                Name
+                <input
+                  value={registerName}
+                  onChange={(event) => setRegisterName(event.target.value)}
+                  minLength={2}
+                  required
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={registerEmail}
+                  onChange={(event) => setRegisterEmail(event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  type="password"
+                  value={registerPassword}
+                  onChange={(event) => setRegisterPassword(event.target.value)}
+                  minLength={8}
+                  required
+                />
+              </label>
+              {registerError && <p className="alert error">{registerError}</p>}
+              <button className="button" disabled={registerLoading} type="submit">
+                {registerLoading ? "Creating account..." : "Register as partner"}
+              </button>
+            </form>
 
-        <section className="panel stack">
-          <div>
-            <p className="eyebrow">Existing partner</p>
-            <h2>Login to owner dashboard</h2>
-          </div>
+            <p className="partner-switch">
+              Already a partner?{" "}
+              <button
+                className="partner-switch-button"
+                type="button"
+                onClick={() => {
+                  setRegisterError("");
+                  setMode("login");
+                }}
+              >
+                Sign in
+              </button>
+            </p>
+          </>
+        ) : (
+          <>
+            <div>
+              <p className="eyebrow">Existing partner</p>
+              <h2>Sign in to owner dashboard</h2>
+            </div>
 
-          <form className="form" onSubmit={handlePartnerLogin}>
-            <label>
-              Email
-              <input type="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} required />
-            </label>
-            <label>
-              Password
-              <input type="password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} required />
-            </label>
-            {loginError && <p className="alert error">{loginError}</p>}
-            <button className="button secondary" disabled={loginLoading} type="submit">
-              {loginLoading ? "Logging in..." : "Login as partner"}
-            </button>
-          </form>
+            <form className="form" onSubmit={handlePartnerLogin}>
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={loginEmail}
+                  onChange={(event) => setLoginEmail(event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(event) => setLoginPassword(event.target.value)}
+                  required
+                />
+              </label>
+              {loginError && <p className="alert error">{loginError}</p>}
+              <button
+                className="button secondary"
+                disabled={loginLoading}
+                type="submit"
+              >
+                {loginLoading ? "Signing in..." : "Sign in as partner"}
+              </button>
+            </form>
 
-          <p className="muted small">
-            Customer account? <Link to="/login">Use normal login</Link>.
-          </p>
-        </section>
-      </div>
+            <p className="partner-switch">
+              New partner?{" "}
+              <button
+                className="partner-switch-button"
+                type="button"
+                onClick={() => {
+                  setLoginError("");
+                  setMode("register");
+                }}
+              >
+                Register
+              </button>
+            </p>
+
+            <p className="muted small">
+              Customer account? <Link to="/login">Use normal sign in</Link>.
+            </p>
+          </>
+        )}
+      </section>
     </main>
   );
 }

@@ -10,5 +10,6 @@ namespace HotelBookingSystem.Api.Contracts.Auth
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public Role Role { get; set; }
+        public string? ProfileImageUrl { get; set; }
     }
 }

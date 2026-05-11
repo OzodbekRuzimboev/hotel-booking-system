@@ -9,7 +9,11 @@ import {
   MEAL_OPTIONS,
   ROOM_AMENITIES,
 } from "../constants/amenities";
-import type { AvailableRoomTypeResponse, HotelSearchResponse } from "../types";
+import {
+  Role,
+  type AvailableRoomTypeResponse,
+  type HotelSearchResponse,
+} from "../types";
 import { countNights, getDefaultStayDates } from "../utils/dates";
 import { formatCurrency, formatDateRange } from "../utils/format";
 
@@ -26,6 +30,7 @@ export function RoomTypeDetailsPage() {
   const checkOutDate =
     searchParams.get("checkOutDate") || defaults.checkOutDate;
   const guestsCount = Number(searchParams.get("guestsCount") || "1");
+  const canBookRoom = !user || user.role === Role.User;
 
   const [hotel, setHotel] = useState<HotelSearchResponse | null>(null);
   const [error, setError] = useState("");
@@ -69,6 +74,7 @@ export function RoomTypeDetailsPage() {
 
   function handleBook() {
     if (!roomType) return;
+    if (user && user.role !== Role.User) return;
 
     const bookingSearch = new URLSearchParams({
       hotelId: numericHotelId.toString(),
@@ -156,9 +162,11 @@ export function RoomTypeDetailsPage() {
             <p>Sleeps {roomType.capacity}</p>
             <p>{roomType.availableCount} room{roomType.availableCount === 1 ? "" : "s"} available</p>
           </div>
-          <button className="button" type="button" onClick={handleBook}>
-            Reserve
-          </button>
+          {canBookRoom && (
+            <button className="button" type="button" onClick={handleBook}>
+              Reserve
+            </button>
+          )}
         </aside>
       </section>
 
