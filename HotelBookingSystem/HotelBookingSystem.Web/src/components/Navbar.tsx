@@ -53,6 +53,12 @@ export function Navbar() {
                       <Link to="/admin/bookings" onClick={() => setMenuOpen(false)}>
                         Admin bookings
                       </Link>
+                      <Link
+                        to="/admin/popular-destinations"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Popular destinations
+                      </Link>
                       <Link to="/admin/users" onClick={() => setMenuOpen(false)}>
                         Users
                       </Link>

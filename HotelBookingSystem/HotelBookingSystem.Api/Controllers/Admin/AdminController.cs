@@ -5,6 +5,7 @@ using HotelBookingSystem.Api.Contracts.Management;
 using HotelBookingSystem.Api.Extensions;
 using HotelBookingSystem.Api.Services.Bookings;
 using HotelBookingSystem.Api.Services.Hotels;
+using HotelBookingSystem.Api.Services.PopularDestinations;
 using HotelBookingSystem.Api.Services.Rooms;
 using HotelBookingSystem.Api.Services.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -21,19 +22,22 @@ namespace HotelBookingSystem.Api.Controllers.Admin
         private readonly RoomManagementService _roomService;
         private readonly BookingService _bookingService;
         private readonly UserManagementService _userService;
+        private readonly PopularDestinationService _popularDestinationService;
 
         public AdminController(
             HotelManagementService hotelService,
             RoomTypeManagementService roomTypeService,
             RoomManagementService roomService,
             BookingService bookingService,
-            UserManagementService userService)
+            UserManagementService userService,
+            PopularDestinationService popularDestinationService)
         {
             _hotelService = hotelService;
             _roomTypeService = roomTypeService;
             _roomService = roomService;
             _bookingService = bookingService;
             _userService = userService;
+            _popularDestinationService = popularDestinationService;
         }
 
         [HttpPost("hotels")]
@@ -180,6 +184,42 @@ namespace HotelBookingSystem.Api.Controllers.Admin
             var result = await _userService.UpdateUserRoleAsync(currentAdminId, userId, req);
 
             return Ok(result);
+        }
+
+        [HttpGet("popular-destinations")]
+        [Authorize(Policy = Permissions.HotelsUpdateAny)]
+        public async Task<IActionResult> GetPopularDestinations()
+        {
+            var result = await _popularDestinationService.GetManagedDestinationsAsync();
+
+            return Ok(result);
+        }
+
+        [HttpPost("popular-destinations")]
+        [Authorize(Policy = Permissions.HotelsUpdateAny)]
+        public async Task<IActionResult> CreatePopularDestination(PopularDestinationRequest req)
+        {
+            var result = await _popularDestinationService.CreateDestinationAsync(req);
+
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+
+        [HttpPatch("popular-destinations/{destinationId:int}")]
+        [Authorize(Policy = Permissions.HotelsUpdateAny)]
+        public async Task<IActionResult> UpdatePopularDestination(int destinationId, PopularDestinationRequest req)
+        {
+            var result = await _popularDestinationService.UpdateDestinationAsync(destinationId, req);
+
+            return Ok(result);
+        }
+
+        [HttpDelete("popular-destinations/{destinationId:int}")]
+        [Authorize(Policy = Permissions.HotelsUpdateAny)]
+        public async Task<IActionResult> DeletePopularDestination(int destinationId)
+        {
+            await _popularDestinationService.DeleteDestinationAsync(destinationId);
+
+            return NoContent();
         }
     }
 }

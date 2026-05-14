@@ -1,18 +1,21 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { getPopularDestinations } from "../api/popularDestinationsApi";
 import {
   SearchCard,
   type SearchCardValues,
 } from "../components/SearchCard";
+import type { PopularDestinationResponse } from "../types";
 import { isValidStayRange, toDateInputValue } from "../utils/dates";
 
-type Destination = {
-  city: string;
-  country: string;
-  imageUrl: string;
+type Destination = Pick<
+  PopularDestinationResponse,
+  "city" | "country" | "imageUrl"
+> & {
+  id?: number;
 };
 
-const POPULAR_DESTINATIONS: Destination[] = [
+const DEFAULT_POPULAR_DESTINATIONS: Destination[] = [
   {
     city: "Budapest",
     country: "Hungary",
@@ -47,6 +50,9 @@ const POPULAR_DESTINATIONS: Destination[] = [
 
 export function HomePage() {
   const navigate = useNavigate();
+  const [popularDestinations, setPopularDestinations] = useState<Destination[]>(
+    DEFAULT_POPULAR_DESTINATIONS
+  );
   const [searchDraft, setSearchDraft] = useState<SearchCardValues>({
     city: "",
     checkInDate: "",
@@ -54,6 +60,30 @@ export function HomePage() {
     guestsCount: 2,
   });
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadPopularDestinations() {
+      try {
+        const destinations = await getPopularDestinations();
+
+        if (!ignore) {
+          setPopularDestinations(destinations);
+        }
+      } catch {
+        if (!ignore) {
+          setPopularDestinations(DEFAULT_POPULAR_DESTINATIONS);
+        }
+      }
+    }
+
+    void loadPopularDestinations();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   function openSearch(values: SearchCardValues) {
     const city = values.city.trim();
@@ -127,7 +157,7 @@ export function HomePage() {
         {error && <p className="alert error">{error}</p>}
 
         <PopularDestinations
-          destinations={POPULAR_DESTINATIONS}
+          destinations={popularDestinations}
           onSelect={handleDestinationSelect}
         />
       </section>
@@ -153,7 +183,7 @@ function PopularDestinations({
           <button
             aria-label={`Search hotels in ${destination.city}`}
             className={`destination-card ${index < 2 ? "featured" : ""}`}
-            key={destination.city}
+            key={destination.id ?? `${destination.city}-${destination.country}`}
             style={{
               backgroundImage: `linear-gradient(180deg, rgba(8, 33, 61, 0.72), rgba(8, 33, 61, 0.08) 44%, rgba(8, 33, 61, 0.5)), url("${destination.imageUrl}")`,
             }}

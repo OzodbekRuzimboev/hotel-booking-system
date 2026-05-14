@@ -20,6 +20,7 @@ namespace HotelBookingSystem.Api.Data
         public DbSet<FavoriteHotel> FavoriteHotels => Set<FavoriteHotel>();
         public DbSet<Review> Reviews => Set<Review>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public DbSet<PopularDestination> PopularDestinations => Set<PopularDestination>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -86,6 +87,16 @@ namespace HotelBookingSystem.Api.Data
             modelBuilder.Entity<Review>().HasOne(r => r.Hotel).WithMany(h => h.Reviews).HasForeignKey(r => r.HotelId).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Review>().HasOne(r => r.RoomType).WithMany(rt => rt.Reviews).HasForeignKey(r => r.RoomTypeId).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PopularDestination>().Property(d => d.City).HasMaxLength(100);
+
+            modelBuilder.Entity<PopularDestination>().Property(d => d.Country).HasMaxLength(100);
+
+            modelBuilder.Entity<PopularDestination>().Property(d => d.ImageUrl).HasMaxLength(2000);
+
+            modelBuilder.Entity<PopularDestination>().Property(d => d.IsActive).HasDefaultValue(true);
+
+            modelBuilder.Entity<PopularDestination>().HasIndex(d => d.SortOrder);
         }
     }
 }

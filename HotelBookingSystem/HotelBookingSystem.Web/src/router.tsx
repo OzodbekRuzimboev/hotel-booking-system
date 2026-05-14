@@ -24,6 +24,7 @@ import { AdminHotelsPage } from "./pages/admin/AdminHotelsPage";
 import { AdminHotelDetailsPage } from "./pages/admin/AdminHotelDetailsPage";
 import { AdminBookingsPage } from "./pages/admin/AdminBookingsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import { AdminPopularDestinationsPage } from "./pages/admin/AdminPopularDestinationsPage";
 
 export const router = createBrowserRouter([
   {
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
           { path: "/admin/hotels/:hotelId", element: <AdminHotelDetailsPage /> },
           { path: "/admin/bookings", element: <AdminBookingsPage /> },
           { path: "/admin/users", element: <AdminUsersPage /> },
+          { path: "/admin/popular-destinations", element: <AdminPopularDestinationsPage /> },
         ],
       },
     ],

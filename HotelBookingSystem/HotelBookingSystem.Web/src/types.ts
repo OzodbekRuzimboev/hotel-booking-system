@@ -49,6 +49,23 @@ export type HotelSearchRequest = {
   mealOptions?: string[];
 };
 
+export type PopularDestinationResponse = {
+  id: number;
+  city: string;
+  country: string;
+  imageUrl: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type PopularDestinationRequest = {
+  city: string;
+  country: string;
+  imageUrl: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
 export type AvailableRoomTypeResponse = {
   roomTypeId: number;
   name: string;

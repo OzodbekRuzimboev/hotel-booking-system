@@ -8,6 +8,7 @@ using HotelBookingSystem.Api.Services.Admin;
 using HotelBookingSystem.Api.Services.Bookings;
 using HotelBookingSystem.Api.Services.Email;
 using HotelBookingSystem.Api.Services.Hotels;
+using HotelBookingSystem.Api.Services.PopularDestinations;
 using HotelBookingSystem.Api.Services.Rooms;
 using HotelBookingSystem.Api.Services.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -71,6 +72,7 @@ foreach (var permission in RolePermissions.Map.Values.SelectMany(x => x).Distinc
 builder.Services.AddScoped<HotelSearchService>();
 builder.Services.AddScoped<HotelManagementService>();
 builder.Services.AddScoped<ReviewService>();
+builder.Services.AddScoped<PopularDestinationService>();
 builder.Services.AddScoped<RoomTypeManagementService>();
 builder.Services.AddScoped<RoomManagementService>();
 builder.Services.AddScoped<BookingService>();

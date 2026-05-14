@@ -9,6 +9,8 @@ import type {
   ManagedHotelResponse,
   ManagedRoomResponse,
   ManagedRoomTypeResponse,
+  PopularDestinationRequest,
+  PopularDestinationResponse,
   RoomTypeRequest,
   UpdateHotelRequest,
   UpdateRoomRequest,
@@ -153,4 +155,36 @@ export async function createUser(
 ): Promise<UserRoleResponse> {
   const response = await api.post<UserRoleResponse>("/admin/users", request);
   return response.data;
+}
+
+export async function getAdminPopularDestinations(): Promise<PopularDestinationResponse[]> {
+  const response = await api.get<PopularDestinationResponse[]>(
+    "/admin/popular-destinations"
+  );
+  return response.data;
+}
+
+export async function createPopularDestination(
+  request: PopularDestinationRequest
+): Promise<PopularDestinationResponse> {
+  const response = await api.post<PopularDestinationResponse>(
+    "/admin/popular-destinations",
+    request
+  );
+  return response.data;
+}
+
+export async function updatePopularDestination(
+  destinationId: number,
+  request: PopularDestinationRequest
+): Promise<PopularDestinationResponse> {
+  const response = await api.patch<PopularDestinationResponse>(
+    `/admin/popular-destinations/${destinationId}`,
+    request
+  );
+  return response.data;
+}
+
+export async function deletePopularDestination(destinationId: number): Promise<void> {
+  await api.delete(`/admin/popular-destinations/${destinationId}`);
 }
