@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -41,9 +42,11 @@ export function SearchPage() {
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const searchRequestId = useRef(0);
 
   const runSearch = useCallback(
     async (values: SearchCardValues, nextFilters: SearchFilters) => {
+      const requestId = ++searchRequestId.current;
       setError("");
 
       const city = values.city.trim();
@@ -51,6 +54,7 @@ export function SearchPage() {
       if (!city) {
         setSearched(false);
         setHotels([]);
+        setLoading(false);
         return;
       }
 
@@ -59,6 +63,7 @@ export function SearchPage() {
       if (!isValidStayRange(values.checkInDate, values.checkOutDate)) {
         setError("Check-out date must be after check-in date.");
         setHotels([]);
+        setLoading(false);
         return;
       }
 
@@ -79,6 +84,7 @@ export function SearchPage() {
       ) {
         setError("Nightly budget must be a positive number.");
         setHotels([]);
+        setLoading(false);
         return;
       }
 
@@ -89,6 +95,7 @@ export function SearchPage() {
       ) {
         setError("Minimum nightly budget cannot be greater than maximum nightly budget.");
         setHotels([]);
+        setLoading(false);
         return;
       }
 
@@ -107,12 +114,18 @@ export function SearchPage() {
           mealOptions: nextFilters.mealOptions,
         });
 
+        if (requestId !== searchRequestId.current) return;
+
         setHotels(result);
       } catch (err) {
+        if (requestId !== searchRequestId.current) return;
+
         setError(getApiErrorMessage(err));
         setHotels([]);
       } finally {
-        setLoading(false);
+        if (requestId === searchRequestId.current) {
+          setLoading(false);
+        }
       }
     },
     []

@@ -2,6 +2,7 @@ using HotelBookingSystem.Api.Contracts.Account;
 using HotelBookingSystem.Api.Data;
 using HotelBookingSystem.Api.Entities;
 using HotelBookingSystem.Api.Exceptions;
+using HotelBookingSystem.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -89,6 +90,16 @@ namespace HotelBookingSystem.Api.Services.Users
 
             user.PasswordHash = _passwordHasher.HashPassword(user, req.NewPassword);
 
+            var now = DateTime.UtcNow;
+            var activeRefreshTokens = await _context.RefreshTokens
+                .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null && rt.ExpiresAt > now)
+                .ToListAsync();
+
+            foreach (var token in activeRefreshTokens)
+            {
+                token.RevokedAt = now;
+            }
+
             await _context.SaveChangesAsync();
         }
 
@@ -135,7 +146,14 @@ namespace HotelBookingSystem.Api.Services.Users
                 CreatedAt = DateTime.UtcNow
             });
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (DbExceptionHelper.IsFavoriteHotelUniqueViolation(ex))
+            {
+                // Another request added the same favorite first. Treat the operation as idempotent.
+            }
         }
 
         public async Task RemoveFavoriteAsync(int userId, int hotelId)

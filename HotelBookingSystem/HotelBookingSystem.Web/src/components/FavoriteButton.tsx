@@ -32,6 +32,8 @@ export function FavoriteButton({
   }, [hotelId, initialIsFavorite]);
 
   useEffect(() => {
+    let ignore = false;
+
     async function loadFavoriteStatus() {
       if (!user || user.role !== Role.User || !hotelId) {
         setIsFavorite(false);
@@ -40,13 +42,21 @@ export function FavoriteButton({
 
       try {
         const result = await getFavoriteStatus(hotelId);
-        setIsFavorite(result.isFavorite);
+        if (!ignore) {
+          setIsFavorite(result.isFavorite);
+        }
       } catch {
-        setIsFavorite(false);
+        if (!ignore) {
+          setIsFavorite(false);
+        }
       }
     }
 
     loadFavoriteStatus();
+
+    return () => {
+      ignore = true;
+    };
   }, [hotelId, user]);
 
   async function handleClick(event: MouseEvent<HTMLButtonElement>) {

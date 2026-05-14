@@ -36,6 +36,8 @@ namespace HotelBookingSystem.Api.Services.Hotels
             if (req.RoomTypes.Count == 0)
                 throw new ValidationException("Add at least one room type before creating a hotel.");
 
+            ValidateRoomNumbersUniqueInHotel(req.RoomTypes);
+
             if (ownerId.HasValue)
             {
                 var ownerExists = await _context.Users.AnyAsync(u => u.Id == ownerId.Value && u.Role == Role.Owner);
@@ -80,6 +82,11 @@ namespace HotelBookingSystem.Api.Services.Hotels
                     };
                 }).ToList()
             };
+
+            foreach (var room in hotel.RoomTypes.SelectMany(rt => rt.Rooms))
+            {
+                room.Hotel = hotel;
+            }
 
             _context.Hotels.Add(hotel);
             await SaveChangesHandlingRoomNumberConflictAsync();
@@ -243,6 +250,20 @@ namespace HotelBookingSystem.Api.Services.Hotels
 
             if (roomsCount <= 0)
                 throw new ValidationException("Add at least one room number for each room type.");
+        }
+
+        private static void ValidateRoomNumbersUniqueInHotel(IEnumerable<RoomTypeRequest> roomTypes)
+        {
+            var duplicateRoomNumber = roomTypes
+                .SelectMany(roomType => roomType.Rooms)
+                .Select(room => room.Number.Trim())
+                .Where(roomNumber => roomNumber.Length > 0)
+                .GroupBy(roomNumber => roomNumber, StringComparer.Ordinal)
+                .FirstOrDefault(group => group.Count() > 1)
+                ?.Key;
+
+            if (duplicateRoomNumber is not null)
+                throw new ConflictException($"Room number {duplicateRoomNumber} already exists in this hotel.");
         }
 
         private async Task<ManagedHotelResponse> GetManagedHotelAsync(int hotelId)

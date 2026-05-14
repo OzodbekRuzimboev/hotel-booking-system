@@ -32,6 +32,8 @@ namespace HotelBookingSystem.Api.Data
 
             modelBuilder.Entity<RoomType>().HasMany(rt => rt.Rooms).WithOne(r => r.RoomType).HasForeignKey(r => r.RoomTypeId);
 
+            modelBuilder.Entity<Hotel>().HasMany<Room>().WithOne(r => r.Hotel).HasForeignKey(r => r.HotelId).OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<User>().HasMany(u => u.Bookings).WithOne(b => b.User).HasForeignKey(b => b.UserId);
 
             modelBuilder.Entity<User>().HasOne(u => u.Settings).WithOne(s => s.User).HasForeignKey<UserSettings>(s => s.UserId);
@@ -50,7 +52,7 @@ namespace HotelBookingSystem.Api.Data
 
             modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
 
-            modelBuilder.Entity<Room>().HasIndex(r => new { r.RoomTypeId, r.Number }).IsUnique();
+            modelBuilder.Entity<Room>().HasIndex(r => new { r.HotelId, r.Number }).IsUnique();
 
             modelBuilder.Entity<UserSettings>().HasIndex(s => s.UserId).IsUnique();
 

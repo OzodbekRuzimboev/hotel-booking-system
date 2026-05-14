@@ -9,7 +9,7 @@ namespace HotelBookingSystem.Api.Services
         {
             return ex.InnerException is PostgresException pg &&
                    pg.SqlState == PostgresErrorCodes.UniqueViolation &&
-                   pg.ConstraintName == "IX_Rooms_RoomTypeId_Number";
+                   pg.ConstraintName == "IX_Rooms_HotelId_Number";
         }
 
         public static bool IsBookingOverlapViolation(DbUpdateException ex)
@@ -17,6 +17,13 @@ namespace HotelBookingSystem.Api.Services
             return ex.InnerException is PostgresException pg &&
                    pg.SqlState == PostgresErrorCodes.ExclusionViolation &&
                    pg.ConstraintName == "EX_Bookings_RoomId_DateRange_NoOverlap";
+        }
+
+        public static bool IsFavoriteHotelUniqueViolation(DbUpdateException ex)
+        {
+            return ex.InnerException is PostgresException pg &&
+                   pg.SqlState == PostgresErrorCodes.UniqueViolation &&
+                   pg.ConstraintName == "IX_FavoriteHotels_UserId_HotelId";
         }
     }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Link,
   useLocation,
@@ -67,6 +67,7 @@ export function HotelDetailsPage() {
     rating: 5,
     comment: "",
   });
+  const loadRequestId = useRef(0);
   const [searchDraft, setSearchDraft] = useState({
     checkInDate,
     checkOutDate,
@@ -99,8 +100,15 @@ export function HotelDetailsPage() {
   }, [checkInDate, checkOutDate, guestsCount]);
 
   useEffect(() => {
+    const requestId = ++loadRequestId.current;
+
     async function loadHotel() {
-      if (!numericHotelId) return;
+      if (!numericHotelId) {
+        setHotel(null);
+        setReviews([]);
+        setLoading(false);
+        return;
+      }
 
       setError("");
       setLoading(true);
@@ -115,6 +123,8 @@ export function HotelDetailsPage() {
           getHotelReviews(numericHotelId),
         ]);
 
+        if (requestId !== loadRequestId.current) return;
+
         setHotel(hotelResult);
         setReviews(reviewResult);
         setReviewDraft((draft) => ({
@@ -122,9 +132,13 @@ export function HotelDetailsPage() {
           roomTypeId: hotelResult.roomTypes[0]?.roomTypeId.toString() ?? "",
         }));
       } catch (err) {
+        if (requestId !== loadRequestId.current) return;
+
         setError(getApiErrorMessage(err));
       } finally {
-        setLoading(false);
+        if (requestId === loadRequestId.current) {
+          setLoading(false);
+        }
       }
     }
 

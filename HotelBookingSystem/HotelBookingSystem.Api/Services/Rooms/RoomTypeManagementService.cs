@@ -40,6 +40,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
                 IsActive = true,
                 Rooms = req.Rooms.Select(r => new Room
                 {
+                    HotelId = hotelId,
                     Number = r.Number.Trim(),
                     IsActive = true
                 }).ToList()

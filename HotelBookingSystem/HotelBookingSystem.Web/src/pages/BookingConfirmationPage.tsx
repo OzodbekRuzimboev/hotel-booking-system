@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getAccount } from "../api/accountApi";
 import { createBooking } from "../api/bookingsApi";
@@ -40,6 +40,7 @@ export function BookingConfirmationPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const loadRequestId = useRef(0);
 
   const roomType = useMemo<AvailableRoomTypeResponse | undefined>(
     () =>
@@ -52,8 +53,14 @@ export function BookingConfirmationPage() {
   const finalPrice = roomType ? roomType.price * Math.max(1, nights) : 0;
 
   useEffect(() => {
+    const requestId = ++loadRequestId.current;
+
     async function loadBookingDetails() {
-      if (!hotelId || !roomTypeId) return;
+      if (!hotelId || !roomTypeId) {
+        setHotel(null);
+        setLoading(false);
+        return;
+      }
 
       setError("");
       setLoading(true);
@@ -68,6 +75,8 @@ export function BookingConfirmationPage() {
           getAccount(),
         ]);
 
+        if (requestId !== loadRequestId.current) return;
+
         setHotel(hotelResult);
         setContact({
           guestEmail: accountResult.email,
@@ -75,9 +84,13 @@ export function BookingConfirmationPage() {
           guestPhoneNumber: accountResult.phoneNumber ?? "",
         });
       } catch (err) {
+        if (requestId !== loadRequestId.current) return;
+
         setError(getApiErrorMessage(err));
       } finally {
-        setLoading(false);
+        if (requestId === loadRequestId.current) {
+          setLoading(false);
+        }
       }
     }
 

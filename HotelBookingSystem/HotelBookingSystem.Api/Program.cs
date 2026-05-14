@@ -32,6 +32,7 @@ builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp")
 
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
     ?? throw new InvalidOperationException("Jwt settings are missing.");
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 
 if (string.IsNullOrWhiteSpace(jwt.Issuer) || string.IsNullOrWhiteSpace(jwt.Audience) ||
     string.IsNullOrWhiteSpace(jwt.Key) || jwt.ExpirationInMinutes <= 0)
@@ -89,7 +90,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(corsOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

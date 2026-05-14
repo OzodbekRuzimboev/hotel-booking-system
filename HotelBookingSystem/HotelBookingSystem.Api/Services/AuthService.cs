@@ -128,13 +128,15 @@ namespace HotelBookingSystem.Api.Services
         public async Task<AuthResponse> RefreshAsync(string refreshToken)
         {
             var refreshTokenHash = _tokenService.HashToken(refreshToken);
+            var now = DateTime.UtcNow;
 
             var storedToken = await _context.RefreshTokens
+                .AsNoTracking()
                 .Include(rt => rt.User)
                 .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash)
                 ?? throw new UnauthorizedException("Invalid refresh token.");
 
-            if (!storedToken.IsActive)
+            if (storedToken.RevokedAt is not null || storedToken.ExpiresAt <= now)
                 throw new UnauthorizedException("Refresh token is no longer active.");
 
             var user = storedToken.User;
@@ -142,19 +144,31 @@ namespace HotelBookingSystem.Api.Services
             var newRefreshToken = _tokenService.GenerateRefreshToken();
             var newRefreshTokenHash = _tokenService.HashToken(newRefreshToken);
 
-            storedToken.RevokedAt = DateTime.UtcNow;
-            storedToken.ReplacedByTokenHash = newRefreshTokenHash;
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            var revokedCount = await _context.RefreshTokens
+                .Where(rt =>
+                    rt.Id == storedToken.Id &&
+                    rt.RevokedAt == null &&
+                    rt.ExpiresAt > now)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(rt => rt.RevokedAt, now)
+                    .SetProperty(rt => rt.ReplacedByTokenHash, newRefreshTokenHash));
+
+            if (revokedCount != 1)
+                throw new UnauthorizedException("Refresh token is no longer active.");
 
             _context.RefreshTokens.Add(new RefreshToken
             {
                 UserId = user.Id,
                 TokenHash = newRefreshTokenHash,
-                ExpiresAt = DateTime.UtcNow.AddDays(7)
+                ExpiresAt = now.AddDays(7)
             });
 
             var newAccessToken = _tokenService.CreateToken(user);
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return new AuthResponse
             {

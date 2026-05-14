@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { getApiErrorMessage } from "../api/client";
 import { getHotelDetails } from "../api/hotelsApi";
@@ -35,6 +35,7 @@ export function RoomTypeDetailsPage() {
   const [hotel, setHotel] = useState<HotelSearchResponse | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const loadRequestId = useRef(0);
 
   const roomType = useMemo<AvailableRoomTypeResponse | undefined>(
     () =>
@@ -48,24 +49,36 @@ export function RoomTypeDetailsPage() {
   const finalPrice = roomType ? roomType.price * Math.max(1, nights) : 0;
 
   useEffect(() => {
+    const requestId = ++loadRequestId.current;
+
     async function loadRoomType() {
-      if (!numericHotelId || !numericRoomTypeId) return;
+      if (!numericHotelId || !numericRoomTypeId) {
+        setHotel(null);
+        setLoading(false);
+        return;
+      }
 
       setError("");
       setLoading(true);
 
       try {
-        setHotel(
-          await getHotelDetails(numericHotelId, {
-            checkInDate,
-            checkOutDate,
-            guestsCount,
-          })
-        );
+        const hotelResult = await getHotelDetails(numericHotelId, {
+          checkInDate,
+          checkOutDate,
+          guestsCount,
+        });
+
+        if (requestId !== loadRequestId.current) return;
+
+        setHotel(hotelResult);
       } catch (err) {
+        if (requestId !== loadRequestId.current) return;
+
         setError(getApiErrorMessage(err));
       } finally {
-        setLoading(false);
+        if (requestId === loadRequestId.current) {
+          setLoading(false);
+        }
       }
     }
 

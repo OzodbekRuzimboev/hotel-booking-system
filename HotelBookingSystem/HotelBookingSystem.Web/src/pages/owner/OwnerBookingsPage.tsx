@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   cancelOwnerBooking,
   getOwnerBookings,
@@ -20,6 +20,7 @@ export function OwnerBookingsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const bookingsRequestId = useRef(0);
 
   const selectedHotel = useMemo(
     () => hotels.find((hotel) => hotel.id === selectedHotelId),
@@ -40,15 +41,30 @@ export function OwnerBookingsPage() {
   }, [selectedHotelId]);
 
   const loadBookings = useCallback(async (hotelId = selectedHotelId) => {
-    if (!hotelId) return;
+    if (!hotelId) {
+      bookingsRequestId.current++;
+      setBookings([]);
+      return;
+    }
+
+    const requestId = ++bookingsRequestId.current;
+
     setError("");
     setLoading(true);
     try {
-      setBookings(await getOwnerBookings(Number(hotelId)));
+      const result = await getOwnerBookings(Number(hotelId));
+
+      if (requestId !== bookingsRequestId.current) return;
+
+      setBookings(result);
     } catch (err) {
+      if (requestId !== bookingsRequestId.current) return;
+
       setError(getApiErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (requestId === bookingsRequestId.current) {
+        setLoading(false);
+      }
     }
   }, [selectedHotelId]);
 

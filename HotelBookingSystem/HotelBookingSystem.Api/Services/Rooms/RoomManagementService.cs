@@ -33,6 +33,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
 
             var room = new Room
             {
+                HotelId = roomType.HotelId,
                 RoomTypeId = roomType.Id,
                 Number = roomNumber,
                 IsActive = true
@@ -47,14 +48,13 @@ namespace HotelBookingSystem.Api.Services.Rooms
         public async Task<RoomResponse> UpdateRoomAsync(int roomId, UpdateRoomRequest req)
         {
             var room = await _context.Rooms
-                .Include(r => r.RoomType)
                 .FirstOrDefaultAsync(r => r.Id == roomId)
                 ?? throw new NotFoundException("Room not found.");
 
             var roomNumber = req.Number.Trim();
 
             await EnsureRoomNumberUniqueInHotelAsync(
-                room.RoomType.HotelId,
+                room.HotelId,
                 roomNumber,
                 room.Id);
 
@@ -97,6 +97,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
 
             var room = new Room
             {
+                HotelId = roomType.HotelId,
                 RoomTypeId = roomType.Id,
                 Number = roomNumber,
                 IsActive = true
@@ -122,7 +123,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
             var roomNumber = req.Number.Trim();
 
             await EnsureRoomNumberUniqueInHotelAsync(
-                room.RoomType.HotelId,
+                room.HotelId,
                 roomNumber,
                 room.Id);
 
@@ -155,7 +156,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
         private async Task EnsureRoomNumberUniqueInHotelAsync(int hotelId, string roomNumber, int? excludeRoomId = null)
         {
             var exists = await _context.Rooms.AnyAsync(r =>
-                r.RoomType.HotelId == hotelId &&
+                r.HotelId == hotelId &&
                 r.Number == roomNumber &&
                 (!excludeRoomId.HasValue || r.Id != excludeRoomId.Value));
 
