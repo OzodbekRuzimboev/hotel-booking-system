@@ -115,6 +115,34 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(11, 99, 206, 0.16);
 }
 
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  padding-right: 4.75rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  width: auto;
+  min-width: 3.7rem;
+  border-radius: 5px;
+  padding: 0.36rem 0.55rem;
+  background: transparent;
+  color: var(--primary-dark);
+  font-size: 0.78rem;
+  font-weight: 850;
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  background: #eef4fb;
+}
+
 textarea {
   resize: vertical;
 }
@@ -142,7 +170,7 @@ img {
 .brand {
   color: var(--primary-dark);
   font-weight: 900;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
 }
 
 .brand:hover {

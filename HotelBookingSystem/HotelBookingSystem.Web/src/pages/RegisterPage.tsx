@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getApiErrorMessage } from "../api/client";
 import { register } from "../api/authApi";
 import { useAuth } from "../auth/AuthContext";
+import { PasswordField } from "../components/PasswordField";
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -43,7 +44,14 @@ export function RegisterPage() {
         <form className="form" onSubmit={handleSubmit}>
           <label>Name<input value={name} onChange={(event) => setName(event.target.value)} minLength={2} required /></label>
           <label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-          <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={8} required /></label>
+          <PasswordField
+            autoComplete="new-password"
+            label="Password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            minLength={8}
+            required
+          />
           {error && <p className="alert error">{error}</p>}
           <button className="button" disabled={loading} type="submit">{loading ? "Creating account..." : "Register"}</button>
         </form>

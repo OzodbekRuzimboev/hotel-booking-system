@@ -9,6 +9,7 @@ import { getApiErrorMessage } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { ImageField } from "../components/ImageField";
 import { ImageWithFallback } from "../components/ImageWithFallback";
+import { PasswordField } from "../components/PasswordField";
 import {
   type AccountSettings,
   type UserAccountResponse,
@@ -230,53 +231,44 @@ export function AccountPage() {
                 <h2>Password</h2>
               </div>
               <form className="form" onSubmit={handlePasswordSubmit}>
-                <label>
-                  Current password
-                  <input
-                    autoComplete="current-password"
-                    type="password"
-                    value={passwordDraft.currentPassword}
-                    onChange={(event) =>
-                      setPasswordDraft({
-                        ...passwordDraft,
-                        currentPassword: event.target.value,
-                      })
-                    }
-                    required
-                  />
-                </label>
-                <label>
-                  New password
-                  <input
-                    autoComplete="new-password"
-                    minLength={8}
-                    type="password"
-                    value={passwordDraft.newPassword}
-                    onChange={(event) =>
-                      setPasswordDraft({
-                        ...passwordDraft,
-                        newPassword: event.target.value,
-                      })
-                    }
-                    required
-                  />
-                </label>
-                <label>
-                  Confirm new password
-                  <input
-                    autoComplete="new-password"
-                    minLength={8}
-                    type="password"
-                    value={passwordDraft.confirmPassword}
-                    onChange={(event) =>
-                      setPasswordDraft({
-                        ...passwordDraft,
-                        confirmPassword: event.target.value,
-                      })
-                    }
-                    required
-                  />
-                </label>
+                <PasswordField
+                  autoComplete="current-password"
+                  label="Current password"
+                  value={passwordDraft.currentPassword}
+                  onChange={(event) =>
+                    setPasswordDraft({
+                      ...passwordDraft,
+                      currentPassword: event.target.value,
+                    })
+                  }
+                  required
+                />
+                <PasswordField
+                  autoComplete="new-password"
+                  label="New password"
+                  value={passwordDraft.newPassword}
+                  onChange={(event) =>
+                    setPasswordDraft({
+                      ...passwordDraft,
+                      newPassword: event.target.value,
+                    })
+                  }
+                  minLength={8}
+                  required
+                />
+                <PasswordField
+                  autoComplete="new-password"
+                  label="Confirm new password"
+                  value={passwordDraft.confirmPassword}
+                  onChange={(event) =>
+                    setPasswordDraft({
+                      ...passwordDraft,
+                      confirmPassword: event.target.value,
+                    })
+                  }
+                  minLength={8}
+                  required
+                />
                 <button className="button secondary" type="submit">
                   Change password
                 </button>

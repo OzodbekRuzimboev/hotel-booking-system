@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getApiErrorMessage } from "../api/client";
 import { login, register } from "../api/authApi";
 import { useAuth } from "../auth/AuthContext";
+import { PasswordField } from "../components/PasswordField";
 import { Role } from "../types";
 
 export function PartnerPage() {
@@ -95,16 +96,14 @@ export function PartnerPage() {
                   required
                 />
               </label>
-              <label>
-                Password
-                <input
-                  type="password"
-                  value={registerPassword}
-                  onChange={(event) => setRegisterPassword(event.target.value)}
-                  minLength={8}
-                  required
-                />
-              </label>
+              <PasswordField
+                autoComplete="new-password"
+                label="Password"
+                value={registerPassword}
+                onChange={(event) => setRegisterPassword(event.target.value)}
+                minLength={8}
+                required
+              />
               {registerError && <p className="alert error">{registerError}</p>}
               <button className="button" disabled={registerLoading} type="submit">
                 {registerLoading ? "Creating account..." : "Register as partner"}
@@ -142,15 +141,13 @@ export function PartnerPage() {
                   required
                 />
               </label>
-              <label>
-                Password
-                <input
-                  type="password"
-                  value={loginPassword}
-                  onChange={(event) => setLoginPassword(event.target.value)}
-                  required
-                />
-              </label>
+              <PasswordField
+                autoComplete="current-password"
+                label="Password"
+                value={loginPassword}
+                onChange={(event) => setLoginPassword(event.target.value)}
+                required
+              />
               {loginError && <p className="alert error">{loginError}</p>}
               <button
                 className="button secondary"

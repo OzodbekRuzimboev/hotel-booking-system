@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createUser, getUsers, updateUserRole } from "../../api/adminApi";
 import { getApiErrorMessage } from "../../api/client";
+import { PasswordField } from "../../components/PasswordField";
 import { Role, type Role as RoleValue, type UserRoleResponse } from "../../types";
 
 function roleName(role: number) {
@@ -113,18 +114,16 @@ export function AdminUsersPage() {
               required
             />
           </label>
-          <label>
-            Password
-            <input
-              type="password"
-              value={newUser.password}
-              onChange={(event) =>
-                setNewUser({ ...newUser, password: event.target.value })
-              }
-              required
-              minLength={8}
-            />
-          </label>
+          <PasswordField
+            autoComplete="new-password"
+            label="Password"
+            value={newUser.password}
+            onChange={(event) =>
+              setNewUser({ ...newUser, password: event.target.value })
+            }
+            required
+            minLength={8}
+          />
           <label>
             Role
             <select
