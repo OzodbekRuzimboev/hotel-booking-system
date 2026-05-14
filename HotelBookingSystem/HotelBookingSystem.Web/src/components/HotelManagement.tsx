@@ -318,6 +318,7 @@ export function HotelManagement({
   const [hotels, setHotels] = useState<ManagedHotelResponse[]>([]);
   const [selectedHotelId, setSelectedHotelId] = useState<number | "all">("all");
   const [draft, setDraft] = useState<HotelDraft>(blankHotel());
+  const [createHotelOpen, setCreateHotelOpen] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -384,6 +385,7 @@ export function HotelManagement({
     await runAction(async () => {
       await createHotel(hotelRequestFromDraft(draft));
       setDraft(blankHotel());
+      setCreateHotelOpen(false);
     }, "Hotel created.");
   }
 
@@ -401,15 +403,21 @@ export function HotelManagement({
       {loading && <p className="muted">Loading hotels...</p>}
 
       {createHotel && (
-        <section className="panel stack-lg">
-          <div>
-            <p className="eyebrow">New property</p>
-            <h2>Create hotel</h2>
-            <p className="muted">
-              Add the basics, choose a cover image, then create at least one
-              room type with real room numbers.
-            </p>
-          </div>
+        createHotelOpen ? (
+          <section className="panel stack-lg">
+            <div className="row between gap wrap">
+              <div>
+                <p className="eyebrow">New property</p>
+                <h2>Create hotel</h2>
+                <p className="muted">
+                  Add the basics, choose a cover image, then create at least one
+                  room type with real room numbers.
+                </p>
+              </div>
+              <button className="button secondary" type="button" onClick={() => setCreateHotelOpen(false)}>
+                Hide form
+              </button>
+            </div>
           <form className="form wide" onSubmit={handleCreateHotel}>
             <div className="form-grid two">
               <label>
@@ -483,7 +491,14 @@ export function HotelManagement({
 
             <button className="button" type="submit">Create hotel</button>
           </form>
-        </section>
+          </section>
+        ) : (
+          <div className="row gap wrap">
+            <button className="button" type="button" aria-expanded={createHotelOpen} onClick={() => setCreateHotelOpen(true)}>
+              Create hotel
+            </button>
+          </div>
+        )
       )}
 
       <section className="panel stack">
@@ -676,6 +691,7 @@ export function ManagedHotelCard({
   });
   const [ownerId, setOwnerId] = useState(hotel.ownerId?.toString() ?? "");
   const [newRoomType, setNewRoomType] = useState<RoomTypeDraft>(blankRoomType());
+  const [addRoomTypeOpen, setAddRoomTypeOpen] = useState(false);
   const [roomTypeDrafts, setRoomTypeDrafts] = useState<Record<number, RoomTypeEditDraft>>(
     () =>
       Object.fromEntries(
@@ -829,17 +845,31 @@ export function ManagedHotelCard({
         </div>
       </section>
 
-      <form className="nested-form form wide" onSubmit={(event) => {
-        event.preventDefault();
-        runCardAction(async () => {
-          await createRoomType(hotel.id, roomTypeRequestFromDraft(newRoomType));
-          setNewRoomType(blankRoomType());
-        }, "Room type created.");
-      }}>
-        <h3>Add room type</h3>
-        <RoomTypeDraftFields draft={newRoomType} onChange={setNewRoomType} />
-        <button className="button secondary" type="submit">Add room type</button>
-      </form>
+      {addRoomTypeOpen ? (
+        <form className="nested-form form wide" onSubmit={(event) => {
+          event.preventDefault();
+          runCardAction(async () => {
+            await createRoomType(hotel.id, roomTypeRequestFromDraft(newRoomType));
+            setNewRoomType(blankRoomType());
+            setAddRoomTypeOpen(false);
+          }, "Room type created.");
+        }}>
+          <div className="row between gap wrap">
+            <h3>Add room type</h3>
+            <button className="button secondary" type="button" onClick={() => setAddRoomTypeOpen(false)}>
+              Hide form
+            </button>
+          </div>
+          <RoomTypeDraftFields draft={newRoomType} onChange={setNewRoomType} />
+          <button className="button secondary" type="submit">Add room type</button>
+        </form>
+      ) : (
+        <div className="row gap wrap">
+          <button className="button secondary" type="button" aria-expanded={addRoomTypeOpen} onClick={() => setAddRoomTypeOpen(true)}>
+            Add room type
+          </button>
+        </div>
+      )}
 
       <div className="management-save-bar">
         <button className="button" type="button" onClick={handleSaveChanges}>
