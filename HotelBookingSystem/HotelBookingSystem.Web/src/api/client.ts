@@ -1,8 +1,10 @@
 import axios, { AxiosError } from "axios";
 import type { ProblemDetails } from "../types";
 
+const apiBaseURL = import.meta.env.VITE_API_BASE_URL?.trim() || "/api";
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: apiBaseURL,
 });
 
 api.interceptors.request.use((config) => {
