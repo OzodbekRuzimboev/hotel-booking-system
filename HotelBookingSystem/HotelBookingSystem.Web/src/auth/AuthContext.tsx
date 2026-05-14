@@ -1,20 +1,25 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import type { AuthResponse, Role } from "../types";
+import type { AuthResponse } from "../types";
+import { refreshAuthSession } from "../api/client";
 import { logout as logoutRequest } from "../api/authApi";
-
-type AuthUser = {
-  userId: number;
-  name: string;
-  email: string;
-  role: Role;
-  profileImageUrl?: string | null;
-};
+import {
+  clearAuthStorage,
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  getStoredUser,
+  isAccessTokenExpired,
+  storeAuth,
+  subscribeToAuthStorage,
+  updateStoredUser,
+  type AuthUser,
+} from "./authStorage";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -26,36 +31,54 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-function getStoredUser(): AuthUser | null {
-  const raw = localStorage.getItem("user");
-
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as AuthUser;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser());
-  const [accessToken, setAccessToken] = useState<string | null>(
-    localStorage.getItem("accessToken")
-  );
+  const [accessToken, setAccessToken] = useState<string | null>(getStoredAccessToken());
 
-  function loginUser(auth: AuthResponse) {
-    const nextUser: AuthUser = {
-      userId: auth.userId,
-      name: auth.name,
-      email: auth.email,
-      role: auth.role,
-      profileImageUrl: auth.profileImageUrl ?? null,
+  useEffect(() => {
+    const syncFromStorage = () => {
+      setUser(getStoredUser());
+      setAccessToken(getStoredAccessToken());
     };
 
-    localStorage.setItem("accessToken", auth.accessToken);
-    localStorage.setItem("refreshToken", auth.refreshToken);
-    localStorage.setItem("user", JSON.stringify(nextUser));
+    const unsubscribe = subscribeToAuthStorage(syncFromStorage);
+
+    async function restoreSession() {
+      const storedUser = getStoredUser();
+      const storedAccessToken = getStoredAccessToken();
+      const storedRefreshToken = getStoredRefreshToken();
+
+      if (!storedUser) {
+        if (storedAccessToken || storedRefreshToken) {
+          clearAuthStorage();
+        }
+
+        return;
+      }
+
+      if (!storedRefreshToken) {
+        clearAuthStorage();
+        return;
+      }
+
+      if (!isAccessTokenExpired(storedAccessToken)) {
+        return;
+      }
+
+      try {
+        await refreshAuthSession();
+      } catch {
+        clearAuthStorage();
+      }
+    }
+
+    void restoreSession();
+
+    return unsubscribe;
+  }, []);
+
+  function loginUser(auth: AuthResponse) {
+    const nextUser = storeAuth(auth);
 
     setUser(nextUser);
     setAccessToken(auth.accessToken);
@@ -66,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!current) return current;
 
       const nextUser = { ...current, ...userPatch };
-      localStorage.setItem("user", JSON.stringify(nextUser));
+      updateStoredUser(nextUser);
       return nextUser;
     });
   }
@@ -82,9 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
+    clearAuthStorage();
 
     setUser(null);
     setAccessToken(null);
