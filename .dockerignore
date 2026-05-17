@@ -1,0 +1,13 @@
+**/.git
+**/.vs
+**/.vscode
+**/.idea
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/dist-ssr
+**/*.log
+**/*.user
+**/*.suo
+**/*.local
