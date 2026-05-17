@@ -34,7 +34,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
         public async Task<ManagedHotelResponse> CreateHotelAsync(CreateHotelRequest req, int? ownerId = null)
         {
             if (req.RoomTypes.Count == 0)
-                throw new ValidationException("Add at least one room type before creating a hotel.");
+                throw new ValidationException("Перед созданием отеля добавьте хотя бы один тип номера.");
 
             ValidateRoomNumbersUniqueInHotel(req.RoomTypes);
 
@@ -42,7 +42,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
             {
                 var ownerExists = await _context.Users.AnyAsync(u => u.Id == ownerId.Value && u.Role == Role.Owner);
                 if (!ownerExists)
-                    throw new NotFoundException("Owner not found.");
+                    throw new NotFoundException("Владелец не найден.");
             }
 
             var hotelImages = NormalizeImageUrls(req.ImageUrl, req.ImageUrls);
@@ -102,7 +102,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
         public async Task<ManagedHotelResponse> UpdateHotelAsync(int hotelId, UpdateHotelRequest req)
         {
             var hotel = await _context.Hotels.FirstOrDefaultAsync(h => h.Id == hotelId)
-                ?? throw new NotFoundException("Hotel not found.");
+                ?? throw new NotFoundException("Отель не найден.");
 
             ApplyHotelChanges(hotel, req);
             await _context.SaveChangesAsync();
@@ -113,7 +113,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
         public async Task DeactivateHotelAsync(int hotelId)
         {
             var hotel = await _context.Hotels.FirstOrDefaultAsync(h => h.Id == hotelId)
-                ?? throw new NotFoundException("Hotel not found.");
+                ?? throw new NotFoundException("Отель не найден.");
 
             if (!hotel.IsActive)
                 return;
@@ -125,13 +125,13 @@ namespace HotelBookingSystem.Api.Services.Hotels
         public async Task<ManagedHotelResponse> AssignHotelOwnerAsync(int hotelId, int ownerId)
         {
             var hotel = await _context.Hotels.FirstOrDefaultAsync(h => h.Id == hotelId)
-                ?? throw new NotFoundException("Hotel not found.");
+                ?? throw new NotFoundException("Отель не найден.");
 
             var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == ownerId)
-                ?? throw new NotFoundException("User not found.");
+                ?? throw new NotFoundException("Пользователь не найден.");
 
             if (owner.Role != Role.Owner)
-                throw new ValidationException("User must have Owner role.");
+                throw new ValidationException("Пользователь должен иметь роль владельца.");
 
             hotel.OwnerId = owner.Id;
             await _context.SaveChangesAsync();
@@ -155,13 +155,13 @@ namespace HotelBookingSystem.Api.Services.Hotels
                 .Where(h => h.Id == hotelId && h.OwnerId == ownerId)
                 .Select(ManagedHotelProjection())
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Hotel not found.");
+                ?? throw new NotFoundException("Отель не найден.");
         }
 
         public async Task<ManagedHotelResponse> UpdateOwnerHotelAsync(int ownerId, int hotelId, UpdateHotelRequest req)
         {
             var hotel = await _context.Hotels.FirstOrDefaultAsync(h => h.Id == hotelId && h.OwnerId == ownerId)
-                ?? throw new NotFoundException("Hotel not found.");
+                ?? throw new NotFoundException("Отель не найден.");
 
             ApplyHotelChanges(hotel, req);
             await _context.SaveChangesAsync();
@@ -177,7 +177,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
             }
             catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueRoomNumberViolation(ex))
             {
-                throw new ConflictException("Room number already exists in this hotel.");
+                throw new ConflictException("Такой номер комнаты уже есть в этом отеле.");
             }
         }
 
@@ -240,16 +240,16 @@ namespace HotelBookingSystem.Api.Services.Hotels
         private static void ValidateRoomType(string name, int capacity, decimal price, int roomsCount)
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new ValidationException("Room type name is required.");
+                throw new ValidationException("Название типа номера обязательно.");
 
             if (capacity <= 0)
-                throw new ValidationException("Room capacity must be greater than zero.");
+                throw new ValidationException("Вместимость номера должна быть больше нуля.");
 
             if (price <= 0)
-                throw new ValidationException("Room price must be greater than zero.");
+                throw new ValidationException("Цена номера должна быть больше нуля.");
 
             if (roomsCount <= 0)
-                throw new ValidationException("Add at least one room number for each room type.");
+                throw new ValidationException("Для каждого типа номера добавьте хотя бы один номер комнаты.");
         }
 
         private static void ValidateRoomNumbersUniqueInHotel(IEnumerable<RoomTypeRequest> roomTypes)
@@ -263,7 +263,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
                 ?.Key;
 
             if (duplicateRoomNumber is not null)
-                throw new ConflictException($"Room number {duplicateRoomNumber} already exists in this hotel.");
+                throw new ConflictException($"Номер комнаты {duplicateRoomNumber} уже есть в этом отеле.");
         }
 
         private async Task<ManagedHotelResponse> GetManagedHotelAsync(int hotelId)
@@ -273,7 +273,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
                 .Where(h => h.Id == hotelId)
                 .Select(ManagedHotelProjection())
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Hotel not found.");
+                ?? throw new NotFoundException("Отель не найден.");
         }
 
         private static Expression<Func<Hotel, ManagedHotelResponse>> ManagedHotelProjection() => h => new ManagedHotelResponse

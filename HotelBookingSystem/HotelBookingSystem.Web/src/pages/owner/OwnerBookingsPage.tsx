@@ -82,7 +82,7 @@ export function OwnerBookingsPage() {
     try {
       await cancelOwnerBooking(id);
       await loadBookings();
-      setSuccess("Booking cancelled.");
+      setSuccess("Бронирование отменено.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -92,8 +92,8 @@ export function OwnerBookingsPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Owner</p>
-          <h1>Hotel bookings</h1>
+          <p className="eyebrow">Владелец</p>
+          <h1>Бронирования отелей</h1>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export function OwnerBookingsPage() {
 
       <section className="panel stack-sm">
         <label>
-          Hotel
+          Отель
           <select
             value={selectedHotelId}
             onChange={(event) => setSelectedHotelId(Number(event.target.value))}
@@ -121,9 +121,9 @@ export function OwnerBookingsPage() {
         )}
       </section>
 
-      {loading && <p className="muted">Loading bookings...</p>}
+      {loading && <p className="muted">Загрузка бронирований...</p>}
       {!loading && bookings.length === 0 && (
-        <p className="muted">No bookings found for this hotel.</p>
+        <p className="muted">Для этого отеля бронирования не найдены.</p>
       )}
 
       <div className="booking-list">
@@ -132,12 +132,12 @@ export function OwnerBookingsPage() {
             <div>
               <h2>{booking.hotelName}</h2>
               <p className="muted">
-                Booking #{booking.id} - User #{booking.userId}
+                Бронирование #{booking.id} - пользователь #{booking.userId}
               </p>
               <p>{booking.roomTypeName}</p>
               <p>{formatDateRange(booking.checkInDate, booking.checkOutDate)}</p>
-              <p>Guests: {booking.guestsCount}</p>
-              <p className="muted small">Confirmation: {booking.guestEmail}</p>
+              <p>Гости: {booking.guestsCount}</p>
+              <p className="muted small">Подтверждение: {booking.guestEmail}</p>
             </div>
             <div className="booking-side">
               <BookingStatusBadge status={booking.status} />
@@ -148,7 +148,7 @@ export function OwnerBookingsPage() {
                   type="button"
                   onClick={() => handleCancel(booking.id)}
                 >
-                  Cancel
+                  Отменить
                 </button>
               )}
             </div>

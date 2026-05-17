@@ -127,7 +127,7 @@ export function BookingConfirmationPage() {
   if (loading) {
     return (
       <main className="page">
-        <p className="muted">Loading booking details...</p>
+        <p className="muted">Загрузка деталей бронирования...</p>
       </main>
     );
   }
@@ -135,9 +135,9 @@ export function BookingConfirmationPage() {
   if (!hotel || !roomType) {
     return (
       <main className="page stack">
-        <p>Booking details are not available for these dates.</p>
+        <p>Детали бронирования недоступны для выбранных дат.</p>
         {error && <p className="alert error">{error}</p>}
-        <Link to="/">Back to search</Link>
+        <Link to="/">Вернуться к поиску</Link>
       </main>
     );
   }
@@ -147,24 +147,24 @@ export function BookingConfirmationPage() {
       <main className="page stack-lg">
         <section className="panel stack">
           <div>
-            <p className="eyebrow">Confirmed</p>
-            <h1>Booking #{createdBooking.id}</h1>
+            <p className="eyebrow">Подтверждено</p>
+            <h1>Бронирование #{createdBooking.id}</h1>
           </div>
           <p>
-            Confirmation has been sent to {createdBooking.guestEmail}. You can
-            manage this reservation in your bookings.
+            Подтверждение отправлено на {createdBooking.guestEmail}. Управлять
+            бронированием можно в разделе ваших бронирований.
           </p>
           <div className="booking-confirmed-grid">
             <div>
               <h2>{createdBooking.hotelName}</h2>
               <p className="muted">{createdBooking.roomTypeName}</p>
               <p>{formatDateRange(createdBooking.checkInDate, createdBooking.checkOutDate)}</p>
-              <p>Guests: {createdBooking.guestsCount}</p>
+              <p>Гости: {createdBooking.guestsCount}</p>
             </div>
             <div className="booking-side">
               <strong>{formatCurrency(createdBooking.totalPrice)}</strong>
               <Link className="button" to="/my-bookings">
-                My bookings
+                Мои бронирования
               </Link>
             </div>
           </div>
@@ -177,8 +177,8 @@ export function BookingConfirmationPage() {
     <main className="page booking-page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Reservation</p>
-          <h1>Confirm booking</h1>
+          <p className="eyebrow">Бронирование</p>
+          <h1>Подтвердить бронирование</h1>
         </div>
         <Link
           className="button secondary"
@@ -188,7 +188,7 @@ export function BookingConfirmationPage() {
             guestsCount: guestsCount.toString(),
           }).toString()}`}
         >
-          Review room
+          Посмотреть номер
         </Link>
       </div>
 
@@ -208,22 +208,22 @@ export function BookingConfirmationPage() {
             <span className="pill">{roomType.name}</span>
             <span className="pill">{formatDateRange(checkInDate, checkOutDate)}</span>
             <span className="pill">
-              {guestsCount} guest{guestsCount === 1 ? "" : "s"}
+              гостей: {guestsCount}
             </span>
           </div>
           <div className="price-total">
-            <span className="muted">Final price</span>
+            <span className="muted">Итоговая цена</span>
             <strong>{formatCurrency(finalPrice)}</strong>
           </div>
         </section>
 
         <form className="panel stack booking-form" onSubmit={handleSubmit}>
           <div>
-            <p className="eyebrow">Contact</p>
-            <h2>Guest information</h2>
+            <p className="eyebrow">Контакты</p>
+            <h2>Информация о госте</h2>
           </div>
           <label>
-            Email address
+            Электронная почта
             <input
               type="email"
               value={contact.guestEmail}
@@ -234,7 +234,7 @@ export function BookingConfirmationPage() {
             />
           </label>
           <label>
-            Country
+            Страна
             <input
               value={contact.guestCountry}
               onChange={(event) =>
@@ -244,7 +244,7 @@ export function BookingConfirmationPage() {
             />
           </label>
           <label>
-            Phone number
+            Телефон
             <input
               value={contact.guestPhoneNumber}
               onChange={(event) =>
@@ -257,7 +257,7 @@ export function BookingConfirmationPage() {
             />
           </label>
           <button className="button" type="submit" disabled={submitting}>
-            {submitting ? "Confirming..." : "Confirm booking"}
+            {submitting ? "Подтверждение..." : "Подтвердить бронирование"}
           </button>
         </form>
       </div>

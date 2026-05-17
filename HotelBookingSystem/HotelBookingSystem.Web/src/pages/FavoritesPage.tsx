@@ -41,19 +41,19 @@ export function FavoritesPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Saved stays</p>
-          <h1>Favorites</h1>
+          <p className="eyebrow">Сохраненные отели</p>
+          <h1>Избранное</h1>
         </div>
       </div>
 
-      {loading && <p className="muted">Loading favorites...</p>}
+      {loading && <p className="muted">Загрузка избранного...</p>}
       {error && <p className="alert error">{error}</p>}
 
       {!loading && favorites.length === 0 ? (
         <section className="panel stack">
-          <p className="muted">Save hotels from the hotel page to see them here.</p>
+          <p className="muted">Сохраняйте отели со страницы отеля, чтобы видеть их здесь.</p>
           <Link className="button inline-button" to="/">
-            Find hotels
+            Найти отели
           </Link>
         </section>
       ) : (
@@ -93,8 +93,8 @@ export function FavoritesPage() {
                 <div className="pill-row">
                   <span className="pill">
                     {favorite.reviewCount > 0
-                      ? `${favorite.averageRating.toFixed(1)} review score`
-                      : "No reviews yet"}
+                      ? `${favorite.averageRating.toFixed(1)} оценка по отзывам`
+                      : "Пока нет отзывов"}
                   </span>
                 </div>
               </div>

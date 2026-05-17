@@ -18,26 +18,26 @@ namespace HotelBookingSystem.Api.Services.Hotels
         public async Task<List<HotelSearchResponse>> GetAvailableHotelsAsync(HotelSearchRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.City))
-                throw new ValidationException("City is required.");
+                throw new ValidationException("Укажите город.");
 
             if (req.CheckInDate >= req.CheckOutDate)
-                throw new ValidationException("Check-in date must be earlier than check-out date.");
+                throw new ValidationException("Дата заезда должна быть раньше даты выезда.");
 
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             if (req.CheckInDate < today)
-                throw new ValidationException("Check-in date cannot be earlier than today.");
+                throw new ValidationException("Дата заезда не может быть раньше сегодняшней даты.");
 
             if (req.GuestsCount <= 0)
-                throw new ValidationException("Guests count must be greater than zero.");
+                throw new ValidationException("Количество гостей должно быть больше нуля.");
 
             if (req.MinNightlyPrice is <= 0 || req.MaxNightlyPrice is <= 0)
-                throw new ValidationException("Nightly budget must be greater than zero.");
+                throw new ValidationException("Бюджет за ночь должен быть больше нуля.");
 
             if (req.MinNightlyPrice is not null &&
                 req.MaxNightlyPrice is not null &&
                 req.MinNightlyPrice > req.MaxNightlyPrice)
-                throw new ValidationException("Minimum nightly budget cannot be greater than maximum nightly budget.");
+                throw new ValidationException("Минимальный бюджет за ночь не может быть больше максимального.");
 
             var normalizedCity = req.City.Trim();
             var hotelAmenities = NormalizeTags(req.HotelAmenities);
@@ -119,15 +119,15 @@ namespace HotelBookingSystem.Api.Services.Hotels
         public async Task<HotelSearchResponse> GetPublicHotelDetailsAsync(int hotelId, PublicHotelDetailsRequest req)
         {
             if (req.CheckInDate >= req.CheckOutDate)
-                throw new ValidationException("Check-in date must be earlier than check-out date.");
+                throw new ValidationException("Дата заезда должна быть раньше даты выезда.");
 
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             if (req.CheckInDate < today)
-                throw new ValidationException("Check-in date cannot be earlier than today.");
+                throw new ValidationException("Дата заезда не может быть раньше сегодняшней даты.");
 
             if (req.GuestsCount <= 0)
-                throw new ValidationException("Guests count must be greater than zero.");
+                throw new ValidationException("Количество гостей должно быть больше нуля.");
 
             var hotel = await _context.Hotels
                 .AsNoTracking()
@@ -175,7 +175,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
                         .ToList()
                 })
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Hotel not found.");
+                ?? throw new NotFoundException("Отель не найден.");
 
             return hotel;
         }

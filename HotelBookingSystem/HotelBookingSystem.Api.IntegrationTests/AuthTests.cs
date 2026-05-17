@@ -80,7 +80,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
 
             var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
             problem.Should().NotBeNull();
-            problem!.Detail.Should().Be("Invalid email or password.");
+            problem!.Detail.Should().Be("Неверный email или пароль.");
         }
 
         [Fact] 
@@ -110,7 +110,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
 
             var problem = await secondResponse.Content.ReadFromJsonAsync<ProblemDetails>();
             problem.Should().NotBeNull();
-            problem!.Detail.Should().Be("Email already in use.");
+            problem!.Detail.Should().Be("Этот email уже используется.");
 
             using var scope = Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -170,7 +170,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
 
             var problem = await conflictResponse.Content.ReadFromJsonAsync<ProblemDetails>();
             problem.Should().NotBeNull();
-            problem!.Detail.Should().Be("Email already in use.");
+            problem!.Detail.Should().Be("Этот email уже используется.");
 
             using var scope = Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -215,7 +215,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
             var problem = await oldTokenResponse.Content.ReadFromJsonAsync<ProblemDetails>();
 
             problem.Should().NotBeNull();
-            problem!.Detail.Should().Be("Refresh token is no longer active.");
+            problem!.Detail.Should().Be("Токен обновления больше не активен.");
 
             using var scope = Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

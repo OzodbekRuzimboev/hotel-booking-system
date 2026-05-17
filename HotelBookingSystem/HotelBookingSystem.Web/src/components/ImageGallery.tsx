@@ -33,7 +33,7 @@ export function ImageGallery({ images, alt }: ImageGalleryProps) {
         <div className="media-gallery-strip">
           {images.map((imageUrl, index) => (
             <button
-              aria-label={`Show image ${index + 1}`}
+              aria-label={`Показать изображение ${index + 1}`}
               className={
                 index === selectedIndex
                   ? "gallery-thumb selected"

@@ -25,7 +25,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
                     rt.HotelId
                 })
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Room type not found.");
+                ?? throw new NotFoundException("Тип номера не найден.");
 
             var roomNumber = req.Number.Trim();
 
@@ -49,7 +49,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
         {
             var room = await _context.Rooms
                 .FirstOrDefaultAsync(r => r.Id == roomId)
-                ?? throw new NotFoundException("Room not found.");
+                ?? throw new NotFoundException("Номер не найден.");
 
             var roomNumber = req.Number.Trim();
 
@@ -67,7 +67,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
         public async Task DeactivateRoomAsync(int roomId)
         {
             var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == roomId)
-                ?? throw new NotFoundException("Room not found.");
+                ?? throw new NotFoundException("Номер не найден.");
 
             if (!room.IsActive)
                 return;
@@ -89,7 +89,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
                     rt.HotelId
                 })
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Room type not found.");
+                ?? throw new NotFoundException("Тип номера не найден.");
 
             var roomNumber = req.Number.Trim();
 
@@ -115,10 +115,10 @@ namespace HotelBookingSystem.Api.Services.Rooms
                 .Include(r => r.RoomType)
                 .ThenInclude(rt => rt.Hotel)
                 .FirstOrDefaultAsync(r => r.Id == roomId)
-                ?? throw new NotFoundException("Room not found.");
+                ?? throw new NotFoundException("Номер не найден.");
 
             if (room.RoomType.Hotel.OwnerId != ownerId)
-                throw new NotFoundException("Room not found.");
+                throw new NotFoundException("Номер не найден.");
 
             var roomNumber = req.Number.Trim();
 
@@ -139,10 +139,10 @@ namespace HotelBookingSystem.Api.Services.Rooms
                 .Include(r => r.RoomType)
                 .ThenInclude(rt => rt.Hotel)
                 .FirstOrDefaultAsync(r => r.Id == roomId)
-                ?? throw new NotFoundException("Room not found.");
+                ?? throw new NotFoundException("Номер не найден.");
 
             if (room.RoomType.Hotel.OwnerId != ownerId)
-                throw new NotFoundException("Room not found.");
+                throw new NotFoundException("Номер не найден.");
 
             if (!room.IsActive)
                 return;
@@ -161,7 +161,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
                 (!excludeRoomId.HasValue || r.Id != excludeRoomId.Value));
 
             if (exists)
-                throw new ConflictException("Room number already exists in this hotel.");
+                throw new ConflictException("Такой номер комнаты уже есть в этом отеле.");
         }
 
         private async Task SaveChangesHandlingRoomNumberConflictAsync()
@@ -172,7 +172,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
             }
             catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueRoomNumberViolation(ex))
             {
-                throw new ConflictException("Room number already exists.");
+                throw new ConflictException("Такой номер комнаты уже существует.");
             }
         }
 

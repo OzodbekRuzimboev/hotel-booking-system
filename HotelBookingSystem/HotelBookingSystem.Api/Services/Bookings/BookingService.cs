@@ -31,18 +31,18 @@ namespace HotelBookingSystem.Api.Services.Bookings
                 .FirstOrDefaultAsync();
 
             if (user is null)
-                throw new NotFoundException("User not found.");
+                throw new NotFoundException("Пользователь не найден.");
 
             if (req.CheckInDate >= req.CheckOutDate)
-                throw new ValidationException("Check-in date must be earlier than check-out date.");
+                throw new ValidationException("Дата заезда должна быть раньше даты выезда.");
 
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             if (req.CheckInDate < today)
-                throw new ValidationException("Check-in date cannot be earlier than today.");
+                throw new ValidationException("Дата заезда не может быть раньше сегодняшней даты.");
 
             if (req.GuestsCount <= 0)
-                throw new ValidationException("Guests count must be greater than zero.");
+                throw new ValidationException("Количество гостей должно быть больше нуля.");
 
             var roomType = await _context.RoomTypes
                 .AsNoTracking()
@@ -54,10 +54,10 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     rt.Price
                 })
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Room type not found");
+                ?? throw new NotFoundException("Тип номера не найден.");
 
             if (req.GuestsCount > roomType.Capacity)
-                throw new ValidationException("Guests count exceeds room capacity.");
+                throw new ValidationException("Количество гостей превышает вместимость номера.");
 
             var room = await _context.Rooms
                 .Where(r => r.IsActive && 
@@ -73,9 +73,9 @@ namespace HotelBookingSystem.Api.Services.Bookings
                     r.Id
                 })
                 .FirstOrDefaultAsync()
-                ?? throw new ConflictException("No available rooms of this type for the selected dates.");
+                ?? throw new ConflictException("На выбранные даты нет доступных номеров этого типа.");
 
-            var guestEmail = NormalizeRequiredText(req.GuestEmail, "Guest email is required.").ToLowerInvariant();
+            var guestEmail = NormalizeRequiredText(req.GuestEmail, "Email гостя обязателен.").ToLowerInvariant();
             var guestCountry = NormalizeOptionalText(req.GuestCountry);
             var guestPhoneNumber = NormalizeOptionalText(req.GuestPhoneNumber);
 
@@ -102,7 +102,7 @@ namespace HotelBookingSystem.Api.Services.Bookings
             }
             catch (DbUpdateException ex) when (DbExceptionHelper.IsBookingOverlapViolation(ex))
             {
-                throw new ConflictException("No available rooms of this type for the selected dates.");
+                throw new ConflictException("На выбранные даты нет доступных номеров этого типа.");
             }
 
             var bookingResponse = await _context.Bookings
@@ -178,15 +178,15 @@ namespace HotelBookingSystem.Api.Services.Bookings
         public async Task CancelUserBookingAsync(int userId, int bookingId)
         {
             var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId)
-                ?? throw new NotFoundException("Booking not found.");
+                ?? throw new NotFoundException("Бронирование не найдено.");
 
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             if (booking.Status == BookingStatus.Cancelled)
-                throw new ValidationException("Booking is already cancelled.");
+                throw new ValidationException("Бронирование уже отменено.");
 
             if (today >= booking.CheckInDate)
-                throw new ValidationException("Booking can be cancelled only before check-in.");
+                throw new ValidationException("Бронирование можно отменить только до заезда.");
 
             booking.Status = BookingStatus.Cancelled;
             booking.CancelledAt = DateTime.UtcNow;
@@ -237,7 +237,7 @@ namespace HotelBookingSystem.Api.Services.Bookings
         public async Task CancelAnyBookingAsync(int bookingId)
         {
             var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId)
-                ?? throw new NotFoundException("Booking not found.");
+                ?? throw new NotFoundException("Бронирование не найдено.");
 
             CancelBooking(booking);
             await _context.SaveChangesAsync();
@@ -250,10 +250,10 @@ namespace HotelBookingSystem.Api.Services.Bookings
                 .Where(u => u.Id == userId)
                 .Select(u => new { u.Id, u.Role })
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("User not found.");
+                ?? throw new NotFoundException("Пользователь не найден.");
 
             if (targetUser.Role != Role.User)
-                throw new ValidationException("Booking can be created only for a regular user account.");
+                throw new ValidationException("Бронирование можно создать только для обычного пользовательского аккаунта.");
 
             return await CreateBookingAsync(userId, req);
         }
@@ -265,7 +265,7 @@ namespace HotelBookingSystem.Api.Services.Bookings
             var hotelExists = await _context.Hotels.AsNoTracking().AnyAsync(h => h.Id == hotelId && h.OwnerId == ownerId);
 
             if (!hotelExists)
-                throw new NotFoundException("Hotel not found.");
+                throw new NotFoundException("Отель не найден.");
 
             var today = DateOnly.FromDateTime(DateTime.Today);
 
@@ -311,10 +311,10 @@ namespace HotelBookingSystem.Api.Services.Bookings
                 .ThenInclude(r => r.RoomType)
                 .ThenInclude(rt => rt.Hotel)
                 .FirstOrDefaultAsync(b => b.Id == bookingId)
-                ?? throw new NotFoundException("Booking not found.");
+                ?? throw new NotFoundException("Бронирование не найдено.");
 
             if (booking.Room.RoomType.Hotel.OwnerId != ownerId)
-                throw new NotFoundException("Booking not found.");
+                throw new NotFoundException("Бронирование не найдено.");
 
             CancelBooking(booking);
             await _context.SaveChangesAsync();
@@ -327,10 +327,10 @@ namespace HotelBookingSystem.Api.Services.Bookings
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             if (booking.Status == BookingStatus.Cancelled)
-                throw new ValidationException("Booking is already cancelled.");
+                throw new ValidationException("Бронирование уже отменено.");
 
             if (today >= booking.CheckInDate)
-                throw new ValidationException("Booking can be cancelled only before check-in.");
+                throw new ValidationException("Бронирование можно отменить только до заезда.");
 
             booking.Status = BookingStatus.Cancelled;
             booking.CancelledAt = DateTime.UtcNow;

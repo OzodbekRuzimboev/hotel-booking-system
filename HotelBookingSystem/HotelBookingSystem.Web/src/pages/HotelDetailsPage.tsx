@@ -34,11 +34,11 @@ import {
 import { formatCurrency, formatDateRange } from "../utils/format";
 
 function reviewScoreText(score: number) {
-  if (score >= 4.5) return "Excellent";
-  if (score >= 4) return "Very good";
-  if (score >= 3) return "Good";
-  if (score > 0) return "Review score";
-  return "No reviews";
+  if (score >= 4.5) return "Превосходно";
+  if (score >= 4) return "Очень хорошо";
+  if (score >= 3) return "Хорошо";
+  if (score > 0) return "Оценка";
+  return "Пока нет отзывов";
 }
 
 export function HotelDetailsPage() {
@@ -182,7 +182,7 @@ export function HotelDetailsPage() {
     setSuccess("");
 
     if (!isValidStayRange(searchDraft.checkInDate, searchDraft.checkOutDate)) {
-      setError("Check-out date must be after check-in date.");
+      setError("Дата выезда должна быть позже даты заезда.");
       return;
     }
 
@@ -226,7 +226,7 @@ export function HotelDetailsPage() {
         rating: reviewDraft.rating,
         comment: reviewDraft.comment || null,
       });
-      setSuccess("Review saved.");
+      setSuccess("Отзыв сохранен.");
       setReviewDraft((draft) => ({ ...draft, comment: "" }));
       await loadReviews();
     } catch (err) {
@@ -248,7 +248,7 @@ export function HotelDetailsPage() {
         rating,
         comment: comment || null,
       });
-      setSuccess("Review updated.");
+      setSuccess("Отзыв обновлен.");
       await loadReviews();
       return true;
     } catch (err) {
@@ -263,7 +263,7 @@ export function HotelDetailsPage() {
 
     try {
       await deleteReview(numericHotelId, reviewId);
-      setSuccess("Review deleted.");
+      setSuccess("Отзыв удален.");
       await loadReviews();
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -273,7 +273,7 @@ export function HotelDetailsPage() {
   if (loading) {
     return (
       <main className="page">
-        <p className="muted">Loading hotel...</p>
+        <p className="muted">Загрузка отеля...</p>
       </main>
     );
   }
@@ -281,9 +281,9 @@ export function HotelDetailsPage() {
   if (!hotel) {
     return (
       <main className="page stack">
-        <p>No hotel found.</p>
+        <p>Отель не найден.</p>
         {error && <p className="alert error">{error}</p>}
-        <Link to="/">Back to search</Link>
+        <Link to="/">Вернуться к поиску</Link>
       </main>
     );
   }
@@ -313,17 +313,17 @@ export function HotelDetailsPage() {
               <div>
                 <h3>{reviewScoreText(averageRating)}</h3>
                 <p className="muted small">
-                  {reviewCount} review{reviewCount === 1 ? "" : "s"}
+                  отзывов: {reviewCount}
                 </p>
               </div>
             </div>
             <div className="pill-row">
               <span className="pill">{formatDateRange(checkInDate, checkOutDate)}</span>
               <span className="pill">
-                {nights} night{nights === 1 ? "" : "s"}
+                ночей: {nights}
               </span>
               <span className="pill">
-                {guestsCount} guest{guestsCount === 1 ? "" : "s"}
+                гостей: {guestsCount}
               </span>
             </div>
             {hotel.description && <p>{hotel.description}</p>}
@@ -332,7 +332,7 @@ export function HotelDetailsPage() {
 
         {hotel.amenities.length > 0 && (
           <section className="amenity-section">
-            <p className="eyebrow">Hotel amenities</p>
+            <p className="eyebrow">Удобства отеля</p>
             <div className="amenity-grid">
               {getAmenityLabels(hotel.amenities, HOTEL_AMENITIES).map((amenity) => (
                 <span className="amenity-chip" key={amenity}>
@@ -350,8 +350,8 @@ export function HotelDetailsPage() {
       <section className="stack" id="rooms">
         <div className="row between wrap gap">
           <div>
-            <p className="eyebrow">Availability</p>
-            <h2>Choose your room type</h2>
+            <p className="eyebrow">Доступность</p>
+            <h2>Выберите тип номера</h2>
           </div>
         </div>
 
@@ -360,7 +360,7 @@ export function HotelDetailsPage() {
           onSubmit={handleSearchParameterSubmit}
         >
           <label>
-            Check-in
+            Заезд
             <input
               type="date"
               min={today}
@@ -375,7 +375,7 @@ export function HotelDetailsPage() {
             />
           </label>
           <label>
-            Check-out
+            Выезд
             <input
               type="date"
               min={searchDraft.checkInDate || today}
@@ -390,7 +390,7 @@ export function HotelDetailsPage() {
             />
           </label>
           <label>
-            Guests
+            Гости
             <input
               type="number"
               min={1}
@@ -405,12 +405,12 @@ export function HotelDetailsPage() {
             />
           </label>
           <button className="button" type="submit">
-            Change search parameters
+            Изменить параметры поиска
           </button>
         </form>
 
         {hotel.roomTypes.length === 0 && (
-          <p className="muted">No room types are available for these dates.</p>
+          <p className="muted">На выбранные даты нет доступных типов номеров.</p>
         )}
 
         <div className="room-results">
@@ -432,12 +432,12 @@ export function HotelDetailsPage() {
                 </h3>
                 {roomType.description && <p>{roomType.description}</p>}
                 <div className="pill-row">
-                  <span className="pill">Sleeps {roomType.capacity}</span>
+                  <span className="pill">Мест: {roomType.capacity}</span>
                   <span className="pill">
-                    {roomType.availableCount} available
+                    доступно: {roomType.availableCount}
                   </span>
                   <span className="pill">
-                    Final price {formatCurrency(roomType.price * Math.max(1, nights))}
+                    Итоговая цена {formatCurrency(roomType.price * Math.max(1, nights))}
                   </span>
                 </div>
                 {(roomType.amenities.length > 0 ||
@@ -462,19 +462,19 @@ export function HotelDetailsPage() {
               </div>
               <div className="booking-side">
                 <span className="muted small">
-                  Total for {Math.max(1, nights)} night{Math.max(1, nights) === 1 ? "" : "s"}
+                  Итого за ночей: {Math.max(1, nights)}
                 </span>
                 <strong>
                   {formatCurrency(roomType.price * Math.max(1, nights))}
                 </strong>
-                <span>{formatCurrency(roomType.price)}/night</span>
+                <span>{formatCurrency(roomType.price)}/ночь</span>
                 {canBookRoom && (
                   <button
                     className="button"
                     type="button"
                     onClick={() => handleBook(roomType.roomTypeId)}
                   >
-                    Reserve
+                    Забронировать
                   </button>
                 )}
               </div>
@@ -486,12 +486,12 @@ export function HotelDetailsPage() {
       <section className="reviews-layout" id="reviews">
         <div className="panel stack">
           <div>
-            <p className="eyebrow">Guest reviews</p>
-            <h2>Reviews by room type</h2>
+            <p className="eyebrow">Отзывы гостей</p>
+            <h2>Отзывы по типам номеров</h2>
           </div>
 
           {reviews.length === 0 ? (
-            <p className="muted">No reviews yet. Be the first to write one.</p>
+            <p className="muted">Отзывов пока нет. Будьте первым, кто оставит отзыв.</p>
           ) : (
             <div className="review-list">
               {reviews.map((review) => (
@@ -509,11 +509,11 @@ export function HotelDetailsPage() {
 
         <form className="panel stack review-form" onSubmit={handleReviewSubmit}>
           <div>
-            <p className="eyebrow">Your stay</p>
-            <h2>Write a review</h2>
+            <p className="eyebrow">Ваше проживание</p>
+            <h2>Оставить отзыв</h2>
           </div>
           <label>
-            Room type
+            Тип номера
             <select
               value={reviewDraft.roomTypeId}
               onChange={(event) =>
@@ -532,7 +532,7 @@ export function HotelDetailsPage() {
             </select>
           </label>
           <label>
-            Rating
+            Оценка
             <select
               value={reviewDraft.rating}
               onChange={(event) =>
@@ -542,29 +542,29 @@ export function HotelDetailsPage() {
                 })
               }
             >
-              <option value={5}>5 - Excellent</option>
-              <option value={4}>4 - Very good</option>
-              <option value={3}>3 - Good</option>
-              <option value={2}>2 - Fair</option>
-              <option value={1}>1 - Poor</option>
+              <option value={5}>5 - Превосходно</option>
+              <option value={4}>4 - Очень хорошо</option>
+              <option value={3}>3 - Хорошо</option>
+              <option value={2}>2 - Нормально</option>
+              <option value={1}>1 - Плохо</option>
             </select>
           </label>
           <label>
-            Review
+            Отзыв
             <textarea
               value={reviewDraft.comment}
               onChange={(event) =>
                 setReviewDraft({ ...reviewDraft, comment: event.target.value })
               }
               rows={5}
-              placeholder="What should other guests know about this room type?"
+              placeholder="Что другим гостям стоит знать об этом типе номера?"
             />
           </label>
           <button className="button" type="submit" disabled={hotel.roomTypes.length === 0}>
-            Save review
+            Сохранить отзыв
           </button>
           {!user && (
-            <p className="muted small">You will be asked to log in before saving.</p>
+            <p className="muted small">Перед сохранением потребуется войти в аккаунт.</p>
           )}
         </form>
       </section>
@@ -603,7 +603,7 @@ function ReviewCard({
   }
 
   async function handleDelete() {
-    if (!window.confirm("Delete this review?")) return;
+    if (!window.confirm("Удалить этот отзыв?")) return;
     await onDelete(review.id);
   }
 
@@ -617,7 +617,7 @@ function ReviewCard({
               <p className="muted small">{review.roomTypeName}</p>
             </div>
             <label className="compact-field">
-              Rating
+              Оценка
               <select
                 value={rating}
                 onChange={(event) => setRating(Number(event.target.value))}
@@ -631,7 +631,7 @@ function ReviewCard({
             </label>
           </div>
           <label>
-            Review
+            Отзыв
             <textarea
               value={comment}
               onChange={(event) => setComment(event.target.value)}
@@ -640,14 +640,14 @@ function ReviewCard({
           </label>
           <div className="row gap wrap">
             <button className="button secondary" type="submit">
-              Save
+              Сохранить
             </button>
             <button
               className="button secondary"
               type="button"
               onClick={() => setEditing(false)}
             >
-              Cancel
+              Отмена
             </button>
           </div>
         </form>
@@ -672,14 +672,14 @@ function ReviewCard({
             type="button"
             onClick={() => setEditing(true)}
           >
-            Edit
+            Изменить
           </button>
           <button
             className="mini-button danger-text"
             type="button"
             onClick={handleDelete}
           >
-            Delete
+            Удалить
           </button>
         </div>
       )}

@@ -32,11 +32,11 @@ namespace HotelBookingSystem.Api.Services
             var role = req.Role ?? Role.User;
 
             if (role is not Role.User and not Role.Owner)
-                throw new ValidationException("Only customer and owner accounts can be registered publicly.");
+                throw new ValidationException("Публично можно зарегистрировать только аккаунт гостя или владельца.");
 
             var exists = await _context.Users.AnyAsync(u => u.Email == email);
             if (exists)
-                throw new ConflictException("Email already in use.");
+                throw new ConflictException("Этот email уже используется.");
 
             var user = new User
             {
@@ -57,7 +57,7 @@ namespace HotelBookingSystem.Api.Services
             }
             catch (DbUpdateException ex) when (IsUniqueEmailViolation(ex))
             {
-                throw new ConflictException("Email already in use.");
+                throw new ConflictException("Этот email уже используется.");
             }
 
             var accessToken = _tokenService.CreateToken(user);
@@ -92,12 +92,12 @@ namespace HotelBookingSystem.Api.Services
             var password = req.Password;
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email)
-                ?? throw new UnauthorizedException("Invalid email or password.");
+                ?? throw new UnauthorizedException("Неверный email или пароль.");
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
 
             if (result == PasswordVerificationResult.Failed)
-                throw new UnauthorizedException("Invalid email or password.");
+                throw new UnauthorizedException("Неверный email или пароль.");
 
             var accessToken = _tokenService.CreateToken(user);
 
@@ -134,10 +134,10 @@ namespace HotelBookingSystem.Api.Services
                 .AsNoTracking()
                 .Include(rt => rt.User)
                 .FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash)
-                ?? throw new UnauthorizedException("Invalid refresh token.");
+                ?? throw new UnauthorizedException("Недействительный токен обновления.");
 
             if (storedToken.RevokedAt is not null || storedToken.ExpiresAt <= now)
-                throw new UnauthorizedException("Refresh token is no longer active.");
+                throw new UnauthorizedException("Токен обновления больше не активен.");
 
             var user = storedToken.User;
 
@@ -156,7 +156,7 @@ namespace HotelBookingSystem.Api.Services
                     .SetProperty(rt => rt.ReplacedByTokenHash, newRefreshTokenHash));
 
             if (revokedCount != 1)
-                throw new UnauthorizedException("Refresh token is no longer active.");
+                throw new UnauthorizedException("Токен обновления больше не активен.");
 
             _context.RefreshTokens.Add(new RefreshToken
             {
@@ -187,7 +187,7 @@ namespace HotelBookingSystem.Api.Services
             var refreshTokenHash = _tokenService.HashToken(refreshToken);
 
             var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.TokenHash == refreshTokenHash)
-                ?? throw new UnauthorizedException("Invalid refresh token.");
+                ?? throw new UnauthorizedException("Недействительный токен обновления.");
 
             if (storedToken.RevokedAt is null)
             {

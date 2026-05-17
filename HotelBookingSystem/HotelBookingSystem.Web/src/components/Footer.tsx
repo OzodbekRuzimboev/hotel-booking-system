@@ -5,7 +5,7 @@ export function Footer() {
       <span className="footer-separator" aria-hidden="true">
         |
       </span>
-      <span>Simple stays, easier planning.</span>
+      <span>Простое бронирование и удобное планирование.</span>
       <span className="footer-separator" aria-hidden="true">
         |
       </span>

@@ -89,12 +89,12 @@ export function HomePage() {
     const city = values.city.trim();
 
     if (!city) {
-      setError("City is required.");
+      setError("Укажите город.");
       return;
     }
 
     if (!isValidStayRange(values.checkInDate, values.checkOutDate)) {
-      setError("Check-out date must be after check-in date.");
+      setError("Дата выезда должна быть позже даты заезда.");
       return;
     }
 
@@ -134,11 +134,9 @@ export function HomePage() {
       <section className="home-hero">
         <div className="home-hero-content stack-lg">
           <div className="stack-sm">
-            <p className="eyebrow">Hotel stays</p>
-            <h1>Find your next stay</h1>
+            <h1>Найдите отель, который подходит именно вам.</h1>
             <p className="lead">
-              City breaks, business nights, and quiet weekend rooms in one
-              simple search.
+              Путешествуйте с комфортом — мы поможем найти подходящий отель.
             </p>
           </div>
 
@@ -175,13 +173,13 @@ function PopularDestinations({
   return (
     <section className="popular-destinations stack">
       <div>
-        <p className="eyebrow">Explore</p>
-        <h2>Popular destinations</h2>
+        <p className="eyebrow">Куда поехать</p>
+        <h2>Популярные направления</h2>
       </div>
       <div className="destination-grid">
         {destinations.map((destination, index) => (
           <button
-            aria-label={`Search hotels in ${destination.city}`}
+            aria-label={`Найти отели в городе ${destination.city}`}
             className={`destination-card ${index < 2 ? "featured" : ""}`}
             key={destination.id ?? `${destination.city}-${destination.country}`}
             style={{

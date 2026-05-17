@@ -103,7 +103,7 @@ export function AdminPopularDestinationsPage() {
     await run(async () => {
       await createPopularDestination(requestFromDraft(newDestination));
       setNewDestination(blankDestination());
-    }, "Popular destination created.");
+    }, "Популярное направление создано.");
   }
 
   function updateDraft(destinationId: number, draft: DestinationDraft) {
@@ -117,8 +117,8 @@ export function AdminPopularDestinationsPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Popular destinations</h1>
+          <p className="eyebrow">Администратор</p>
+          <h1>Популярные направления</h1>
         </div>
       </div>
 
@@ -127,12 +127,12 @@ export function AdminPopularDestinationsPage() {
 
       <section className="panel stack">
         <div>
-          <p className="eyebrow">Create</p>
-          <h2>Add destination</h2>
+          <p className="eyebrow">Создание</p>
+          <h2>Добавить направление</h2>
         </div>
         <DestinationForm
           draft={newDestination}
-          submitLabel="Add destination"
+          submitLabel="Добавить направление"
           onChange={setNewDestination}
           onSubmit={handleCreate}
         />
@@ -140,14 +140,14 @@ export function AdminPopularDestinationsPage() {
 
       <section className="stack">
         <div>
-          <p className="eyebrow">Manage</p>
-          <h2>Homepage destinations</h2>
+          <p className="eyebrow">Управление</p>
+          <h2>Направления на главной</h2>
         </div>
 
-        {loading && <p className="muted">Loading destinations...</p>}
+        {loading && <p className="muted">Загрузка направлений...</p>}
 
         {!loading && destinations.length === 0 && (
-          <p className="muted">No popular destinations have been added.</p>
+          <p className="muted">Популярные направления пока не добавлены.</p>
         )}
 
         <div className="management-list">
@@ -164,7 +164,7 @@ export function AdminPopularDestinationsPage() {
                 <div className="stack">
                   <DestinationForm
                     draft={draft}
-                    submitLabel="Save changes"
+                    submitLabel="Сохранить изменения"
                     onChange={(nextDraft) => updateDraft(destination.id, nextDraft)}
                     onSubmit={(event) => {
                       event.preventDefault();
@@ -174,7 +174,7 @@ export function AdminPopularDestinationsPage() {
                             destination.id,
                             requestFromDraft(draft)
                           ),
-                        "Popular destination updated."
+                        "Популярное направление обновлено."
                       );
                     }}
                   />
@@ -184,21 +184,21 @@ export function AdminPopularDestinationsPage() {
                       type="button"
                       onClick={() => updateDraft(destination.id, draftFromDestination(destination))}
                     >
-                      Reset
+                      Сбросить
                     </button>
                     <button
                       className="button danger"
                       type="button"
                       onClick={() => {
-                        if (!window.confirm(`Delete ${destination.city}?`)) return;
+                        if (!window.confirm(`Удалить ${destination.city}?`)) return;
 
                         run(
                           () => deletePopularDestination(destination.id),
-                          "Popular destination deleted."
+                          "Популярное направление удалено."
                         );
                       }}
                     >
-                      Delete
+                      Удалить
                     </button>
                   </div>
                 </div>
@@ -225,7 +225,7 @@ function DestinationForm({
   return (
     <form className="form-grid popular-destination-form" onSubmit={onSubmit}>
       <label>
-        City
+        Город
         <input
           value={draft.city}
           onChange={(event) => onChange({ ...draft, city: event.target.value })}
@@ -234,7 +234,7 @@ function DestinationForm({
         />
       </label>
       <label>
-        Country
+        Страна
         <input
           value={draft.country}
           onChange={(event) => onChange({ ...draft, country: event.target.value })}
@@ -243,7 +243,7 @@ function DestinationForm({
         />
       </label>
       <label>
-        Sort order
+        Порядок сортировки
         <input
           type="number"
           min={0}
@@ -263,10 +263,10 @@ function DestinationForm({
             onChange({ ...draft, isActive: event.target.checked })
           }
         />
-        Show on homepage
+        Показывать на главной
       </label>
       <label className="full">
-        Image URL
+        URL изображения
         <input
           value={draft.imageUrl}
           onChange={(event) => onChange({ ...draft, imageUrl: event.target.value })}

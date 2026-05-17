@@ -61,7 +61,7 @@ export function SearchPage() {
       setSearched(true);
 
       if (!isValidStayRange(values.checkInDate, values.checkOutDate)) {
-        setError("Check-out date must be after check-in date.");
+        setError("Дата выезда должна быть позже даты заезда.");
         setHotels([]);
         setLoading(false);
         return;
@@ -82,7 +82,7 @@ export function SearchPage() {
         (maxNightlyPrice !== null &&
           (!Number.isFinite(maxNightlyPrice) || maxNightlyPrice <= 0))
       ) {
-        setError("Nightly budget must be a positive number.");
+        setError("Бюджет за ночь должен быть положительным числом.");
         setHotels([]);
         setLoading(false);
         return;
@@ -93,7 +93,7 @@ export function SearchPage() {
         maxNightlyPrice !== null &&
         minNightlyPrice > maxNightlyPrice
       ) {
-        setError("Minimum nightly budget cannot be greater than maximum nightly budget.");
+        setError("Минимальный бюджет за ночь не может быть больше максимального.");
         setHotels([]);
         setLoading(false);
         return;
@@ -148,12 +148,12 @@ export function SearchPage() {
     const city = searchDraft.city.trim();
 
     if (!city) {
-      setError("City is required.");
+      setError("Укажите город.");
       return;
     }
 
     if (!isValidStayRange(searchDraft.checkInDate, searchDraft.checkOutDate)) {
-      setError("Check-out date must be after check-in date.");
+      setError("Дата выезда должна быть позже даты заезда.");
       return;
     }
 
@@ -186,8 +186,8 @@ export function SearchPage() {
     <main className="page stack-lg search-page">
       <section className="stack">
         <div>
-          <p className="eyebrow">Find stays</p>
-          <h1>Search hotels</h1>
+          <p className="eyebrow">Поиск</p>
+          <h1>Найти отели</h1>
         </div>
         <SearchCard
           className="search-page-card"
@@ -206,32 +206,31 @@ export function SearchPage() {
       {searched && (
         <div className="page-header">
           <h2 className="results-summary-title">
-            {searchDraft.city.trim()}: {hotels.length}{" "}
-            {hotels.length === 1 ? "property" : "properties"} found
+            {searchDraft.city.trim()}: найдено объектов - {hotels.length}
           </h2>
         </div>
       )}
 
       {!searched && (
-        <p className="muted">Use the search card above to find available hotels.</p>
+        <p className="muted">Используйте форму выше, чтобы найти доступные отели.</p>
       )}
 
-      {loading && <p className="muted">Searching hotels...</p>}
+      {loading && <p className="muted">Идет поиск отелей...</p>}
 
       {searched && (
         <div className="search-results-layout">
           <form className="filter-panel panel stack" onSubmit={handleFilterSubmit}>
             <div>
-              <p className="eyebrow">Filters</p>
-              <h3>Refine your stay</h3>
+              <p className="eyebrow">Фильтры</p>
+              <h3>Уточните поиск</h3>
             </div>
             <label>
-              Nightly budget
+              Бюджет за ночь
               <div className="budget-range">
                 <input
                   inputMode="decimal"
                   min={1}
-                  placeholder="From"
+                  placeholder="От"
                   type="number"
                   value={filters.minNightlyPrice}
                   onChange={(event) =>
@@ -244,7 +243,7 @@ export function SearchPage() {
                 <input
                   inputMode="decimal"
                   min={1}
-                  placeholder="To"
+                  placeholder="До"
                   type="number"
                   value={filters.maxNightlyPrice}
                   onChange={(event) =>
@@ -259,30 +258,30 @@ export function SearchPage() {
             <FilterGroup
               options={HOTEL_AMENITIES}
               selected={filters.hotelAmenities}
-              title="Hotel amenities"
+              title="Удобства отеля"
               onToggle={(value) => toggleFilter("hotelAmenities", value)}
             />
             <FilterGroup
               options={ROOM_AMENITIES}
               selected={filters.roomAmenities}
-              title="Room amenities"
+              title="Удобства номера"
               onToggle={(value) => toggleFilter("roomAmenities", value)}
             />
             <FilterGroup
               options={MEAL_OPTIONS}
               selected={filters.mealOptions}
-              title="Meals"
+              title="Питание"
               onToggle={(value) => toggleFilter("mealOptions", value)}
             />
             <button className="button" disabled={loading} type="submit">
-              Apply filters
+              Применить фильтры
             </button>
           </form>
 
           <div className="hotel-results">
             {!loading && hotels.length === 0 && !error && (
               <p className="muted">
-                No hotels match the selected city, dates, guests, and filters.
+                По выбранному городу, датам, гостям и фильтрам отели не найдены.
               </p>
             )}
 

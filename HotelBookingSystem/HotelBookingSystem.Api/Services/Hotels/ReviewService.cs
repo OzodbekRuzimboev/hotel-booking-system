@@ -19,7 +19,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
         {
             var hotelExists = await _context.Hotels.AnyAsync(h => h.Id == hotelId && h.IsActive);
             if (!hotelExists)
-                throw new NotFoundException("Hotel not found.");
+                throw new NotFoundException("Отель не найден.");
 
             return await _context.Reviews
                 .AsNoTracking()
@@ -36,7 +36,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
                 .Where(rt => rt.Id == req.RoomTypeId && rt.HotelId == hotelId && rt.IsActive && rt.Hotel.IsActive)
                 .Select(rt => new { rt.Id })
                 .FirstOrDefaultAsync()
-                ?? throw new NotFoundException("Room type not found for this hotel.");
+                ?? throw new NotFoundException("Тип номера для этого отеля не найден.");
 
             var existing = await _context.Reviews
                 .FirstOrDefaultAsync(r => r.UserId == userId && r.RoomTypeId == roomType.Id);
@@ -70,14 +70,14 @@ namespace HotelBookingSystem.Api.Services.Hotels
         {
             var review = await _context.Reviews
                 .FirstOrDefaultAsync(r => r.Id == reviewId && r.UserId == userId && r.HotelId == hotelId)
-                ?? throw new NotFoundException("Review not found.");
+                ?? throw new NotFoundException("Отзыв не найден.");
 
             var roomTypeExists = await _context.RoomTypes
                 .AsNoTracking()
                 .AnyAsync(rt => rt.Id == req.RoomTypeId && rt.HotelId == hotelId && rt.IsActive && rt.Hotel.IsActive);
 
             if (!roomTypeExists)
-                throw new NotFoundException("Room type not found for this hotel.");
+                throw new NotFoundException("Тип номера для этого отеля не найден.");
 
             review.RoomTypeId = req.RoomTypeId;
             review.Rating = req.Rating;
@@ -92,7 +92,7 @@ namespace HotelBookingSystem.Api.Services.Hotels
         {
             var review = await _context.Reviews
                 .FirstOrDefaultAsync(r => r.Id == reviewId && r.UserId == userId && r.HotelId == hotelId)
-                ?? throw new NotFoundException("Review not found.");
+                ?? throw new NotFoundException("Отзыв не найден.");
 
             _context.Reviews.Remove(review);
             await _context.SaveChangesAsync();

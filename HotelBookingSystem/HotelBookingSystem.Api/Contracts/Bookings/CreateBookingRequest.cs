@@ -4,14 +4,14 @@ namespace HotelBookingSystem.Api.Contracts.Bookings
 {
     public class CreateBookingRequest : IValidatableObject
     {
-        [Range(1, int.MaxValue, ErrorMessage = "RoomTypeId must be greater than zero.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Идентификатор типа номера должен быть больше нуля.")]
         public int RoomTypeId { get; set; }
 
         public DateOnly CheckInDate { get; set; }
 
         public DateOnly CheckOutDate { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Guests count must be greater than zero.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Количество гостей должно быть больше нуля.")]
         public int GuestsCount { get; set; }
 
         [Required]
@@ -28,13 +28,13 @@ namespace HotelBookingSystem.Api.Contracts.Bookings
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (CheckInDate == default)
-                yield return new ValidationResult("CheckInDate is required.", [nameof(CheckInDate)]);
+                yield return new ValidationResult("Дата заезда обязательна.", [nameof(CheckInDate)]);
 
             if (CheckOutDate == default)
-                yield return new ValidationResult("CheckOutDate is required.", [nameof(CheckOutDate)]);
+                yield return new ValidationResult("Дата выезда обязательна.", [nameof(CheckOutDate)]);
 
             if (CheckOutDate <= CheckInDate)
-                yield return new ValidationResult("CheckOutDate must be later than CheckInDate.", [nameof(CheckOutDate), nameof(CheckInDate)]);
+                yield return new ValidationResult("Дата выезда должна быть позже даты заезда.", [nameof(CheckOutDate), nameof(CheckInDate)]);
         }
     }
 }

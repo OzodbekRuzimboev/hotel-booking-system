@@ -14,7 +14,7 @@ import { HotelManagement } from "../../components/HotelManagement";
 export function OwnerHotelsPage() {
   return (
     <HotelManagement
-      title="Owner hotels"
+      title="Мои отели"
       loadHotels={getOwnerHotels}
       updateHotel={updateOwnerHotel}
       createHotel={createOwnerHotel}

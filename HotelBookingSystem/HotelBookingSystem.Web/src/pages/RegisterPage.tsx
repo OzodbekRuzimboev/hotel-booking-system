@@ -37,29 +37,29 @@ export function RegisterPage() {
     <main className="auth-page">
       <section className="auth-card panel stack">
         <div>
-          <p className="eyebrow">Create account</p>
-          <h1>Register</h1>
+          <p className="eyebrow">Создание аккаунта</p>
+          <h1>Регистрация</h1>
         </div>
 
         <form className="form" onSubmit={handleSubmit}>
-          <label>Name<input value={name} onChange={(event) => setName(event.target.value)} minLength={2} required /></label>
-          <label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
+          <label>Имя<input value={name} onChange={(event) => setName(event.target.value)} minLength={2} required /></label>
+          <label>Электронная почта<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <PasswordField
             autoComplete="new-password"
-            label="Password"
+            label="Пароль"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             minLength={8}
             required
           />
           {error && <p className="alert error">{error}</p>}
-          <button className="button" disabled={loading} type="submit">{loading ? "Creating account..." : "Register"}</button>
+          <button className="button" disabled={loading} type="submit">{loading ? "Создание аккаунта..." : "Зарегистрироваться"}</button>
         </form>
 
         <p className="muted small">
-          Already registered?{" "}
+          Уже есть аккаунт?{" "}
           <Link to={`/login?returnTo=${encodeURIComponent(returnTo)}`}>
-            Sign in
+            Войти
           </Link>
         </p>
       </section>

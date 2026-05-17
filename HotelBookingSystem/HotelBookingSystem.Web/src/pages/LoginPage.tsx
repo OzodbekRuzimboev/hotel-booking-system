@@ -36,27 +36,27 @@ export function LoginPage() {
     <main className="auth-page">
       <section className="auth-card panel stack">
         <div>
-          <p className="eyebrow">Welcome back</p>
-          <h1>Sign in</h1>
+          <p className="eyebrow">С возвращением</p>
+          <h1>Войти</h1>
         </div>
 
         <form className="form" onSubmit={handleSubmit}>
-          <label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
+          <label>Электронная почта<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <PasswordField
             autoComplete="current-password"
-            label="Password"
+            label="Пароль"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
           />
           {error && <p className="alert error">{error}</p>}
-          <button className="button" disabled={loading} type="submit">{loading ? "Signing in..." : "Sign in"}</button>
+          <button className="button" disabled={loading} type="submit">{loading ? "Вход..." : "Войти"}</button>
         </form>
 
         <p className="muted small">
-          No account?{" "}
+          Нет аккаунта?{" "}
           <Link to={`/register?returnTo=${encodeURIComponent(returnTo)}`}>
-            Register
+            Зарегистрироваться
           </Link>
         </p>
       </section>

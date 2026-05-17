@@ -109,7 +109,7 @@ export function RoomTypeDetailsPage() {
   if (loading) {
     return (
       <main className="page">
-        <p className="muted">Loading room type...</p>
+        <p className="muted">Загрузка типа номера...</p>
       </main>
     );
   }
@@ -117,9 +117,9 @@ export function RoomTypeDetailsPage() {
   if (!hotel || !roomType) {
     return (
       <main className="page stack">
-        <p>No room type found for these dates.</p>
+        <p>Тип номера на выбранные даты не найден.</p>
         {error && <p className="alert error">{error}</p>}
-        <Link to="/">Back to search</Link>
+        <Link to="/">Вернуться к поиску</Link>
       </main>
     );
   }
@@ -142,7 +142,7 @@ export function RoomTypeDetailsPage() {
             guestsCount: guestsCount.toString(),
           }).toString()}`}
         >
-          Back to hotel
+          Вернуться к отелю
         </Link>
       </div>
 
@@ -156,28 +156,28 @@ export function RoomTypeDetailsPage() {
 
         <aside className="panel stack booking-summary">
           <div>
-            <p className="eyebrow">Your stay</p>
+            <p className="eyebrow">Ваше проживание</p>
             <h2>{formatCurrency(finalPrice)}</h2>
             <p className="muted">
-              {formatCurrency(roomType.price)}/night
+              {formatCurrency(roomType.price)}/ночь
             </p>
           </div>
           <div className="pill-row">
             <span className="pill">{formatDateRange(checkInDate, checkOutDate)}</span>
             <span className="pill">
-              {nights} night{nights === 1 ? "" : "s"}
+              ночей: {nights}
             </span>
             <span className="pill">
-              {guestsCount} guest{guestsCount === 1 ? "" : "s"}
+              гостей: {guestsCount}
             </span>
           </div>
           <div className="stack-sm">
-            <p>Sleeps {roomType.capacity}</p>
-            <p>{roomType.availableCount} room{roomType.availableCount === 1 ? "" : "s"} available</p>
+            <p>Мест: {roomType.capacity}</p>
+            <p>доступно номеров: {roomType.availableCount}</p>
           </div>
           {canBookRoom && (
             <button className="button" type="button" onClick={handleBook}>
-              Reserve
+              Забронировать
             </button>
           )}
         </aside>
@@ -185,24 +185,24 @@ export function RoomTypeDetailsPage() {
 
       <section className="panel stack">
         <div>
-          <p className="eyebrow">Room details</p>
-          <h2>About this room type</h2>
+          <p className="eyebrow">Детали номера</p>
+          <h2>Об этом типе номера</h2>
         </div>
         {roomType.description ? (
           <p>{roomType.description}</p>
         ) : (
-          <p className="muted">No description has been added yet.</p>
+          <p className="muted">Описание пока не добавлено.</p>
         )}
         <div className="pill-row">
-          <span className="pill">Capacity {roomType.capacity}</span>
-          <span className="pill">{formatCurrency(roomType.price)}/night</span>
-          <span className="pill">Final price {formatCurrency(finalPrice)}</span>
+          <span className="pill">Мест: {roomType.capacity}</span>
+          <span className="pill">{formatCurrency(roomType.price)}/ночь</span>
+          <span className="pill">Итоговая цена {formatCurrency(finalPrice)}</span>
         </div>
         {(roomType.amenities.length > 0 || roomType.mealOptions.length > 0) && (
           <div className="room-feature-row">
             {roomType.amenities.length > 0 && (
               <div>
-                <h3>Room amenities</h3>
+                <h3>Удобства номера</h3>
                 <div className="amenity-chip-row">
                   {getAmenityLabels(roomType.amenities, ROOM_AMENITIES).map(
                     (amenity) => (
@@ -216,7 +216,7 @@ export function RoomTypeDetailsPage() {
             )}
             {roomType.mealOptions.length > 0 && (
               <div>
-                <h3>Meals</h3>
+                <h3>Питание</h3>
                 <div className="amenity-chip-row">
                   {getAmenityLabels(roomType.mealOptions, MEAL_OPTIONS).map(
                     (mealOption) => (

@@ -25,7 +25,7 @@ namespace HotelBookingSystem.Api.Services.Users
                 .AsNoTracking()
                 .Include(u => u.Settings)
                 .FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new NotFoundException("User not found.");
+                ?? throw new NotFoundException("Пользователь не найден.");
 
             return ToAccountResponse(user);
         }
@@ -35,7 +35,7 @@ namespace HotelBookingSystem.Api.Services.Users
             var user = await _context.Users
                 .Include(u => u.Settings)
                 .FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new NotFoundException("User not found.");
+                ?? throw new NotFoundException("Пользователь не найден.");
 
             user.Name = req.Name.Trim();
             user.PhoneNumber = NormalizeOptionalText(req.PhoneNumber);
@@ -53,7 +53,7 @@ namespace HotelBookingSystem.Api.Services.Users
             var user = await _context.Users
                 .Include(u => u.Settings)
                 .FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new NotFoundException("User not found.");
+                ?? throw new NotFoundException("Пользователь не найден.");
 
             await EnsureSettingsAsync(user);
 
@@ -70,7 +70,7 @@ namespace HotelBookingSystem.Api.Services.Users
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new NotFoundException("User not found.");
+                ?? throw new NotFoundException("Пользователь не найден.");
 
             var currentPasswordResult = _passwordHasher.VerifyHashedPassword(
                 user,
@@ -78,7 +78,7 @@ namespace HotelBookingSystem.Api.Services.Users
                 req.CurrentPassword);
 
             if (currentPasswordResult == PasswordVerificationResult.Failed)
-                throw new ValidationException("Current password is incorrect.");
+                throw new ValidationException("Текущий пароль указан неверно.");
 
             var newPasswordResult = _passwordHasher.VerifyHashedPassword(
                 user,
@@ -86,7 +86,7 @@ namespace HotelBookingSystem.Api.Services.Users
                 req.NewPassword);
 
             if (newPasswordResult != PasswordVerificationResult.Failed)
-                throw new ValidationException("New password must be different from current password.");
+                throw new ValidationException("Новый пароль должен отличаться от текущего.");
 
             user.PasswordHash = _passwordHasher.HashPassword(user, req.NewPassword);
 
@@ -133,7 +133,7 @@ namespace HotelBookingSystem.Api.Services.Users
         {
             var hotelExists = await _context.Hotels.AnyAsync(h => h.Id == hotelId && h.IsActive);
             if (!hotelExists)
-                throw new NotFoundException("Hotel not found.");
+                throw new NotFoundException("Отель не найден.");
 
             var exists = await IsFavoriteAsync(userId, hotelId);
             if (exists)

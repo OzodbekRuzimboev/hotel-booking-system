@@ -3,13 +3,13 @@ import { BookingDisplayStatus, type BookingDisplayStatus as BookingStatusValue }
 export function bookingStatusText(status: BookingStatusValue) {
   switch (status) {
     case BookingDisplayStatus.Active:
-      return "Active";
+      return "Активно";
     case BookingDisplayStatus.Cancelled:
-      return "Cancelled";
+      return "Отменено";
     case BookingDisplayStatus.Completed:
-      return "Completed";
+      return "Завершено";
     default:
-      return "Unknown";
+      return "Неизвестно";
   }
 }
 

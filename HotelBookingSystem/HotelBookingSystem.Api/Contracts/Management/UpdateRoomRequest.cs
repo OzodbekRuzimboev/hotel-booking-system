@@ -6,7 +6,7 @@ namespace HotelBookingSystem.Api.Contracts.Management
     {
         [Required]
         [StringLength(20, MinimumLength = 1)]
-        [RegularExpression(@".*\S.*", ErrorMessage = "Room number cannot be empty or whitespace.")]
+        [RegularExpression(@".*\S.*", ErrorMessage = "Номер комнаты не может быть пустым или состоять только из пробелов.")]
         public required string Number { get; set; }
     }
 }

@@ -19,14 +19,14 @@ export function Navbar() {
         StayFinder
       </Link>
 
-      <nav className="nav-links" aria-label="Main navigation" />
+      <nav className="nav-links" aria-label="Основная навигация" />
 
       <div className="auth-actions">
         {user ? (
           <>
             {user.role === Role.Owner && (
               <Link className="button secondary property-link" to="/owner/hotels">
-                List your property
+                Разместить объект
               </Link>
             )}
             <div className="user-menu-wrap">
@@ -48,19 +48,19 @@ export function Navbar() {
                   {user.role === Role.Admin ? (
                     <>
                       <Link to="/admin/hotels" onClick={() => setMenuOpen(false)}>
-                        Admin hotels
+                        Отели администратора
                       </Link>
                       <Link to="/admin/bookings" onClick={() => setMenuOpen(false)}>
-                        Admin bookings
+                        Бронирования
                       </Link>
                       <Link
                         to="/admin/popular-destinations"
                         onClick={() => setMenuOpen(false)}
                       >
-                        Popular destinations
+                        Популярные направления
                       </Link>
                       <Link to="/admin/users" onClick={() => setMenuOpen(false)}>
-                        Users
+                        Пользователи
                       </Link>
                     </>
                   ) : (
@@ -68,30 +68,30 @@ export function Navbar() {
                       {user.role === Role.Owner && (
                         <>
                           <Link to="/owner/hotels" onClick={() => setMenuOpen(false)}>
-                            Owner hotels
+                            Мои отели
                           </Link>
                           <Link to="/owner/bookings" onClick={() => setMenuOpen(false)}>
-                            Owner bookings
+                            Бронирования отелей
                           </Link>
                         </>
                       )}
                       <Link to="/account" onClick={() => setMenuOpen(false)}>
-                        Personal account
+                        Личный кабинет
                       </Link>
                       {user.role === Role.User && (
                         <>
                           <Link to="/favorites" onClick={() => setMenuOpen(false)}>
-                            Favorites
+                            Избранное
                           </Link>
                           <Link to="/my-bookings" onClick={() => setMenuOpen(false)}>
-                            My reservations
+                            Мои бронирования
                           </Link>
                         </>
                       )}
                     </>
                   )}
                   <button type="button" onClick={handleLogout}>
-                    Logout
+                    Выйти
                   </button>
                 </div>
               )}
@@ -100,13 +100,13 @@ export function Navbar() {
         ) : (
           <>
             <Link className="button secondary property-link" to="/list-your-property">
-              List your property
+              Разместить объект
             </Link>
             <Link className="button" to="/register">
-              Register
+              Регистрация
             </Link>
             <Link className="button secondary" to="/login">
-              Sign in
+              Войти
             </Link>
           </>
         )}

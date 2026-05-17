@@ -38,7 +38,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
             problem.Should().NotBeNull();
 
             var allErrors = problem!.Errors.SelectMany(x => x.Value);
-            allErrors.Should().Contain(error => error.Contains("CheckOutDate must be later than CheckInDate."));
+            allErrors.Should().Contain(error => error.Contains("Дата выезда должна быть позже даты заезда."));
 
             using var scope = Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

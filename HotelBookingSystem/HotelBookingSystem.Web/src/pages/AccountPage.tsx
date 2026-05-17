@@ -80,7 +80,7 @@ export function AccountPage() {
         name: updated.name,
         profileImageUrl: updated.profileImageUrl ?? null,
       });
-      setSuccess("Profile updated.");
+      setSuccess("Профиль обновлен.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -94,7 +94,7 @@ export function AccountPage() {
     try {
       const updated = await updateSettings(settingsDraft);
       setSettingsDraft(updated);
-      setSuccess("Settings saved.");
+      setSuccess("Настройки сохранены.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -106,7 +106,7 @@ export function AccountPage() {
     setSuccess("");
 
     if (passwordDraft.newPassword !== passwordDraft.confirmPassword) {
-      setError("New password and confirmation do not match.");
+      setError("Новый пароль и подтверждение не совпадают.");
       return;
     }
 
@@ -120,7 +120,7 @@ export function AccountPage() {
         newPassword: "",
         confirmPassword: "",
       });
-      setSuccess("Password updated.");
+      setSuccess("Пароль обновлен.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -130,12 +130,12 @@ export function AccountPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Account</p>
-          <h1>Personal account</h1>
+          <p className="eyebrow">Аккаунт</p>
+          <h1>Личный кабинет</h1>
         </div>
       </div>
 
-      {loading && <p className="muted">Loading account...</p>}
+      {loading && <p className="muted">Загрузка аккаунта...</p>}
       {error && <p className="alert error">{error}</p>}
       {success && <p className="alert success">{success}</p>}
 
@@ -161,12 +161,12 @@ export function AccountPage() {
           <div className="account-grid">
             <section className="panel stack">
               <div>
-                <p className="eyebrow">Personal information</p>
-                <h2>Profile</h2>
+                <p className="eyebrow">Личная информация</p>
+                <h2>Профиль</h2>
               </div>
               <form className="form" onSubmit={handleProfileSubmit}>
                 <label>
-                  Name
+                  Имя
                   <input
                     value={profileDraft.name}
                     onChange={(event) =>
@@ -176,7 +176,7 @@ export function AccountPage() {
                   />
                 </label>
                 <label>
-                  Phone
+                  Телефон
                   <input
                     value={profileDraft.phoneNumber}
                     onChange={(event) =>
@@ -189,7 +189,7 @@ export function AccountPage() {
                   />
                 </label>
                 <label>
-                  Country
+                  Страна
                   <input
                     value={profileDraft.country}
                     onChange={(event) =>
@@ -203,9 +203,9 @@ export function AccountPage() {
                 </label>
                 <div className="profile-photo-field">
                   <ImageField
-                    label="Profile photo"
+                    label="Фото профиля"
                     maxImages={1}
-                    previewAlt={profileDraft.name || "Profile photo"}
+                    previewAlt={profileDraft.name || "Фото профиля"}
                     values={
                       profileDraft.profileImageUrl
                         ? [profileDraft.profileImageUrl]
@@ -220,20 +220,20 @@ export function AccountPage() {
                   />
                 </div>
                 <button className="button" type="submit">
-                  Save profile
+                  Сохранить профиль
                 </button>
               </form>
             </section>
 
             <section className="panel stack">
               <div>
-                <p className="eyebrow">Security</p>
-                <h2>Password</h2>
+                <p className="eyebrow">Безопасность</p>
+                <h2>Пароль</h2>
               </div>
               <form className="form" onSubmit={handlePasswordSubmit}>
                 <PasswordField
                   autoComplete="current-password"
-                  label="Current password"
+                  label="Текущий пароль"
                   value={passwordDraft.currentPassword}
                   onChange={(event) =>
                     setPasswordDraft({
@@ -245,7 +245,7 @@ export function AccountPage() {
                 />
                 <PasswordField
                   autoComplete="new-password"
-                  label="New password"
+                  label="Новый пароль"
                   value={passwordDraft.newPassword}
                   onChange={(event) =>
                     setPasswordDraft({
@@ -258,7 +258,7 @@ export function AccountPage() {
                 />
                 <PasswordField
                   autoComplete="new-password"
-                  label="Confirm new password"
+                  label="Подтвердите новый пароль"
                   value={passwordDraft.confirmPassword}
                   onChange={(event) =>
                     setPasswordDraft({
@@ -270,19 +270,19 @@ export function AccountPage() {
                   required
                 />
                 <button className="button secondary" type="submit">
-                  Change password
+                  Изменить пароль
                 </button>
               </form>
             </section>
 
             <section className="panel stack">
               <div>
-                <p className="eyebrow">Preferences</p>
-                <h2>Settings</h2>
+                <p className="eyebrow">Предпочтения</p>
+                <h2>Настройки</h2>
               </div>
               <form className="form" onSubmit={handleSettingsSubmit}>
                 <label>
-                  Currency
+                  Валюта
                   <select
                     value={settingsDraft.preferredCurrency}
                     onChange={(event) =>
@@ -298,7 +298,7 @@ export function AccountPage() {
                   </select>
                 </label>
                 <label>
-                  Language
+                  Язык
                   <select
                     value={settingsDraft.preferredLanguage}
                     onChange={(event) =>
@@ -308,9 +308,9 @@ export function AccountPage() {
                       })
                     }
                   >
-                    <option value="en">English</option>
-                    <option value="uz">Uzbek</option>
-                    <option value="ru">Russian</option>
+                    <option value="en">Английский</option>
+                    <option value="uz">Узбекский</option>
+                    <option value="ru">Русский</option>
                   </select>
                 </label>
                 <label className="checkbox-label">
@@ -324,10 +324,10 @@ export function AccountPage() {
                       })
                     }
                   />
-                  Email booking updates
+                  Уведомления о бронированиях по электронной почте
                 </label>
                 <button className="button secondary" type="submit">
-                  Save settings
+                  Сохранить настройки
                 </button>
               </form>
             </section>

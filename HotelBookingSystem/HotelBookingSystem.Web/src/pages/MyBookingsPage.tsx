@@ -56,15 +56,15 @@ export function MyBookingsPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Customer area</p>
-          <h1>My bookings</h1>
+          <p className="eyebrow">Раздел гостя</p>
+          <h1>Мои бронирования</h1>
         </div>
       </div>
 
-      {loading && <p className="muted">Loading bookings...</p>}
+      {loading && <p className="muted">Загрузка бронирований...</p>}
       {error && <p className="alert error">{error}</p>}
       {!loading && bookings.length === 0 && (
-        <p className="muted">You have no bookings yet.</p>
+        <p className="muted">У вас пока нет бронирований.</p>
       )}
 
       <div className="booking-list">
@@ -103,8 +103,8 @@ export function MyBookingsPage() {
               </h2>
               <p className="muted">{booking.roomTypeName}</p>
               <p>{formatDateRange(booking.checkInDate, booking.checkOutDate)}</p>
-              <p>Guests: {booking.guestsCount}</p>
-              <p className="muted small">Confirmation: {booking.guestEmail}</p>
+              <p>Гости: {booking.guestsCount}</p>
+              <p className="muted small">Подтверждение: {booking.guestEmail}</p>
             </div>
             <div className="booking-side">
               <BookingStatusBadge status={booking.status} />
@@ -118,7 +118,7 @@ export function MyBookingsPage() {
                     handleCancel(booking.id);
                   }}
                 >
-                  Cancel
+                  Отменить
                 </button>
               )}
             </div>
@@ -127,42 +127,42 @@ export function MyBookingsPage() {
                 className="booking-details"
                 onClick={(event) => event.stopPropagation()}
               >
-                <BookingDetail label="Booking ID" value={`#${booking.id}`} />
-                <BookingDetail label="Hotel" value={booking.hotelName} />
-                <BookingDetail label="Room type" value={booking.roomTypeName} />
-                <BookingDetail label="Room number" value={booking.roomNumber} />
+                <BookingDetail label="ID бронирования" value={`#${booking.id}`} />
+                <BookingDetail label="Отель" value={booking.hotelName} />
+                <BookingDetail label="Тип номера" value={booking.roomTypeName} />
+                <BookingDetail label="Номер комнаты" value={booking.roomNumber} />
                 <BookingDetail
-                  label="Stay dates"
+                  label="Даты проживания"
                   value={formatDateRange(
                     booking.checkInDate,
                     booking.checkOutDate
                   )}
                 />
                 <BookingDetail
-                  label="Guests"
+                  label="Гости"
                   value={booking.guestsCount.toString()}
                 />
                 <BookingDetail
-                  label="Total price"
+                  label="Итоговая цена"
                   value={formatCurrency(booking.totalPrice)}
                 />
-                <BookingDetail label="Guest email" value={booking.guestEmail} />
+                <BookingDetail label="Электронная почта гостя" value={booking.guestEmail} />
                 <BookingDetail
-                  label="Guest country"
-                  value={booking.guestCountry ?? "Not provided"}
+                  label="Страна гостя"
+                  value={booking.guestCountry ?? "Не указано"}
                 />
                 <BookingDetail
-                  label="Guest phone"
-                  value={booking.guestPhoneNumber ?? "Not provided"}
+                  label="Телефон гостя"
+                  value={booking.guestPhoneNumber ?? "Не указано"}
                 />
                 <BookingDetail
-                  label="Booked"
-                  value={new Date(booking.createdAt).toLocaleString()}
+                  label="Забронировано"
+                  value={new Date(booking.createdAt).toLocaleString("ru-RU")}
                 />
                 {booking.cancelledAt && (
                   <BookingDetail
-                    label="Cancelled"
-                    value={new Date(booking.cancelledAt).toLocaleString()}
+                    label="Отменено"
+                    value={new Date(booking.cancelledAt).toLocaleString("ru-RU")}
                   />
                 )}
               </div>

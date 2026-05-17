@@ -52,7 +52,7 @@ export function PartnerPage() {
       const auth = await login({ email: loginEmail, password: loginPassword });
 
       if (auth.role !== Role.Owner && auth.role !== Role.Admin) {
-        setLoginError("This is not a partner account. Register as a partner to list a property.");
+        setLoginError("Это не партнерский аккаунт. Зарегистрируйтесь как партнер, чтобы разместить объект.");
         return;
       }
 
@@ -67,19 +67,19 @@ export function PartnerPage() {
 
   return (
     <main className="page partner-page stack-lg">
-      <h1 className="partner-title">List your hotel on StayFinder</h1>
+      <h1 className="partner-title">Разместите свой отель на StayFinder</h1>
 
       <section className="panel stack partner-access-card">
         {mode === "register" ? (
           <>
             <div>
-              <p className="eyebrow">New partner</p>
-              <h2>Register owner account</h2>
+              <p className="eyebrow">Новый партнер</p>
+              <h2>Регистрация аккаунта владельца</h2>
             </div>
 
             <form className="form" onSubmit={handlePartnerRegister}>
               <label>
-                Name
+                Имя
                 <input
                   value={registerName}
                   onChange={(event) => setRegisterName(event.target.value)}
@@ -88,7 +88,7 @@ export function PartnerPage() {
                 />
               </label>
               <label>
-                Email
+                Электронная почта
                 <input
                   type="email"
                   value={registerEmail}
@@ -98,7 +98,7 @@ export function PartnerPage() {
               </label>
               <PasswordField
                 autoComplete="new-password"
-                label="Password"
+                label="Пароль"
                 value={registerPassword}
                 onChange={(event) => setRegisterPassword(event.target.value)}
                 minLength={8}
@@ -106,12 +106,12 @@ export function PartnerPage() {
               />
               {registerError && <p className="alert error">{registerError}</p>}
               <button className="button" disabled={registerLoading} type="submit">
-                {registerLoading ? "Creating account..." : "Register as partner"}
+                {registerLoading ? "Создание аккаунта..." : "Зарегистрироваться как партнер"}
               </button>
             </form>
 
             <p className="partner-switch">
-              Already a partner?{" "}
+              Уже партнер?{" "}
               <button
                 className="partner-switch-button"
                 type="button"
@@ -120,20 +120,20 @@ export function PartnerPage() {
                   setMode("login");
                 }}
               >
-                Sign in
+                Войти
               </button>
             </p>
           </>
         ) : (
           <>
             <div>
-              <p className="eyebrow">Existing partner</p>
-              <h2>Sign in to owner dashboard</h2>
+              <p className="eyebrow">Действующий партнер</p>
+              <h2>Вход в панель владельца</h2>
             </div>
 
             <form className="form" onSubmit={handlePartnerLogin}>
               <label>
-                Email
+                Электронная почта
                 <input
                   type="email"
                   value={loginEmail}
@@ -143,7 +143,7 @@ export function PartnerPage() {
               </label>
               <PasswordField
                 autoComplete="current-password"
-                label="Password"
+                label="Пароль"
                 value={loginPassword}
                 onChange={(event) => setLoginPassword(event.target.value)}
                 required
@@ -154,12 +154,12 @@ export function PartnerPage() {
                 disabled={loginLoading}
                 type="submit"
               >
-                {loginLoading ? "Signing in..." : "Sign in as partner"}
+                {loginLoading ? "Вход..." : "Войти как партнер"}
               </button>
             </form>
 
             <p className="partner-switch">
-              New partner?{" "}
+              Новый партнер?{" "}
               <button
                 className="partner-switch-button"
                 type="button"
@@ -168,12 +168,12 @@ export function PartnerPage() {
                   setMode("register");
                 }}
               >
-                Register
+                Зарегистрироваться
               </button>
             </p>
 
             <p className="muted small">
-              Customer account? <Link to="/login">Use normal sign in</Link>.
+              Аккаунт гостя? <Link to="/login">Обычный вход</Link>.
             </p>
           </>
         )}

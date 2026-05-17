@@ -1,5 +1,5 @@
 export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("ru-RU", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
@@ -7,5 +7,5 @@ export function formatCurrency(value: number) {
 }
 
 export function formatDateRange(checkInDate: string, checkOutDate: string) {
-  return `${checkInDate} to ${checkOutDate}`;
+  return `${checkInDate} - ${checkOutDate}`;
 }
