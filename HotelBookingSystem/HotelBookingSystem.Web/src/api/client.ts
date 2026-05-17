@@ -33,7 +33,7 @@ export async function refreshAuthSession() {
 
     if (!refreshToken) {
       clearAuthStorage();
-      throw new Error("No refresh token is available.");
+      throw new Error("Токен обновления недоступен.");
     }
 
     refreshPromise = authApi
@@ -112,9 +112,9 @@ export function getApiErrorMessage(error: unknown): string {
       error.response?.data?.detail ||
       error.response?.data?.title ||
       error.message ||
-      "Request failed."
+      "Запрос не выполнен."
     );
   }
 
-  return "Unexpected error.";
+  return "Непредвиденная ошибка.";
 }

@@ -202,7 +202,7 @@ function RoomNumberDraftEditor({
     if (!nextRoomNumber) return;
 
     if (roomNumbers.some((number) => number.toLowerCase() === nextRoomNumber.toLowerCase())) {
-      setLocalError("This room number is already in the list.");
+      setLocalError("Этот номер уже есть в списке.");
       return;
     }
 
@@ -214,15 +214,15 @@ function RoomNumberDraftEditor({
   return (
     <section className="room-number-editor">
       <div>
-        <strong>Rooms</strong>
+        <strong>Номера</strong>
         <p className="muted small">
-          Add room numbers one at a time. At least one room is required.
+          Добавляйте номера по одному. Нужен хотя бы один номер.
         </p>
       </div>
 
       <div className="room-number-add-form">
         <label>
-          Room number
+          Номер комнаты
           <input
             value={roomNumber}
             onKeyDown={(event) => {
@@ -239,7 +239,7 @@ function RoomNumberDraftEditor({
           />
         </label>
         <button className="button secondary" type="button" onClick={handleAddRoom}>
-          Add room
+          Добавить номер
         </button>
       </div>
 
@@ -257,13 +257,13 @@ function RoomNumberDraftEditor({
                   updateRoomNumbers(roomNumbers.filter((current) => current !== number))
                 }
               >
-                Remove
+                Удалить
               </button>
             </span>
           ))}
         </div>
       ) : (
-        <p className="muted small">No rooms added yet.</p>
+        <p className="muted small">Номера пока не добавлены.</p>
       )}
     </section>
   );
@@ -300,7 +300,7 @@ function hotelRequestFromDraft(draft: HotelDraft): CreateHotelRequest {
 
 export function HotelManagement({
   title,
-  listTitle = "Hotels",
+  listTitle = "Отели",
   loadHotels,
   updateHotel,
   createRoomType,
@@ -386,69 +386,69 @@ export function HotelManagement({
       await createHotel(hotelRequestFromDraft(draft));
       setDraft(blankHotel());
       setCreateHotelOpen(false);
-    }, "Hotel created.");
+    }, "Отель создан.");
   }
 
   return (
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Management</p>
+          <p className="eyebrow">Управление</p>
           <h1>{title}</h1>
         </div>
       </div>
 
       {error && <p className="alert error">{error}</p>}
       {success && <p className="alert success">{success}</p>}
-      {loading && <p className="muted">Loading hotels...</p>}
+      {loading && <p className="muted">Загрузка отелей...</p>}
 
       {createHotel && (
         createHotelOpen ? (
           <section className="panel stack-lg">
             <div className="row between gap wrap">
               <div>
-                <p className="eyebrow">New property</p>
-                <h2>Create hotel</h2>
+                <p className="eyebrow">Новый объект</p>
+                <h2>Создать отель</h2>
                 <p className="muted">
-                  Add the basics, choose a cover image, then create at least one
-                  room type with real room numbers.
+                  Добавьте основные данные, выберите обложку и создайте хотя бы
+                  один тип номера с реальными номерами комнат.
                 </p>
               </div>
               <button className="button secondary" type="button" onClick={() => setCreateHotelOpen(false)}>
-                Hide form
+                Скрыть форму
               </button>
             </div>
           <form className="form wide" onSubmit={handleCreateHotel}>
             <div className="form-grid two">
               <label>
-                Name
+                Название
                 <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} required minLength={2} />
               </label>
               <label>
-                City
+                Город
                 <input value={draft.city} onChange={(event) => setDraft({ ...draft, city: event.target.value })} required minLength={2} />
               </label>
               <label className="full">
-                Address
+                Адрес
                 <input value={draft.address} onChange={(event) => setDraft({ ...draft, address: event.target.value })} required minLength={5} />
               </label>
               <div className="full">
                 <ImageField
-                  label="Hotel cover image"
-                  previewAlt={draft.name || "Hotel cover image"}
+                  label="Обложка отеля"
+                  previewAlt={draft.name || "Обложка отеля"}
                   values={draft.imageUrls}
                   onChange={(imageUrls) => setDraft({ ...draft, imageUrls })}
                 />
               </div>
               <label className="full">
-                Description
+                Описание
                 <textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} rows={3} />
               </label>
               <div className="full">
                 <CheckboxFieldGroup
                   options={HOTEL_AMENITIES}
                   selected={draft.amenities}
-                  title="Hotel amenities"
+                  title="Удобства отеля"
                   onToggle={(value) =>
                     setDraft({
                       ...draft,
@@ -461,19 +461,19 @@ export function HotelManagement({
 
             <div className="stack">
               <div className="row between">
-                <h3>Room types</h3>
+                <h3>Типы номеров</h3>
                 <button className="button secondary" type="button" onClick={() => setDraft({ ...draft, roomTypes: [...draft.roomTypes, blankRoomType()] })}>
-                  Add room type
+                  Добавить тип номера
                 </button>
               </div>
 
               {draft.roomTypes.map((roomType, index) => (
                 <div className="nested-form" key={index}>
                   <div className="row between gap">
-                    <strong>Room type {index + 1}</strong>
+                    <strong>Тип номера {index + 1}</strong>
                     {draft.roomTypes.length > 1 && (
                       <button className="button danger" type="button" onClick={() => setDraft({ ...draft, roomTypes: draft.roomTypes.filter((_, i) => i !== index) })}>
-                        Remove
+                        Удалить
                       </button>
                     )}
                   </div>
@@ -489,13 +489,13 @@ export function HotelManagement({
               ))}
             </div>
 
-            <button className="button" type="submit">Create hotel</button>
+            <button className="button" type="submit">Создать отель</button>
           </form>
           </section>
         ) : (
           <div className="row gap wrap">
             <button className="button" type="button" aria-expanded={createHotelOpen} onClick={() => setCreateHotelOpen(true)}>
-              Create hotel
+              Создать отель
             </button>
           </div>
         )
@@ -505,14 +505,14 @@ export function HotelManagement({
         <div className="row between gap wrap">
           <h2>{listTitle}</h2>
           <select value={selectedHotelId} onChange={(event) => setSelectedHotelId(event.target.value === "all" ? "all" : Number(event.target.value))}>
-            <option value="all">All hotels</option>
+            <option value="all">Все отели</option>
             {filteredHotels.map((hotel) => (
               <option key={hotel.id} value={hotel.id}>{hotel.name}</option>
             ))}
           </select>
         </div>
 
-        {visibleHotels.length === 0 && !loading && <p className="muted">No hotels found.</p>}
+        {visibleHotels.length === 0 && !loading && <p className="muted">Отели не найдены.</p>}
 
         <div className="management-list">
           {visibleHotels.map((hotel) => (
@@ -531,15 +531,15 @@ export function HotelManagement({
                   <div className="row gap wrap">
                     <h3>{hotel.name}</h3>
                     <span className={hotel.isActive ? "status active" : "status inactive"}>
-                      {hotel.isActive ? "Active" : "Inactive"}
+                      {hotel.isActive ? "Активен" : "Неактивен"}
                     </span>
                   </div>
                   <p className="muted">
                     #{hotel.id} - {hotel.city} - {hotel.address}
                   </p>
                   <p className="muted small">
-                    {hotel.roomTypes.length} room type{hotel.roomTypes.length === 1 ? "" : "s"}
-                    {hotel.ownerId ? ` - Owner ID: ${hotel.ownerId}` : ""}
+                    типов номеров: {hotel.roomTypes.length}
+                    {hotel.ownerId ? ` - ID владельца: ${hotel.ownerId}` : ""}
                   </p>
                 </div>
               </Link>
@@ -577,27 +577,27 @@ function RoomTypeDraftFields({
     <div className="room-type-draft-fields">
       <div className="form-grid two">
         <label>
-          Name
+          Название
           <input value={draft.name} onChange={(event) => onChange({ ...draft, name: event.target.value })} required minLength={2} />
         </label>
         <label>
-          Capacity
+          Вместимость
           <input type="number" min={1} value={draft.capacity} onChange={(event) => onChange({ ...draft, capacity: Number(event.target.value) })} required />
         </label>
         <label>
-          Price per night
+          Цена за ночь
           <input inputMode="decimal" value={draft.price} onChange={(event) => onChange({ ...draft, price: event.target.value })} required />
         </label>
         <label>
-          Listing room description
+          Описание номера в карточке
           <textarea
             value={draft.description}
             onChange={(event) => onChange({ ...draft, description: event.target.value })}
-            placeholder="Example: Private suite with balcony and city view"
+            placeholder="Например: отдельный люкс с балконом и видом на город"
             rows={2}
           />
           <span className="field-hint">
-            This exact text is shown on hotel listing cards. Leave it empty to show no room description.
+            Этот текст показывается в карточках отеля. Оставьте поле пустым, чтобы не показывать описание номера.
           </span>
         </label>
       </div>
@@ -608,13 +608,13 @@ function RoomTypeDraftFields({
       />
 
       <details className="optional-image-section" open={draft.imageUrls.length > 0}>
-        <summary>Optional room photo</summary>
+        <summary>Необязательное фото номера</summary>
         <p className="muted small">
-          Add a room image only if you want this room type to have its own photo.
+          Добавьте изображение, только если этому типу номера нужна отдельная фотография.
         </p>
         <ImageField
-          label="Upload room image"
-          previewAlt={draft.name || "Room image"}
+          label="Загрузить фото номера"
+          previewAlt={draft.name || "Фото номера"}
           values={draft.imageUrls}
           onChange={(imageUrls) => onChange({ ...draft, imageUrls })}
         />
@@ -624,7 +624,7 @@ function RoomTypeDraftFields({
         <CheckboxFieldGroup
           options={ROOM_AMENITIES}
           selected={draft.amenities}
-          title="Room amenities"
+          title="Удобства номера"
           onToggle={(value) =>
             onChange({
               ...draft,
@@ -637,7 +637,7 @@ function RoomTypeDraftFields({
         <CheckboxFieldGroup
           options={MEAL_OPTIONS}
           selected={draft.mealOptions}
-          title="Meals"
+          title="Питание"
           onToggle={(value) =>
             onChange({
               ...draft,
@@ -755,7 +755,7 @@ export function ManagedHotelCard({
           return updateRoomType(roomType.id, updateRoomTypeRequestFromDraft(draft));
         })
       );
-    }, "Changes saved.");
+    }, "Изменения сохранены.");
   }
 
   return (
@@ -765,10 +765,10 @@ export function ManagedHotelCard({
         <div>
           <div className="row gap wrap">
             <h2>{hotel.name}</h2>
-            <span className={hotel.isActive ? "status active" : "status inactive"}>{hotel.isActive ? "Active" : "Inactive"}</span>
+            <span className={hotel.isActive ? "status active" : "status inactive"}>{hotel.isActive ? "Активен" : "Неактивен"}</span>
           </div>
           <p className="muted">#{hotel.id} - {hotel.city} - {hotel.address}</p>
-          {hotel.ownerId && <p className="muted small">Owner ID: {hotel.ownerId}</p>}
+          {hotel.ownerId && <p className="muted small">ID владельца: {hotel.ownerId}</p>}
         </div>
       </div>
 
@@ -777,23 +777,23 @@ export function ManagedHotelCard({
 
       <div className="form wide">
         <div className="form-grid two">
-          <label>Name<input value={hotelDraft.name} onChange={(event) => setHotelDraft({ ...hotelDraft, name: event.target.value })} required /></label>
-          <label>City<input value={hotelDraft.city} onChange={(event) => setHotelDraft({ ...hotelDraft, city: event.target.value })} required /></label>
-          <label className="full">Address<input value={hotelDraft.address} onChange={(event) => setHotelDraft({ ...hotelDraft, address: event.target.value })} required /></label>
+          <label>Название<input value={hotelDraft.name} onChange={(event) => setHotelDraft({ ...hotelDraft, name: event.target.value })} required /></label>
+          <label>Город<input value={hotelDraft.city} onChange={(event) => setHotelDraft({ ...hotelDraft, city: event.target.value })} required /></label>
+          <label className="full">Адрес<input value={hotelDraft.address} onChange={(event) => setHotelDraft({ ...hotelDraft, address: event.target.value })} required /></label>
           <div className="full">
             <ImageField
-              label="Hotel cover image"
+              label="Обложка отеля"
               previewAlt={hotelDraft.name || hotel.name}
               values={hotelDraft.imageUrls}
               onChange={(imageUrls) => setHotelDraft({ ...hotelDraft, imageUrls })}
             />
           </div>
-          <label className="full">Description<textarea value={hotelDraft.description} onChange={(event) => setHotelDraft({ ...hotelDraft, description: event.target.value })} rows={2} /></label>
+          <label className="full">Описание<textarea value={hotelDraft.description} onChange={(event) => setHotelDraft({ ...hotelDraft, description: event.target.value })} rows={2} /></label>
           <div className="full">
             <CheckboxFieldGroup
               options={HOTEL_AMENITIES}
               selected={hotelDraft.amenities}
-              title="Hotel amenities"
+              title="Удобства отеля"
               onToggle={(value) =>
                 setHotelDraft({
                   ...hotelDraft,
@@ -808,20 +808,20 @@ export function ManagedHotelCard({
       {assignHotelOwner && (
         <form className="inline-form owner-assign-form" onSubmit={(event) => {
           event.preventDefault();
-          runCardAction(() => assignHotelOwner(hotel.id, { ownerId: Number(ownerId) }), "Owner assigned.");
+          runCardAction(() => assignHotelOwner(hotel.id, { ownerId: Number(ownerId) }), "Владелец назначен.");
         }}>
-          <label>Owner ID<input type="number" min={1} value={ownerId} onChange={(event) => setOwnerId(event.target.value)} required /></label>
-          <button className="button secondary" type="submit">Assign owner</button>
+          <label>ID владельца<input type="number" min={1} value={ownerId} onChange={(event) => setOwnerId(event.target.value)} required /></label>
+          <button className="button secondary" type="submit">Назначить владельца</button>
         </form>
       )}
 
       <section className="stack">
         <div className="row between wrap gap">
-          <h3>Room types</h3>
-          <span className="muted small">{hotel.roomTypes.length} total</span>
+          <h3>Типы номеров</h3>
+          <span className="muted small">всего: {hotel.roomTypes.length}</span>
         </div>
 
-        {hotel.roomTypes.length === 0 && <p className="muted">No room types yet.</p>}
+        {hotel.roomTypes.length === 0 && <p className="muted">Типы номеров пока не добавлены.</p>}
 
         <div className="room-type-list">
           {hotel.roomTypes.map((roomType) => (
@@ -852,36 +852,36 @@ export function ManagedHotelCard({
             await createRoomType(hotel.id, roomTypeRequestFromDraft(newRoomType));
             setNewRoomType(blankRoomType());
             setAddRoomTypeOpen(false);
-          }, "Room type created.");
+          }, "Тип номера создан.");
         }}>
           <div className="row between gap wrap">
-            <h3>Add room type</h3>
+            <h3>Добавить тип номера</h3>
             <button className="button secondary" type="button" onClick={() => setAddRoomTypeOpen(false)}>
-              Hide form
+              Скрыть форму
             </button>
           </div>
           <RoomTypeDraftFields draft={newRoomType} onChange={setNewRoomType} />
-          <button className="button secondary" type="submit">Add room type</button>
+          <button className="button secondary" type="submit">Добавить тип номера</button>
         </form>
       ) : (
         <div className="row gap wrap">
           <button className="button secondary" type="button" aria-expanded={addRoomTypeOpen} onClick={() => setAddRoomTypeOpen(true)}>
-            Add room type
+            Добавить тип номера
           </button>
         </div>
       )}
 
       <div className="management-save-bar">
         <button className="button" type="button" onClick={handleSaveChanges}>
-          Save changes
+          Сохранить изменения
         </button>
         {deactivateHotel && hotel.isActive && (
           <button
             className="button danger"
             type="button"
-            onClick={() => runCardAction(() => deactivateHotel(hotel.id), "Hotel deactivated.")}
+            onClick={() => runCardAction(() => deactivateHotel(hotel.id), "Отель деактивирован.")}
           >
-            Deactivate hotel
+            Деактивировать отель
           </button>
         )}
       </div>
@@ -932,36 +932,36 @@ function RoomTypeManagementCard({
         <div>
           <div className="row gap wrap">
             <h4>{roomType.name}</h4>
-            <span className={roomType.isActive ? "status active" : "status inactive"}>{roomType.isActive ? "Active" : "Inactive"}</span>
+            <span className={roomType.isActive ? "status active" : "status inactive"}>{roomType.isActive ? "Активен" : "Неактивен"}</span>
           </div>
-          <p className="muted small">Capacity {roomType.capacity} - {formatCurrency(roomType.price)}/night - {roomType.activeRooms}/{roomType.totalRooms} active rooms</p>
+          <p className="muted small">Вместимость {roomType.capacity} - {formatCurrency(roomType.price)}/ночь - активных номеров: {roomType.activeRooms}/{roomType.totalRooms}</p>
         </div>
       </div>
 
       <div className="form wide">
         <div className="form-grid two">
-          <label>Name<input value={draft.name} onChange={(event) => onDraftChange({ ...draft, name: event.target.value })} required /></label>
-          <label>Capacity<input type="number" min={1} value={draft.capacity} onChange={(event) => onDraftChange({ ...draft, capacity: Number(event.target.value) })} required /></label>
-          <label>Price<input inputMode="decimal" value={draft.price} onChange={(event) => onDraftChange({ ...draft, price: event.target.value })} required /></label>
+          <label>Название<input value={draft.name} onChange={(event) => onDraftChange({ ...draft, name: event.target.value })} required /></label>
+          <label>Вместимость<input type="number" min={1} value={draft.capacity} onChange={(event) => onDraftChange({ ...draft, capacity: Number(event.target.value) })} required /></label>
+          <label>Цена<input inputMode="decimal" value={draft.price} onChange={(event) => onDraftChange({ ...draft, price: event.target.value })} required /></label>
           <label className="full">
-            Listing room description
+            Описание номера в карточке
             <textarea
               value={draft.description}
               onChange={(event) => onDraftChange({ ...draft, description: event.target.value })}
-              placeholder="Example: Private suite with balcony and city view"
+              placeholder="Например: отдельный люкс с балконом и видом на город"
               rows={2}
             />
             <span className="field-hint">
-              This exact text is shown on hotel listing cards. Leave it empty to show no room description.
+              Этот текст показывается в карточках отеля. Оставьте поле пустым, чтобы не показывать описание номера.
             </span>
           </label>
           <details className="optional-image-section full" open={draft.imageUrls.length > 0}>
-            <summary>Optional room photo</summary>
+            <summary>Необязательное фото номера</summary>
             <p className="muted small">
-              Add a room image only if you want this room type to have its own photo.
+              Добавьте изображение, только если этому типу номера нужна отдельная фотография.
             </p>
             <ImageField
-              label="Upload room image"
+              label="Загрузить фото номера"
               previewAlt={draft.name || roomType.name}
               values={draft.imageUrls}
               onChange={(imageUrls) => onDraftChange({ ...draft, imageUrls })}
@@ -971,7 +971,7 @@ function RoomTypeManagementCard({
             <CheckboxFieldGroup
               options={ROOM_AMENITIES}
               selected={draft.amenities}
-              title="Room amenities"
+              title="Удобства номера"
               onToggle={(value) =>
                 onDraftChange({
                   ...draft,
@@ -984,7 +984,7 @@ function RoomTypeManagementCard({
             <CheckboxFieldGroup
               options={MEAL_OPTIONS}
               selected={draft.mealOptions}
-              title="Meals"
+              title="Питание"
               onToggle={(value) =>
                 onDraftChange({
                   ...draft,
@@ -999,9 +999,9 @@ function RoomTypeManagementCard({
             <button
               className="button danger"
               type="button"
-              onClick={() => runRoomAction(() => deactivateRoomType(roomType.id), "Room type deactivated.")}
+              onClick={() => runRoomAction(() => deactivateRoomType(roomType.id), "Тип номера деактивирован.")}
             >
-              Deactivate room type
+              Деактивировать тип номера
             </button>
           </div>
         )}
@@ -1009,34 +1009,34 @@ function RoomTypeManagementCard({
 
       <div className="rooms-section stack-sm">
         <div className="rooms-title">
-          <strong>Rooms</strong>
-          <p className="muted small">Add and manage room numbers for this room type.</p>
+          <strong>Номера</strong>
+          <p className="muted small">Добавляйте и управляйте номерами комнат для этого типа номера.</p>
         </div>
         <form className="room-add-form" onSubmit={(event) => {
           event.preventDefault();
           const nextRoomNumber = roomNumber.trim();
           if (!nextRoomNumber) {
-            setRoomError("Enter a room number.");
+            setRoomError("Введите номер комнаты.");
             setRoomSuccess("");
             return;
           }
           runRoomAction(async () => {
             await createRoom(roomType.id, { number: nextRoomNumber });
             setRoomNumber("");
-          }, "Room added.");
+          }, "Номер добавлен.");
         }}>
           <label>
-            Room number
+            Номер комнаты
             <input value={roomNumber} onChange={(event) => setRoomNumber(event.target.value)} placeholder="101" required />
           </label>
-          <button className="button secondary" type="submit">Add room</button>
+          <button className="button secondary" type="submit">Добавить номер</button>
         </form>
 
         {roomError && <p className="alert error compact-alert">{roomError}</p>}
         {roomSuccess && <p className="alert success compact-alert">{roomSuccess}</p>}
 
         {roomType.rooms.length === 0 ? (
-          <p className="muted small">No rooms yet.</p>
+          <p className="muted small">Номера пока не добавлены.</p>
         ) : (
           <div className="room-grid">
             {roomType.rooms.map((room) => (
@@ -1067,12 +1067,12 @@ function RoomChip({
     return (
       <form className="room-chip editing" onSubmit={(event) => {
         event.preventDefault();
-        runAction(() => updateRoom(room.id, { number: number.trim() }), "Room updated.").then((saved) => {
+        runAction(() => updateRoom(room.id, { number: number.trim() }), "Номер обновлен.").then((saved) => {
           if (saved) setEditing(false);
         });
       }}>
         <input value={number} onChange={(event) => setNumber(event.target.value)} required />
-        <button className="mini-button" type="submit">Save</button>
+        <button className="mini-button" type="submit">Сохранить</button>
       </form>
     );
   }
@@ -1080,9 +1080,9 @@ function RoomChip({
   return (
     <div className={room.isActive ? "room-chip" : "room-chip inactive-room"}>
       <span>{room.number}</span>
-      <span className="muted small">{room.isActive ? "Active" : "Inactive"}</span>
-      <button className="mini-button" type="button" onClick={() => setEditing(true)}>Edit</button>
-      {room.isActive && <button className="mini-button danger-text" type="button" onClick={() => runAction(() => deactivateRoom(room.id), "Room deactivated.")}>Off</button>}
+      <span className="muted small">{room.isActive ? "Активен" : "Неактивен"}</span>
+      <button className="mini-button" type="button" onClick={() => setEditing(true)}>Изменить</button>
+      {room.isActive && <button className="mini-button danger-text" type="button" onClick={() => runAction(() => deactivateRoom(room.id), "Номер деактивирован.")}>Откл.</button>}
     </div>
   );
 }

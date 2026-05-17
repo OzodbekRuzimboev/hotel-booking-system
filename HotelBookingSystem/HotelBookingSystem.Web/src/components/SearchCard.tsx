@@ -31,9 +31,9 @@ export function SearchCard({
       onSubmit={onSubmit}
     >
       <label>
-        City
+        Город
         <input
-          placeholder="City"
+          placeholder="Город"
           value={values.city}
           onChange={(event) =>
             onChange({ ...values, city: event.target.value })
@@ -43,7 +43,7 @@ export function SearchCard({
       </label>
 
       <label>
-        Check-in
+        Заезд
         <input
           type="date"
           min={today}
@@ -56,7 +56,7 @@ export function SearchCard({
       </label>
 
       <label>
-        Check-out
+        Выезд
         <input
           type="date"
           min={values.checkInDate || today}
@@ -69,7 +69,7 @@ export function SearchCard({
       </label>
 
       <label>
-        Guests
+        Гости
         <input
           type="number"
           min={1}
@@ -82,7 +82,7 @@ export function SearchCard({
       </label>
 
       <button className="button search-button" disabled={loading} type="submit">
-        {loading ? "Searching..." : "Search"}
+        {loading ? "Идет поиск..." : "Найти"}
       </button>
     </form>
   );

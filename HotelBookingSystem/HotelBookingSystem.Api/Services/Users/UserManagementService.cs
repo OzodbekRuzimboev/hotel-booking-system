@@ -40,12 +40,12 @@ namespace HotelBookingSystem.Api.Services.Users
         public async Task<UserRoleResponse> CreateUserAsync(CreateUserRequest req)
         {
             if (!Enum.IsDefined(req.Role))
-                throw new ValidationException("Invalid role.");
+                throw new ValidationException("Недопустимая роль.");
 
             var email = req.Email.Trim().ToLowerInvariant();
             var exists = await _context.Users.AnyAsync(u => u.Email == email);
             if (exists)
-                throw new ConflictException("Email already in use.");
+                throw new ConflictException("Этот email уже используется.");
 
             var user = new User
             {
@@ -65,7 +65,7 @@ namespace HotelBookingSystem.Api.Services.Users
             }
             catch (DbUpdateException ex) when (IsUniqueEmailViolation(ex))
             {
-                throw new ConflictException("Email already in use.");
+                throw new ConflictException("Этот email уже используется.");
             }
 
             return ToUserRoleResponse(user);
@@ -74,26 +74,26 @@ namespace HotelBookingSystem.Api.Services.Users
         public async Task<UserRoleResponse> UpdateUserRoleAsync(int currentAdminId, int userId, UpdateUserRoleRequest req)
         {
             if (!Enum.IsDefined(req.Role))
-                throw new ValidationException("Invalid role.");
+                throw new ValidationException("Недопустимая роль.");
 
             if (currentAdminId == userId)
-                throw new ValidationException("Admin cannot change own role.");
+                throw new ValidationException("Администратор не может изменить собственную роль.");
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new NotFoundException("User not found.");
+                ?? throw new NotFoundException("Пользователь не найден.");
 
             if (user.Role == Role.Owner && req.Role != Role.Owner)
             {
                 var ownsHotels = await _context.Hotels.AnyAsync(h => h.OwnerId == user.Id);
                 if (ownsHotels)
-                    throw new ValidationException("Cannot change role while user is assigned to one or more hotels.");
+                    throw new ValidationException("Нельзя изменить роль, пока пользователь назначен на один или несколько отелей.");
             }
 
             if (user.Role == Role.Admin && req.Role != Role.Admin)
             {
                 var adminCount = await _context.Users.CountAsync(u => u.Role == Role.Admin);
                 if (adminCount <= 1)
-                    throw new ValidationException("Cannot remove the last admin.");
+                    throw new ValidationException("Нельзя удалить последнего администратора.");
             }
 
             if (user.Role != req.Role)

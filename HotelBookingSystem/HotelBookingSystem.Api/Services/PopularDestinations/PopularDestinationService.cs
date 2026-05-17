@@ -58,7 +58,7 @@ namespace HotelBookingSystem.Api.Services.PopularDestinations
         public async Task<PopularDestinationResponse> UpdateDestinationAsync(int destinationId, PopularDestinationRequest req)
         {
             var destination = await _context.PopularDestinations.FirstOrDefaultAsync(d => d.Id == destinationId)
-                ?? throw new NotFoundException("Popular destination not found.");
+                ?? throw new NotFoundException("Популярное направление не найдено.");
 
             destination.City = NormalizeRequiredText(req.City);
             destination.Country = NormalizeRequiredText(req.Country);
@@ -74,7 +74,7 @@ namespace HotelBookingSystem.Api.Services.PopularDestinations
         public async Task DeleteDestinationAsync(int destinationId)
         {
             var destination = await _context.PopularDestinations.FirstOrDefaultAsync(d => d.Id == destinationId)
-                ?? throw new NotFoundException("Popular destination not found.");
+                ?? throw new NotFoundException("Популярное направление не найдено.");
 
             _context.PopularDestinations.Remove(destination);
             await _context.SaveChangesAsync();
@@ -94,7 +94,7 @@ namespace HotelBookingSystem.Api.Services.PopularDestinations
             var normalized = value.Trim();
 
             if (normalized.Length == 0)
-                throw new ValidationException("Popular destination fields cannot be empty.");
+                throw new ValidationException("Поля популярного направления не могут быть пустыми.");
 
             return normalized;
         }

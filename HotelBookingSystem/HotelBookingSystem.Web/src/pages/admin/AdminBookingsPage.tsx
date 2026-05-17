@@ -64,7 +64,7 @@ export function AdminBookingsPage() {
           guestCountry: guestCountry || null,
           guestPhoneNumber: guestPhoneNumber || null,
         }),
-      "Booking created."
+      "Бронирование создано."
     );
   }
 
@@ -72,8 +72,8 @@ export function AdminBookingsPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Bookings</h1>
+          <p className="eyebrow">Администратор</p>
+          <h1>Бронирования</h1>
         </div>
       </div>
 
@@ -81,10 +81,10 @@ export function AdminBookingsPage() {
       {success && <p className="alert success">{success}</p>}
 
       <section className="panel stack">
-        <h2>Create booking for user</h2>
+        <h2>Создать бронирование для пользователя</h2>
         <form className="search-form management-search" onSubmit={handleCreate}>
           <label>
-            User ID
+            ID пользователя
             <input
               type="number"
               min={1}
@@ -94,7 +94,7 @@ export function AdminBookingsPage() {
             />
           </label>
           <label>
-            Room type ID
+            ID типа номера
             <input
               type="number"
               min={1}
@@ -104,7 +104,7 @@ export function AdminBookingsPage() {
             />
           </label>
           <label>
-            Check-in
+            Заезд
             <input
               type="date"
               value={checkInDate}
@@ -113,7 +113,7 @@ export function AdminBookingsPage() {
             />
           </label>
           <label>
-            Check-out
+            Выезд
             <input
               type="date"
               value={checkOutDate}
@@ -122,7 +122,7 @@ export function AdminBookingsPage() {
             />
           </label>
           <label>
-            Guests
+            Гости
             <input
               type="number"
               min={1}
@@ -132,7 +132,7 @@ export function AdminBookingsPage() {
             />
           </label>
           <label>
-            Email
+            Электронная почта
             <input
               type="email"
               value={guestEmail}
@@ -141,29 +141,29 @@ export function AdminBookingsPage() {
             />
           </label>
           <label>
-            Country
+            Страна
             <input
               value={guestCountry}
               onChange={(event) => setGuestCountry(event.target.value)}
             />
           </label>
           <label>
-            Phone
+            Телефон
             <input
               value={guestPhoneNumber}
               onChange={(event) => setGuestPhoneNumber(event.target.value)}
             />
           </label>
           <button className="button" type="submit">
-            Create
+            Создать
           </button>
         </form>
       </section>
 
-      {loading && <p className="muted">Loading bookings...</p>}
+      {loading && <p className="muted">Загрузка бронирований...</p>}
       <BookingAdminList
         bookings={bookings}
-        onCancel={(id) => run(() => cancelAdminBooking(id), "Booking cancelled.")}
+        onCancel={(id) => run(() => cancelAdminBooking(id), "Бронирование отменено.")}
       />
     </main>
   );
@@ -176,7 +176,7 @@ function BookingAdminList({
   bookings: BookingResponse[];
   onCancel: (id: number) => void;
 }) {
-  if (bookings.length === 0) return <p className="muted">No bookings found.</p>;
+  if (bookings.length === 0) return <p className="muted">Бронирования не найдены.</p>;
 
   return (
     <div className="booking-list">
@@ -185,11 +185,11 @@ function BookingAdminList({
           <div>
             <h2>{booking.hotelName}</h2>
             <p className="muted">
-              Booking #{booking.id} - User #{booking.userId}
+              Бронирование #{booking.id} - пользователь #{booking.userId}
             </p>
             <p>{booking.roomTypeName}</p>
             <p>{formatDateRange(booking.checkInDate, booking.checkOutDate)}</p>
-            <p>Guests: {booking.guestsCount}</p>
+            <p>Гости: {booking.guestsCount}</p>
             <p className="muted small">{booking.guestEmail}</p>
           </div>
           <div className="booking-side">
@@ -201,7 +201,7 @@ function BookingAdminList({
                 type="button"
                 onClick={() => onCancel(booking.id)}
               >
-                Cancel
+                Отменить
               </button>
             )}
           </div>

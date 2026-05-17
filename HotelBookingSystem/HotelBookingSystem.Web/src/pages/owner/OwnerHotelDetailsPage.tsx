@@ -73,17 +73,17 @@ export function OwnerHotelDetailsPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Management</p>
-          <h1>{hotel ? hotel.name : "Hotel details"}</h1>
+          <p className="eyebrow">Управление</p>
+          <h1>{hotel ? hotel.name : "Детали отеля"}</h1>
         </div>
         <div className="row gap wrap">
           <Link className="button secondary" to="/owner/hotels">
-            Back to owner hotels
+            Назад к моим отелям
           </Link>
         </div>
       </div>
 
-      {loading && <p className="muted">Loading hotel...</p>}
+      {loading && <p className="muted">Загрузка отеля...</p>}
       {error && <p className="alert error">{error}</p>}
       {success && <p className="alert success">{success}</p>}
 

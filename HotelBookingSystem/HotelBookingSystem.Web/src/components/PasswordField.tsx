@@ -6,7 +6,7 @@ type PasswordFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & 
 
 export function PasswordField({ label, ...inputProps }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
-  const buttonLabel = visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`;
+  const buttonLabel = visible ? `Скрыть ${label.toLowerCase()}` : `Показать ${label.toLowerCase()}`;
 
   return (
     <label>
@@ -19,7 +19,7 @@ export function PasswordField({ label, ...inputProps }: PasswordFieldProps) {
           type="button"
           onClick={() => setVisible((current) => !current)}
         >
-          {visible ? "Hide" : "Show"}
+          {visible ? "Скрыть" : "Показать"}
         </button>
       </span>
     </label>

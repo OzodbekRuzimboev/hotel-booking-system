@@ -6,7 +6,7 @@ namespace HotelBookingSystem.Api.Contracts.Auth
     {
         [Required]
         [StringLength(512, MinimumLength = 20)]
-        [RegularExpression(@".*\S.*", ErrorMessage = "Refresh token cannot be empty or whitespace.")]
+        [RegularExpression(@".*\S.*", ErrorMessage = "Токен обновления не может быть пустым или состоять только из пробелов.")]
         public string RefreshToken { get; set; } = string.Empty;
     }
 }

@@ -18,21 +18,21 @@ namespace HotelBookingSystem.Api.Services.Bookings
 
         public async Task SendBookingConfirmationAsync(BookingResponse booking)
         {
-            var subject = $"Booking confirmation #{booking.Id}";
+            var subject = $"Подтверждение бронирования #{booking.Id}";
             var body = $"""
-                Your booking is confirmed.
+                Ваше бронирование подтверждено.
 
-                Booking number: {booking.Id}
-                Hotel: {booking.HotelName}
-                Room type: {booking.RoomTypeName}
-                Dates: {booking.CheckInDate:yyyy-MM-dd} to {booking.CheckOutDate:yyyy-MM-dd}
-                Guests: {booking.GuestsCount}
-                Total price: {booking.TotalPrice:C}
+                Номер бронирования: {booking.Id}
+                Отель: {booking.HotelName}
+                Тип номера: {booking.RoomTypeName}
+                Даты: {booking.CheckInDate:yyyy-MM-dd} - {booking.CheckOutDate:yyyy-MM-dd}
+                Гостей: {booking.GuestsCount}
+                Итоговая цена: {booking.TotalPrice:C}
 
-                Contact details:
+                Контактные данные:
                 Email: {booking.GuestEmail}
-                Country: {booking.GuestCountry ?? "-"}
-                Phone: {booking.GuestPhoneNumber ?? "-"}
+                Страна: {booking.GuestCountry ?? "-"}
+                Телефон: {booking.GuestPhoneNumber ?? "-"}
                 """;
 
             try

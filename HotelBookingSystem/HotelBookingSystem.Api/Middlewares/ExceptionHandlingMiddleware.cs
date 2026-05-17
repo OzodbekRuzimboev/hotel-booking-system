@@ -46,12 +46,12 @@ namespace HotelBookingSystem.Api.Middlewares
 
                 var detail = _environment.IsDevelopment()
                     ? ex.Message
-                    : "An unexpected error occurred.";
+                    : "Произошла непредвиденная ошибка.";
 
                 await WriteProblemDetailsAsync(
                     context,
                     StatusCodes.Status500InternalServerError,
-                    "Internal Server Error",
+                    "Внутренняя ошибка сервера",
                     detail);
             }
         }
@@ -90,6 +90,14 @@ namespace HotelBookingSystem.Api.Middlewares
         }
 
         private static string GetTitle(int statusCode) =>
-            ReasonPhrases.GetReasonPhrase(statusCode) is { Length: > 0 } reason ? reason : "Error";
+            statusCode switch
+            {
+                StatusCodes.Status400BadRequest => "Некорректный запрос",
+                StatusCodes.Status401Unauthorized => "Не авторизован",
+                StatusCodes.Status403Forbidden => "Доступ запрещен",
+                StatusCodes.Status404NotFound => "Не найдено",
+                StatusCodes.Status409Conflict => "Конфликт",
+                _ => ReasonPhrases.GetReasonPhrase(statusCode) is { Length: > 0 } reason ? reason : "Ошибка"
+            };
     }
 }

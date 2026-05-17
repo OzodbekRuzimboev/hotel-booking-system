@@ -22,7 +22,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
 
             var hotelExists = await _context.Hotels.AnyAsync(h => h.Id == hotelId);
             if (!hotelExists)
-                throw new NotFoundException("Hotel not found.");
+                throw new NotFoundException("Отель не найден.");
 
             var imageUrls = NormalizeImageUrls(req.ImageUrl, req.ImageUrls);
 
@@ -55,7 +55,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
         public async Task<ManagedRoomTypeResponse> UpdateRoomTypeAsync(int roomTypeId, UpdateRoomTypeRequest req)
         {
             var roomType = await _context.RoomTypes.FirstOrDefaultAsync(rt => rt.Id == roomTypeId)
-                ?? throw new NotFoundException("Room type not found.");
+                ?? throw new NotFoundException("Тип номера не найден.");
 
             ApplyRoomTypeChanges(roomType, req);
             await _context.SaveChangesAsync();
@@ -66,7 +66,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
         public async Task DeactivateRoomTypeAsync(int roomTypeId)
         {
             var roomType = await _context.RoomTypes.FirstOrDefaultAsync(rt => rt.Id == roomTypeId)
-                ?? throw new NotFoundException("Room type not found.");
+                ?? throw new NotFoundException("Тип номера не найден.");
 
             if (!roomType.IsActive)
                 return;
@@ -83,7 +83,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
             var hotelExists = await _context.Hotels.AnyAsync(h => h.Id == hotelId && h.OwnerId == ownerId);
 
             if (!hotelExists)
-                throw new NotFoundException("Hotel not found.");
+                throw new NotFoundException("Отель не найден.");
 
             return await CreateRoomTypeAsync(hotelId, req);
         }
@@ -93,10 +93,10 @@ namespace HotelBookingSystem.Api.Services.Rooms
             var roomType = await _context.RoomTypes
                 .Include(rt => rt.Hotel)
                 .FirstOrDefaultAsync(rt => rt.Id == roomTypeId)
-                ?? throw new NotFoundException("Room type not found.");
+                ?? throw new NotFoundException("Тип номера не найден.");
 
             if (roomType.Hotel.OwnerId != ownerId)
-                throw new NotFoundException("Room type not found.");
+                throw new NotFoundException("Тип номера не найден.");
 
             ApplyRoomTypeChanges(roomType, req);
             await _context.SaveChangesAsync();
@@ -107,10 +107,10 @@ namespace HotelBookingSystem.Api.Services.Rooms
         public async Task DeactivateOwnerRoomTypeAsync(int ownerId, int roomTypeId)
         {
             var roomType = await _context.RoomTypes.Include(rt => rt.Hotel).FirstOrDefaultAsync(rt => rt.Id == roomTypeId)
-                ?? throw new NotFoundException("Room type not found.");
+                ?? throw new NotFoundException("Тип номера не найден.");
 
             if (roomType.Hotel.OwnerId != ownerId)
-                throw new NotFoundException("Room type not found.");
+                throw new NotFoundException("Тип номера не найден.");
 
             if (!roomType.IsActive)
                 return;
@@ -130,7 +130,7 @@ namespace HotelBookingSystem.Api.Services.Rooms
             }
             catch (DbUpdateException ex) when (DbExceptionHelper.IsUniqueRoomNumberViolation(ex))
             {
-                throw new ConflictException("Room number already exists in this room type.");
+                throw new ConflictException("Такой номер комнаты уже есть в этом типе номера.");
             }
         }
 
@@ -190,16 +190,16 @@ namespace HotelBookingSystem.Api.Services.Rooms
         private static void ValidateRoomType(string name, int capacity, decimal price, int roomsCount)
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new ValidationException("Room type name is required.");
+                throw new ValidationException("Название типа номера обязательно.");
 
             if (capacity <= 0)
-                throw new ValidationException("Room capacity must be greater than zero.");
+                throw new ValidationException("Вместимость номера должна быть больше нуля.");
 
             if (price <= 0)
-                throw new ValidationException("Room price must be greater than zero.");
+                throw new ValidationException("Цена номера должна быть больше нуля.");
 
             if (roomsCount <= 0)
-                throw new ValidationException("Add at least one room number for this room type.");
+                throw new ValidationException("Добавьте хотя бы один номер комнаты для этого типа номера.");
         }
 
         private async Task<ManagedRoomTypeResponse> GetManagedRoomTypeAsync(int roomTypeId)

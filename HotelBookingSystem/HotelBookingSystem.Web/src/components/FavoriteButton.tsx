@@ -92,10 +92,10 @@ export function FavoriteButton({
 
   return (
     <button
-      aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+      aria-label={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
       className={`favorite-button ${isFavorite ? "selected" : ""} ${className ?? ""}`}
       disabled={loading}
-      title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+      title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
       type="button"
       onClick={handleClick}
     >

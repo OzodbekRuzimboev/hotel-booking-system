@@ -16,7 +16,7 @@ function readOriginalFileAsDataUrl(file: File) {
       if (typeof reader.result === "string") {
         resolve(reader.result);
       } else {
-        reject(new Error("Could not read image file."));
+        reject(new Error("Не удалось прочитать файл изображения."));
       }
     };
     reader.onerror = () => reject(reader.error);
@@ -152,13 +152,13 @@ export function ImageField({
         />
 
         {images.length > 0 && selectedIndex === 0 && (
-          <span className="cover-badge">Cover</span>
+          <span className="cover-badge">Обложка</span>
         )}
 
         {images.length > 1 && (
           <>
             <button
-              aria-label="Previous image"
+              aria-label="Предыдущее изображение"
               className="gallery-arrow previous"
               type="button"
               onClick={showPrevious}
@@ -166,7 +166,7 @@ export function ImageField({
               &lt;
             </button>
             <button
-              aria-label="Next image"
+              aria-label="Следующее изображение"
               className="gallery-arrow next"
               type="button"
               onClick={showNext}
@@ -188,14 +188,14 @@ export function ImageField({
           />
         </label>
         <label>
-          Image URL (optional)
+          URL изображения (необязательно)
           <input
             value={imageLink}
             onChange={(event) => setImageLink(event.target.value)}
             placeholder="https://example.com/photo.jpg"
           />
           <span className="field-hint">
-            Use this only when the image is already online. You can leave it empty.
+            Используйте это поле, только если изображение уже доступно онлайн. Его можно оставить пустым.
           </span>
         </label>
         <div className="image-field-actions">
@@ -204,7 +204,7 @@ export function ImageField({
             type="button"
             onClick={handleAddLink}
           >
-            Add URL
+            Добавить URL
           </button>
           {images.length > 0 && (
             <button
@@ -212,13 +212,13 @@ export function ImageField({
               type="button"
               onClick={handleRemoveSelected}
             >
-              Remove image
+              Удалить изображение
             </button>
           )}
         </div>
         {images.length > 0 && (
           <p className="muted small">
-            Image {selectedIndex + 1} of {images.length}
+            Изображение {selectedIndex + 1} из {images.length}
           </p>
         )}
       </div>

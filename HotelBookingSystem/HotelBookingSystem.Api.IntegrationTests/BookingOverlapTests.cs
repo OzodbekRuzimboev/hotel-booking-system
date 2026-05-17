@@ -48,7 +48,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
 
             var problem = await secondResponse.Content.ReadFromJsonAsync<ProblemDetails>();
             problem.Should().NotBeNull();
-            problem!.Detail.Should().Be("No available rooms of this type for the selected dates.");
+            problem!.Detail.Should().Be("На выбранные даты нет доступных номеров этого типа.");
         }
 
         [Fact]

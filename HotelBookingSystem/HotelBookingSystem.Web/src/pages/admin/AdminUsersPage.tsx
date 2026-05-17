@@ -7,13 +7,13 @@ import { Role, type Role as RoleValue, type UserRoleResponse } from "../../types
 function roleName(role: number) {
   switch (role) {
     case Role.User:
-      return "User";
+      return "Пользователь";
     case Role.Owner:
-      return "Owner";
+      return "Владелец";
     case Role.Admin:
-      return "Admin";
+      return "Администратор";
     default:
-      return "Unknown";
+      return "Неизвестно";
   }
 }
 
@@ -55,7 +55,7 @@ export function AdminUsersPage() {
       await createUser(newUser);
       setNewUser({ name: "", email: "", password: "", role: Role.User });
       await loadUsers();
-      setSuccess("User account created.");
+      setSuccess("Аккаунт пользователя создан.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -68,7 +68,7 @@ export function AdminUsersPage() {
     try {
       await updateUserRole(userId, { role });
       await loadUsers();
-      setSuccess("Role updated.");
+      setSuccess("Роль обновлена.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -78,8 +78,8 @@ export function AdminUsersPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>User accounts</h1>
+          <p className="eyebrow">Администратор</p>
+          <h1>Аккаунты пользователей</h1>
         </div>
       </div>
 
@@ -88,12 +88,12 @@ export function AdminUsersPage() {
 
       <section className="panel stack">
         <div>
-          <p className="eyebrow">Create account</p>
-          <h2>Add user, owner, or admin</h2>
+          <p className="eyebrow">Создание аккаунта</p>
+          <h2>Добавить пользователя, владельца или администратора</h2>
         </div>
         <form className="form-grid user-create-grid" onSubmit={handleCreate}>
           <label>
-            Name
+            Имя
             <input
               value={newUser.name}
               onChange={(event) =>
@@ -104,7 +104,7 @@ export function AdminUsersPage() {
             />
           </label>
           <label>
-            Email
+            Электронная почта
             <input
               type="email"
               value={newUser.email}
@@ -116,7 +116,7 @@ export function AdminUsersPage() {
           </label>
           <PasswordField
             autoComplete="new-password"
-            label="Password"
+            label="Пароль"
             value={newUser.password}
             onChange={(event) =>
               setNewUser({ ...newUser, password: event.target.value })
@@ -125,7 +125,7 @@ export function AdminUsersPage() {
             minLength={8}
           />
           <label>
-            Role
+            Роль
             <select
               value={newUser.role}
               onChange={(event) =>
@@ -135,25 +135,25 @@ export function AdminUsersPage() {
                 })
               }
             >
-              <option value={Role.User}>User</option>
-              <option value={Role.Owner}>Owner</option>
-              <option value={Role.Admin}>Admin</option>
+              <option value={Role.User}>Пользователь</option>
+              <option value={Role.Owner}>Владелец</option>
+              <option value={Role.Admin}>Администратор</option>
             </select>
           </label>
           <button className="button" type="submit">
-            Create account
+            Создать аккаунт
           </button>
         </form>
       </section>
 
       <section className="panel stack">
         <div>
-          <p className="eyebrow">Directory</p>
-          <h2>Existing accounts</h2>
+          <p className="eyebrow">Список</p>
+          <h2>Существующие аккаунты</h2>
         </div>
-        {loading && <p className="muted">Loading users...</p>}
+        {loading && <p className="muted">Загрузка пользователей...</p>}
         {users.length === 0 && !loading ? (
-          <p className="muted">No users found.</p>
+          <p className="muted">Пользователи не найдены.</p>
         ) : (
           <div className="user-table">
             {users.map((user) => (
@@ -171,7 +171,7 @@ export function AdminUsersPage() {
                 </div>
                 <span className="pill">{roleName(user.role)}</span>
                 <label>
-                  Role
+                  Роль
                   <select
                     value={user.role}
                     onChange={(event) =>
@@ -181,9 +181,9 @@ export function AdminUsersPage() {
                       )
                     }
                   >
-                    <option value={Role.User}>User</option>
-                    <option value={Role.Owner}>Owner</option>
-                    <option value={Role.Admin}>Admin</option>
+                    <option value={Role.User}>Пользователь</option>
+                    <option value={Role.Owner}>Владелец</option>
+                    <option value={Role.Admin}>Администратор</option>
                   </select>
                 </label>
               </article>

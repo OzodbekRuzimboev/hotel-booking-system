@@ -4,7 +4,7 @@ namespace HotelBookingSystem.Api.Contracts.Management
 {
     public class AssignHotelOwnerRequest
     {
-        [Range(1, int.MaxValue, ErrorMessage = "OwnerId must be greater than zero.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Идентификатор владельца должен быть больше нуля.")]
         public int OwnerId { get; set; }
     }
 }

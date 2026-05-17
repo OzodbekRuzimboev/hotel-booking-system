@@ -92,8 +92,7 @@ export function HotelCard({
                 <span className="hotel-card-rating-copy">
                   <strong>{getRatingLabel(hotel.averageRating)}</strong>
                   <span>
-                    {hotel.reviewCount.toLocaleString()} review
-                    {hotel.reviewCount === 1 ? "" : "s"}
+                    {hotel.reviewCount.toLocaleString("ru-RU")} отзывов
                   </span>
                 </span>
                 <span className="hotel-card-rating-score">
@@ -102,7 +101,7 @@ export function HotelCard({
               </>
             ) : (
               <span className="hotel-card-rating-copy">
-                <strong>No reviews yet</strong>
+                <strong>Пока нет отзывов</strong>
               </span>
             )}
           </button>
@@ -126,10 +125,10 @@ export function HotelCard({
             </div>
             <div className="price-block hotel-card-price">
               <span>
-                total for {nights} night{nights === 1 ? "" : "s"}
+                итого за {nights} ночей
               </span>
               <strong>{formatCurrency(totalPrice)}</strong>
-              <span>{formatCurrency(displayedRoomType.price)}/night</span>
+              <span>{formatCurrency(displayedRoomType.price)}/ночь</span>
             </div>
           </div>
         )}
@@ -146,11 +145,11 @@ function getDisplayedRoomType(roomTypes: AvailableRoomTypeResponse[]) {
 }
 
 function getRatingLabel(rating: number) {
-  if (rating >= 9) return "Superb";
-  if (rating >= 8) return "Fabulous";
-  if (rating >= 7) return "Very good";
-  if (rating >= 6) return "Good";
-  return "Review score";
+  if (rating >= 9) return "Превосходно";
+  if (rating >= 8) return "Отлично";
+  if (rating >= 7) return "Очень хорошо";
+  if (rating >= 6) return "Хорошо";
+  return "Оценка";
 }
 
 function getRoomCardDescription(roomType: AvailableRoomTypeResponse) {
@@ -160,15 +159,15 @@ function getRoomCardDescription(roomType: AvailableRoomTypeResponse) {
 
 function getRoomBenefit(roomType: AvailableRoomTypeResponse) {
   if (roomType.mealOptions.includes("breakfast-included")) {
-    return "Breakfast included";
+    return "Завтрак включен";
   }
 
   if (roomType.mealOptions.includes("all-inclusive")) {
-    return "All-inclusive";
+    return "Все включено";
   }
 
   if (roomType.mealOptions.includes("self-catering")) {
-    return "Self-catering";
+    return "Самостоятельное питание";
   }
 
   return null;
