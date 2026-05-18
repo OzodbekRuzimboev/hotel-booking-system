@@ -48,7 +48,7 @@ export function Navbar() {
                   {user.role === Role.Admin ? (
                     <>
                       <Link to="/admin/hotels" onClick={() => setMenuOpen(false)}>
-                        Отели администратора
+                        Отели
                       </Link>
                       <Link to="/admin/bookings" onClick={() => setMenuOpen(false)}>
                         Бронирования

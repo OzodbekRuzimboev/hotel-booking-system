@@ -185,7 +185,6 @@ export function RoomTypeDetailsPage() {
 
       <section className="panel stack">
         <div>
-          <p className="eyebrow">Детали номера</p>
           <h2>Об этом типе номера</h2>
         </div>
         {roomType.description ? (
@@ -200,34 +199,22 @@ export function RoomTypeDetailsPage() {
         </div>
         {(roomType.amenities.length > 0 || roomType.mealOptions.length > 0) && (
           <div className="room-feature-row">
-            {roomType.amenities.length > 0 && (
-              <div>
-                <h3>Удобства номера</h3>
-                <div className="amenity-chip-row">
-                  {getAmenityLabels(roomType.amenities, ROOM_AMENITIES).map(
-                    (amenity) => (
-                      <span className="amenity-chip" key={amenity}>
-                        {amenity}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
-            {roomType.mealOptions.length > 0 && (
-              <div>
-                <h3>Питание</h3>
-                <div className="amenity-chip-row">
-                  {getAmenityLabels(roomType.mealOptions, MEAL_OPTIONS).map(
-                    (mealOption) => (
-                      <span className="amenity-chip" key={mealOption}>
-                        {mealOption}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
+            <div className="amenity-grid room-detail-amenities">
+              {getAmenityLabels(roomType.amenities, ROOM_AMENITIES).map(
+                (amenity) => (
+                  <span className="amenity-chip" key={`amenity-${amenity}`}>
+                    {amenity}
+                  </span>
+                )
+              )}
+              {getAmenityLabels(roomType.mealOptions, MEAL_OPTIONS).map(
+                (mealOption) => (
+                  <span className="amenity-chip" key={`meal-${mealOption}`}>
+                    {mealOption}
+                  </span>
+                )
+              )}
+            </div>
           </div>
         )}
       </section>

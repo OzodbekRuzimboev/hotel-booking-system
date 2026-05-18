@@ -332,7 +332,6 @@ export function HotelDetailsPage() {
 
         {hotel.amenities.length > 0 && (
           <section className="amenity-section">
-            <p className="eyebrow">Удобства отеля</p>
             <div className="amenity-grid">
               {getAmenityLabels(hotel.amenities, HOTEL_AMENITIES).map((amenity) => (
                 <span className="amenity-chip" key={amenity}>

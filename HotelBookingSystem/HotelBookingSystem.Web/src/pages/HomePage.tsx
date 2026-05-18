@@ -17,36 +17,52 @@ type Destination = Pick<
 
 const DEFAULT_POPULAR_DESTINATIONS: Destination[] = [
   {
-    city: "Budapest",
-    country: "Hungary",
+    city: "Будапешт",
+    country: "Венгрия",
     imageUrl:
       "https://images.unsplash.com/photo-1549877452-9c387954fbc2?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    city: "Prague",
-    country: "Czechia",
+    city: "Прага",
+    country: "Чехия",
     imageUrl:
       "https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    city: "Istanbul",
-    country: "Turkey",
+    city: "Стамбул",
+    country: "Турция",
     imageUrl:
       "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1000&q=80",
   },
   {
-    city: "Bucharest",
-    country: "Romania",
+    city: "Бухарест",
+    country: "Румыния",
     imageUrl:
       "https://images.unsplash.com/photo-1584646098378-0874589d76b1?auto=format&fit=crop&w=1000&q=80",
   },
   {
-    city: "Paris",
-    country: "France",
+    city: "Париж",
+    country: "Франция",
     imageUrl:
       "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1000&q=80",
   },
 ];
+
+const CITY_TRANSLATIONS: Record<string, string> = {
+  Budapest: "Будапешт",
+  Prague: "Прага",
+  Istanbul: "Стамбул",
+  Bucharest: "Бухарест",
+  Paris: "Париж",
+};
+
+const COUNTRY_TRANSLATIONS: Record<string, string> = {
+  Hungary: "Венгрия",
+  Czechia: "Чехия",
+  Turkey: "Турция",
+  Romania: "Румыния",
+  France: "Франция",
+};
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -69,7 +85,7 @@ export function HomePage() {
         const destinations = await getPopularDestinations();
 
         if (!ignore) {
-          setPopularDestinations(destinations);
+          setPopularDestinations(destinations.map(localizeDestination));
         }
       } catch {
         if (!ignore) {
@@ -161,6 +177,17 @@ export function HomePage() {
       </section>
     </main>
   );
+}
+
+function localizeDestination(destination: Destination): Destination {
+  const city = destination.city.trim();
+  const country = destination.country.trim();
+
+  return {
+    ...destination,
+    city: CITY_TRANSLATIONS[city] ?? destination.city,
+    country: COUNTRY_TRANSLATIONS[country] ?? destination.country,
+  };
 }
 
 function PopularDestinations({

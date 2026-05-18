@@ -56,7 +56,6 @@ export function MyBookingsPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Раздел гостя</p>
           <h1>Мои бронирования</h1>
         </div>
       </div>

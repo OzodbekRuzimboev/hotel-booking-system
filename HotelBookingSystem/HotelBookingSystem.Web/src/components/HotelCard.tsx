@@ -78,9 +78,6 @@ export function HotelCard({
             <p className="muted hotel-card-address">
               {hotel.city} - {hotel.address}
             </p>
-            {hotel.description && (
-              <p className="hotel-card-description">{hotel.description}</p>
-            )}
           </div>
           <button
             className="hotel-card-rating"
@@ -154,7 +151,7 @@ function getRatingLabel(rating: number) {
 
 function getRoomCardDescription(roomType: AvailableRoomTypeResponse) {
   const description = roomType.description?.trim();
-  return description ? shortenText(description, 92) : null;
+  return description || null;
 }
 
 function getRoomBenefit(roomType: AvailableRoomTypeResponse) {
@@ -171,9 +168,4 @@ function getRoomBenefit(roomType: AvailableRoomTypeResponse) {
   }
 
   return null;
-}
-
-function shortenText(text: string, maxLength: number) {
-  if (text.length <= maxLength) return text;
-  return `${text.slice(0, maxLength - 3).trim()}...`;
 }

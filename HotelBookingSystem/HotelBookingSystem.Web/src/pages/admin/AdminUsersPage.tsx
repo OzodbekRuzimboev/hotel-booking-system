@@ -88,7 +88,6 @@ export function AdminUsersPage() {
 
       <section className="panel stack">
         <div>
-          <p className="eyebrow">Создание аккаунта</p>
           <h2>Добавить пользователя, владельца или администратора</h2>
         </div>
         <form className="form-grid user-create-grid" onSubmit={handleCreate}>
@@ -148,7 +147,6 @@ export function AdminUsersPage() {
 
       <section className="panel stack">
         <div>
-          <p className="eyebrow">Список</p>
           <h2>Существующие аккаунты</h2>
         </div>
         {loading && <p className="muted">Загрузка пользователей...</p>}
@@ -158,8 +156,11 @@ export function AdminUsersPage() {
           <div className="user-table">
             {users.map((user) => (
               <article className="user-row" key={user.id}>
-                <div>
-                  <strong>{user.name}</strong>
+                <div className="user-summary">
+                  <div className="user-title-row">
+                    <strong>{user.name}</strong>
+                    <span className="pill">{roleName(user.role)}</span>
+                  </div>
                   <p className="muted small">
                     #{user.id} - {user.email}
                   </p>
@@ -169,9 +170,9 @@ export function AdminUsersPage() {
                     </p>
                   )}
                 </div>
-                <span className="pill">{roleName(user.role)}</span>
-                <label>
-                  Роль
+                <span className="user-role-label">Роль</span>
+                <label className="user-role-select">
+                  <span className="sr-only">Роль</span>
                   <select
                     value={user.role}
                     onChange={(event) =>
