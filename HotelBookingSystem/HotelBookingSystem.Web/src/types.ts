@@ -279,8 +279,6 @@ export type CreateUserRequest = {
 };
 
 export type AccountSettings = {
-  preferredCurrency: string;
-  preferredLanguage: string;
   emailNotificationsEnabled: boolean;
 };
 

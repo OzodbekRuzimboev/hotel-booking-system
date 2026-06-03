@@ -60,6 +60,7 @@ namespace HotelBookingSystem.Api.IntegrationTests
             {
                 roomType.Rooms.Add(new Room
                 {
+                    Hotel = hotel,
                     Number = $"10{i}",
                     IsActive = roomsAreActive
                 });

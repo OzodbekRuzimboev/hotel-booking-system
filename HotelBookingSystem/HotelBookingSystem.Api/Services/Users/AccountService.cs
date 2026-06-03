@@ -57,13 +57,12 @@ namespace HotelBookingSystem.Api.Services.Users
 
             await EnsureSettingsAsync(user);
 
-            user.Settings!.PreferredCurrency = req.PreferredCurrency.Trim().ToUpperInvariant();
-            user.Settings.PreferredLanguage = req.PreferredLanguage.Trim().ToLowerInvariant();
-            user.Settings.EmailNotificationsEnabled = req.EmailNotificationsEnabled;
+            var settings = user.Settings!;
+            settings.EmailNotificationsEnabled = req.EmailNotificationsEnabled;
 
             await _context.SaveChangesAsync();
 
-            return ToSettingsResponse(user.Settings);
+            return ToSettingsResponse(settings);
         }
 
         public async Task ChangePasswordAsync(int userId, ChangePasswordRequest req)
@@ -194,8 +193,6 @@ namespace HotelBookingSystem.Api.Services.Users
 
         private static AccountSettingsResponse ToSettingsResponse(UserSettings settings) => new()
         {
-            PreferredCurrency = settings.PreferredCurrency,
-            PreferredLanguage = settings.PreferredLanguage,
             EmailNotificationsEnabled = settings.EmailNotificationsEnabled
         };
 

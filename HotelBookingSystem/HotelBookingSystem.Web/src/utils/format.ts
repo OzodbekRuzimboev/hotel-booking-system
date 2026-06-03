@@ -1,7 +1,7 @@
 export function formatCurrency(value: number) {
   return new Intl.NumberFormat("ru-RU", {
     style: "currency",
-    currency: "USD",
+    currency: "RUB",
     maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
   }).format(value);
 }

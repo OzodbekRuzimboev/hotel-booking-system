@@ -3,17 +3,13 @@ import {
   changePassword,
   getAccount,
   updateProfile,
-  updateSettings,
 } from "../api/accountApi";
 import { getApiErrorMessage } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { ImageField } from "../components/ImageField";
 import { ImageWithFallback } from "../components/ImageWithFallback";
 import { PasswordField } from "../components/PasswordField";
-import {
-  type AccountSettings,
-  type UserAccountResponse,
-} from "../types";
+import { type UserAccountResponse } from "../types";
 
 export function AccountPage() {
   const { updateUser } = useAuth();
@@ -23,11 +19,6 @@ export function AccountPage() {
     phoneNumber: "",
     country: "",
     profileImageUrl: "",
-  });
-  const [settingsDraft, setSettingsDraft] = useState<AccountSettings>({
-    preferredCurrency: "USD",
-    preferredLanguage: "en",
-    emailNotificationsEnabled: true,
   });
   const [passwordDraft, setPasswordDraft] = useState({
     currentPassword: "",
@@ -51,7 +42,6 @@ export function AccountPage() {
         country: nextAccount.country ?? "",
         profileImageUrl: nextAccount.profileImageUrl ?? "",
       });
-      setSettingsDraft(nextAccount.settings);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -81,20 +71,6 @@ export function AccountPage() {
         profileImageUrl: updated.profileImageUrl ?? null,
       });
       setSuccess("Профиль обновлен.");
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-    }
-  }
-
-  async function handleSettingsSubmit(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-    setSuccess("");
-
-    try {
-      const updated = await updateSettings(settingsDraft);
-      setSettingsDraft(updated);
-      setSuccess("Настройки сохранены.");
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -130,7 +106,6 @@ export function AccountPage() {
     <main className="page stack-lg">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Аккаунт</p>
           <h1>Личный кабинет</h1>
         </div>
       </div>
@@ -161,8 +136,7 @@ export function AccountPage() {
           <div className="account-grid">
             <section className="panel stack">
               <div>
-                <p className="eyebrow">Личная информация</p>
-                <h2>Профиль</h2>
+                <h2>Личная информация</h2>
               </div>
               <form className="form" onSubmit={handleProfileSubmit}>
                 <label>
@@ -227,7 +201,6 @@ export function AccountPage() {
 
             <section className="panel stack">
               <div>
-                <p className="eyebrow">Безопасность</p>
                 <h2>Пароль</h2>
               </div>
               <form className="form" onSubmit={handlePasswordSubmit}>
@@ -275,62 +248,6 @@ export function AccountPage() {
               </form>
             </section>
 
-            <section className="panel stack">
-              <div>
-                <p className="eyebrow">Предпочтения</p>
-                <h2>Настройки</h2>
-              </div>
-              <form className="form" onSubmit={handleSettingsSubmit}>
-                <label>
-                  Валюта
-                  <select
-                    value={settingsDraft.preferredCurrency}
-                    onChange={(event) =>
-                      setSettingsDraft({
-                        ...settingsDraft,
-                        preferredCurrency: event.target.value,
-                      })
-                    }
-                  >
-                    <option value="USD">USD</option>
-                    <option value="UZS">UZS</option>
-                    <option value="EUR">EUR</option>
-                  </select>
-                </label>
-                <label>
-                  Язык
-                  <select
-                    value={settingsDraft.preferredLanguage}
-                    onChange={(event) =>
-                      setSettingsDraft({
-                        ...settingsDraft,
-                        preferredLanguage: event.target.value,
-                      })
-                    }
-                  >
-                    <option value="en">Английский</option>
-                    <option value="uz">Узбекский</option>
-                    <option value="ru">Русский</option>
-                  </select>
-                </label>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={settingsDraft.emailNotificationsEnabled}
-                    onChange={(event) =>
-                      setSettingsDraft({
-                        ...settingsDraft,
-                        emailNotificationsEnabled: event.target.checked,
-                      })
-                    }
-                  />
-                  Уведомления о бронированиях по электронной почте
-                </label>
-                <button className="button secondary" type="submit">
-                  Сохранить настройки
-                </button>
-              </form>
-            </section>
           </div>
         </>
       )}

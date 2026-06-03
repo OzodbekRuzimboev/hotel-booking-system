@@ -64,9 +64,9 @@ namespace HotelBookingSystem.Api.Data
 
             modelBuilder.Entity<User>().Property(u => u.Role).HasConversion<string>().HasMaxLength(32);
 
-            modelBuilder.Entity<UserSettings>().Property(s => s.PreferredCurrency).HasMaxLength(3).HasDefaultValue("USD");
+            modelBuilder.Entity<UserSettings>().Property(s => s.PreferredCurrency).HasMaxLength(3).HasDefaultValue("RUB");
 
-            modelBuilder.Entity<UserSettings>().Property(s => s.PreferredLanguage).HasMaxLength(10).HasDefaultValue("en");
+            modelBuilder.Entity<UserSettings>().Property(s => s.PreferredLanguage).HasMaxLength(10).HasDefaultValue("ru");
 
             modelBuilder.Entity<Hotel>().Property(h => h.IsActive).HasDefaultValue(true);
 
