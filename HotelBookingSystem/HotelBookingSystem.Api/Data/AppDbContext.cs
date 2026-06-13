@@ -16,7 +16,6 @@ namespace HotelBookingSystem.Api.Data
         public DbSet<RoomType> RoomTypes => Set<RoomType>();
         public DbSet<Room> Rooms => Set<Room>();
         public DbSet<Booking> Bookings => Set<Booking>();
-        public DbSet<UserSettings> UserSettings => Set<UserSettings>();
         public DbSet<FavoriteHotel> FavoriteHotels => Set<FavoriteHotel>();
         public DbSet<Review> Reviews => Set<Review>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
@@ -36,8 +35,6 @@ namespace HotelBookingSystem.Api.Data
 
             modelBuilder.Entity<User>().HasMany(u => u.Bookings).WithOne(b => b.User).HasForeignKey(b => b.UserId);
 
-            modelBuilder.Entity<User>().HasOne(u => u.Settings).WithOne(s => s.User).HasForeignKey<UserSettings>(s => s.UserId);
-
             modelBuilder.Entity<User>().HasMany(u => u.FavoriteHotels).WithOne(f => f.User).HasForeignKey(f => f.UserId);
 
             modelBuilder.Entity<Hotel>().HasMany(h => h.Favorites).WithOne(f => f.Hotel).HasForeignKey(f => f.HotelId);
@@ -54,8 +51,6 @@ namespace HotelBookingSystem.Api.Data
 
             modelBuilder.Entity<Room>().HasIndex(r => new { r.HotelId, r.Number }).IsUnique();
 
-            modelBuilder.Entity<UserSettings>().HasIndex(s => s.UserId).IsUnique();
-
             modelBuilder.Entity<FavoriteHotel>().HasIndex(f => new { f.UserId, f.HotelId }).IsUnique();
 
             modelBuilder.Entity<Review>().HasIndex(r => new { r.UserId, r.RoomTypeId }).IsUnique();
@@ -63,10 +58,6 @@ namespace HotelBookingSystem.Api.Data
             modelBuilder.Entity<Booking>().Property(b => b.Status).HasConversion<int>().HasDefaultValue(BookingStatus.Active);
 
             modelBuilder.Entity<User>().Property(u => u.Role).HasConversion<string>().HasMaxLength(32);
-
-            modelBuilder.Entity<UserSettings>().Property(s => s.PreferredCurrency).HasMaxLength(3).HasDefaultValue("RUB");
-
-            modelBuilder.Entity<UserSettings>().Property(s => s.PreferredLanguage).HasMaxLength(10).HasDefaultValue("ru");
 
             modelBuilder.Entity<Hotel>().Property(h => h.IsActive).HasDefaultValue(true);
 

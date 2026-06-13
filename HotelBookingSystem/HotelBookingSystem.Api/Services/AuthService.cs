@@ -43,8 +43,7 @@ namespace HotelBookingSystem.Api.Services
                 Name = name,
                 Email = email,
                 Role = role,
-                PasswordHash = string.Empty,
-                Settings = new UserSettings()
+                PasswordHash = string.Empty
             };
 
             user.PasswordHash = _passwordHasher.HashPassword(user, password);

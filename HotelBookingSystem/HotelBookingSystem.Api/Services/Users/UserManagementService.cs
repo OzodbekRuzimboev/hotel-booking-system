@@ -52,8 +52,7 @@ namespace HotelBookingSystem.Api.Services.Users
                 Name = req.Name.Trim(),
                 Email = email,
                 Role = req.Role,
-                PasswordHash = string.Empty,
-                Settings = new UserSettings()
+                PasswordHash = string.Empty
             };
 
             user.PasswordHash = _passwordHasher.HashPassword(user, req.Password);

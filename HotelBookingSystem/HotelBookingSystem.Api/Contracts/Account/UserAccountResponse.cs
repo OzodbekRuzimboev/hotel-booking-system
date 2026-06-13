@@ -11,6 +11,5 @@ namespace HotelBookingSystem.Api.Contracts.Account
         public string? PhoneNumber { get; set; }
         public string? Country { get; set; }
         public string? ProfileImageUrl { get; set; }
-        public AccountSettingsResponse Settings { get; set; } = new();
     }
 }

@@ -1,6 +1,5 @@
 import { api } from "./client";
 import type {
-  AccountSettings,
   ChangePasswordRequest,
   FavoriteHotelResponse,
   FavoriteStatusResponse,
@@ -20,13 +19,6 @@ export async function updateProfile(
     "/account/profile",
     request
   );
-  return response.data;
-}
-
-export async function updateSettings(
-  request: AccountSettings
-): Promise<AccountSettings> {
-  const response = await api.patch<AccountSettings>("/account/settings", request);
   return response.data;
 }
 

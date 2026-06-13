@@ -23,7 +23,6 @@ namespace HotelBookingSystem.Api.Services.Users
         {
             var user = await _context.Users
                 .AsNoTracking()
-                .Include(u => u.Settings)
                 .FirstOrDefaultAsync(u => u.Id == userId)
                 ?? throw new NotFoundException("Пользователь не найден.");
 
@@ -33,7 +32,6 @@ namespace HotelBookingSystem.Api.Services.Users
         public async Task<UserAccountResponse> UpdateProfileAsync(int userId, UpdateProfileRequest req)
         {
             var user = await _context.Users
-                .Include(u => u.Settings)
                 .FirstOrDefaultAsync(u => u.Id == userId)
                 ?? throw new NotFoundException("Пользователь не найден.");
 
@@ -42,27 +40,9 @@ namespace HotelBookingSystem.Api.Services.Users
             user.Country = NormalizeOptionalText(req.Country);
             user.ProfileImageUrl = NormalizeOptionalText(req.ProfileImageUrl);
 
-            await EnsureSettingsAsync(user);
             await _context.SaveChangesAsync();
 
             return ToAccountResponse(user);
-        }
-
-        public async Task<AccountSettingsResponse> UpdateSettingsAsync(int userId, AccountSettingsRequest req)
-        {
-            var user = await _context.Users
-                .Include(u => u.Settings)
-                .FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new NotFoundException("Пользователь не найден.");
-
-            await EnsureSettingsAsync(user);
-
-            var settings = user.Settings!;
-            settings.EmailNotificationsEnabled = req.EmailNotificationsEnabled;
-
-            await _context.SaveChangesAsync();
-
-            return ToSettingsResponse(settings);
         }
 
         public async Task ChangePasswordAsync(int userId, ChangePasswordRequest req)
@@ -167,16 +147,6 @@ namespace HotelBookingSystem.Api.Services.Users
             await _context.SaveChangesAsync();
         }
 
-        private async Task EnsureSettingsAsync(User user)
-        {
-            if (user.Settings is not null)
-                return;
-
-            user.Settings = new UserSettings { UserId = user.Id };
-            _context.UserSettings.Add(user.Settings);
-            await Task.CompletedTask;
-        }
-
         private static UserAccountResponse ToAccountResponse(User user) => new()
         {
             Id = user.Id,
@@ -185,15 +155,7 @@ namespace HotelBookingSystem.Api.Services.Users
             Role = user.Role,
             PhoneNumber = user.PhoneNumber,
             Country = user.Country,
-            ProfileImageUrl = user.ProfileImageUrl,
-            Settings = user.Settings is null
-                ? new AccountSettingsResponse()
-                : ToSettingsResponse(user.Settings)
-        };
-
-        private static AccountSettingsResponse ToSettingsResponse(UserSettings settings) => new()
-        {
-            EmailNotificationsEnabled = settings.EmailNotificationsEnabled
+            ProfileImageUrl = user.ProfileImageUrl
         };
 
         private static string? NormalizeOptionalText(string? value)

@@ -278,10 +278,6 @@ export type CreateUserRequest = {
   role: Role;
 };
 
-export type AccountSettings = {
-  emailNotificationsEnabled: boolean;
-};
-
 export type UserAccountResponse = {
   id: number;
   name: string;
@@ -290,7 +286,6 @@ export type UserAccountResponse = {
   phoneNumber?: string | null;
   country?: string | null;
   profileImageUrl?: string | null;
-  settings: AccountSettings;
 };
 
 export type UpdateProfileRequest = {

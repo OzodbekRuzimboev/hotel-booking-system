@@ -33,13 +33,6 @@ namespace HotelBookingSystem.Api.Controllers
             return Ok(result);
         }
 
-        [HttpPatch("settings")]
-        public async Task<IActionResult> UpdateSettings(AccountSettingsRequest req)
-        {
-            var result = await _accountService.UpdateSettingsAsync(User.GetUserId(), req);
-            return Ok(result);
-        }
-
         [HttpPatch("password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordRequest req)
         {

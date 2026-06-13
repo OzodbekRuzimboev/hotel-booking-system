@@ -14,7 +14,6 @@ namespace HotelBookingSystem.Api.Entities
         public string? ProfileImageUrl { get; set; }
 
         public List<Booking> Bookings { get; set; } = [];
-        public UserSettings? Settings { get; set; }
         public List<FavoriteHotel> FavoriteHotels { get; set; } = [];
         public List<Review> Reviews { get; set; } = [];
     }
